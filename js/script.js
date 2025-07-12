@@ -71,7 +71,90 @@ document.addEventListener('DOMContentLoaded', function() {
   if (document.getElementById('configuracoesSection')) {
     showConfigTab('rendaTab');
   }
+  
+  // Adicionar event listener para o botão "Adicionar Pagamento"
+  const adicionarPagamentoBtn = document.getElementById('adicionarPagamento');
+  if (adicionarPagamentoBtn) {
+    adicionarPagamentoBtn.addEventListener('click', adicionarCampoPagamento);
+  }
+  
+  // Adicionar event listener para botões de remover pagamento (delegação de eventos)
+  const pagamentosContainer = document.getElementById('pagamentosContainer');
+  if (pagamentosContainer) {
+    pagamentosContainer.addEventListener('click', function(e) {
+      if (e.target.classList.contains('remover-pagamento') || 
+          e.target.closest('.remover-pagamento')) {
+        const botao = e.target.classList.contains('remover-pagamento') ? 
+                      e.target : e.target.closest('.remover-pagamento');
+        removerCampoPagamento(botao);
+      }
+    });
+  }
 });
+
+// ===================== FUNÇÕES DE GERENCIAMENTO DE PAGAMENTOS =====================
+
+/**
+ * Adiciona um novo campo de pagamento ao modal de cadastro de renda
+ */
+function adicionarCampoPagamento() {
+  const container = document.getElementById('pagamentosContainer');
+  if (!container) {
+    console.error('Container de pagamentos não encontrado');
+    return;
+  }
+  
+  // Criar novo item de pagamento
+  const novoPagamento = document.createElement('div');
+  novoPagamento.className = 'pagamento-item';
+  novoPagamento.innerHTML = `
+    <div class="form-group">
+      <label class="form-label">Dia do Mês:</label>
+      <input type="number" class="form-control pagamento-dia" placeholder="Dia" min="1" max="31" required>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Valor (R$):</label>
+      <input type="number" class="form-control pagamento-valor" placeholder="Valor" step="0.01" required pattern="[0-9]*" inputmode="decimal">
+    </div>
+    <button type="button" class="remover-pagamento">
+      <i class="fas fa-trash"></i>
+    </button>
+  `;
+  
+  container.appendChild(novoPagamento);
+  
+  // Focar no primeiro campo do novo pagamento
+  const novoDiaInput = novoPagamento.querySelector('.pagamento-dia');
+  if (novoDiaInput) {
+    novoDiaInput.focus();
+  }
+  
+  exibirToast('Campo de pagamento adicionado!', 'success');
+}
+
+/**
+ * Remove um campo de pagamento
+ * @param {Element} botaoRemover - Botão de remover clicado
+ */
+function removerCampoPagamento(botaoRemover) {
+  const container = document.getElementById('pagamentosContainer');
+  if (!container) return;
+  
+  const pagamentoItem = botaoRemover.closest('.pagamento-item');
+  if (!pagamentoItem) return;
+  
+  // Verificar se há pelo menos um pagamento restante
+  const totalPagamentos = container.querySelectorAll('.pagamento-item').length;
+  
+  if (totalPagamentos <= 1) {
+    exibirToast('Deve haver pelo menos um pagamento recorrente!', 'warning');
+    return;
+  }
+  
+  // Remover o item
+  pagamentoItem.remove();
+  exibirToast('Campo de pagamento removido!', 'success');
+}
 
 /**
  * A função exibirToast foi movida para utils.js
@@ -132,6 +215,9 @@ function showSection(sectionId) {
     loadRendas();
     loadCategorias();
     loadCartoes();
+  } else if (sectionId === 'despesasSection') {
+    // Carregar despesas quando esta seção for mostrada
+    filtrarTodasDespesas();
   }
 }
 
@@ -175,6 +261,63 @@ function showConfigTab(tabId) {
  * @param {string} id - ID do modal a ser aberto
  */
 window.abrirModal = function(id) {
+  // Resetar formulários e elementos específicos por modal
+  if (id === "cadastroDespesaModal") {
+    // Verificar se não estamos abrindo o modal para edição (chamado pela função editarDespesa)
+    if (!document.getElementById("despesaIdEditar").value) {
+      // Limpar os campos individualmente
+      document.getElementById("despesaDescricao").value = "";
+      document.getElementById("despesaValor").value = "";
+      document.getElementById("dataCompra").value = "";
+      document.getElementById("categoriaDespesa").value = "";
+      document.getElementById("formaPagamento").value = "avista";
+      document.getElementById("tipoPagamento").value = "manual";
+      
+      // Limpar campo oculto de ID da despesa
+      document.getElementById("despesaIdEditar").value = "";
+      
+      // Limpar campos de parcelamento
+      const parcelamentoDespesaDiv = document.getElementById("parcelamentoDespesaDiv");
+      if (parcelamentoDespesaDiv) {
+        parcelamentoDespesaDiv.style.display = "none";
+      }
+      
+      const parcelasDespesa = document.getElementById("parcelasDespesa");
+      if (parcelasDespesa) {
+        parcelasDespesa.value = "";
+      }
+      
+      // Limpar campos de recorrência
+      const recorrenciaDespesaDiv = document.getElementById("recorrenciaDespesaDiv");
+      if (recorrenciaDespesaDiv) {
+        recorrenciaDespesaDiv.style.display = "none";
+      }
+      
+      const diaVencimentoRecorrente = document.getElementById("diaVencimentoRecorrente");
+      if (diaVencimentoRecorrente) {
+        diaVencimentoRecorrente.value = "";
+      }
+      
+      const duracaoRecorrente = document.getElementById("duracaoRecorrente");
+      if (duracaoRecorrente) {
+        duracaoRecorrente.value = "";
+      }
+      
+      // Resetar título e botões para cadastro
+      document.querySelector("#cadastroDespesaModal .modal-title").textContent = "Cadastrar Despesa";
+      
+      // Mostrar botão de cadastrar, esconder botão de editar
+      const btnCadastrar = document.getElementById("btnCadastrarDespesa");
+      const btnEditar = document.getElementById("btnEditarDespesa");
+      if (btnCadastrar) {
+        btnCadastrar.style.display = "inline-block";
+      }
+      if (btnEditar) {
+        btnEditar.style.display = "none";
+      }
+    }
+  }
+  
   document.getElementById(id).style.display = "flex";
   
   // Inicializar componentes específicos do modal
@@ -187,6 +330,12 @@ window.abrirModal = function(id) {
   }
   if (id === "pagarDespesaModal") filtrarDespesas();
   if (id === "novo_limitesModal") novo_carregarLimites();
+  if (id === "receberPagamentoModal") {
+    carregarRendasParaRecebimento();
+    // Definir data atual
+    const hoje = new Date();
+    document.getElementById("dataRecebimento").value = hoje.toISOString().split('T')[0];
+  }
 };
 
 /**
@@ -221,6 +370,19 @@ function filtrarDespesas() {
           option.text = `${despesa.descricao} - Cartão`;
           despesaSelect.appendChild(option);
         }
+      } else if (despesa.formaPagamento === "recorrente" && despesa.recorrencias) {
+        // Verificar se há recorrências não pagas
+        let temRecorrenciaNaoPaga = false;
+        despesa.recorrencias.forEach(recorrencia => {
+          if (!recorrencia.pago) temRecorrenciaNaoPaga = true;
+        });
+        
+        if (temRecorrenciaNaoPaga) {
+          const option = document.createElement("option");
+          option.value = key;
+          option.text = `${despesa.descricao} - Recorrente`;
+          despesaSelect.appendChild(option);
+        }
       }
     });
   }).catch(error => {
@@ -235,6 +397,23 @@ function filtrarDespesas() {
  */
 window.fecharModal = function(id) {
   document.getElementById(id).style.display = "none";
+  
+  // Reset específico para modal de despesas
+  if (id === "cadastroDespesaModal") {
+    // Sempre resetar para modo cadastro quando fechar
+    document.getElementById("despesaIdEditar").value = "";
+    document.querySelector("#cadastroDespesaModal .modal-title").textContent = "Cadastrar Despesa";
+    
+    // Mostrar botão cadastrar, esconder botão editar
+    const btnCadastrar = document.getElementById("btnCadastrarDespesa");
+    const btnEditar = document.getElementById("btnEditarDespesa");
+    if (btnCadastrar) {
+      btnCadastrar.style.display = "inline-block";
+    }
+    if (btnEditar) {
+      btnEditar.style.display = "none";
+    }
+  }
 };
 
 /**
@@ -308,19 +487,27 @@ function atualizarDashboard() {
     return;
   }
   
+  // Processar pagamentos automáticos antes de calcular o saldo
+  processarPagamentosAutomaticos();
+  
   // Buscar apenas as rendas do usuário atual
   db.ref("pessoas").orderByChild("userId").equalTo(currentUser.uid).once("value").then(snapshot => {
     snapshot.forEach(child => {
       let pessoa = child.val();
       saldo += parseFloat(pessoa.saldoInicial) || 0;
       
-      if (pessoa.pagamentos) {
-        pessoa.pagamentos.forEach(pag => { 
-          let pagamentoDia = parseInt(pag.dia);
-          if (pagamentoDia <= hoje.getDate()) {
-            saldo += parseFloat(pag.valor) || 0;
-          }
-        });
+      // Verificar se existe histórico de pagamentos recebidos para este mês/ano
+      if (pessoa.pagamentosRecebidos) {
+        const mesAtual = hoje.getMonth();
+        const anoAtual = hoje.getFullYear();
+        const chaveMonthYear = `${anoAtual}-${mesAtual}`;
+        
+        if (pessoa.pagamentosRecebidos[chaveMonthYear]) {
+          // Somar apenas pagamentos que já foram marcados como recebidos
+          pessoa.pagamentosRecebidos[chaveMonthYear].forEach(pagRecebido => {
+            saldo += parseFloat(pagRecebido.valor) || 0;
+          });
+        }
       }
     });
     
@@ -328,6 +515,12 @@ function atualizarDashboard() {
     db.ref("despesas").orderByChild("userId").equalTo(currentUser.uid).once("value").then(snapshot2 => {
       snapshot2.forEach(child => {
         let despesa = child.val();
+        let despesaId = child.key;
+        
+        // Gerar novas recorrências se necessário para despesas infinitas
+        if (despesa.formaPagamento === "recorrente" && despesa.recorrenteInfinita) {
+          gerarNovasRecorrencias(despesaId, despesa);
+        }
         if (despesa.pago) {
           if (despesa.formaPagamento === "avista") {
             saldo -= parseFloat(despesa.valor) || 0;
@@ -380,6 +573,17 @@ function updateProximosVencimentos() {
             }
           }
         });
+      } else if (despesa.formaPagamento === "recorrente" && despesa.recorrencias) {
+        despesa.recorrencias.forEach(recorrencia => {
+          if (!recorrencia.pago) {
+            let venc = new Date(recorrencia.vencimento);
+            if (venc >= hoje) {
+              if (proximoVencimento === null || venc < proximoVencimento) {
+                proximoVencimento = venc;
+              }
+            }
+          }
+        });
       }
     });
     
@@ -417,6 +621,13 @@ function atualizarDespesasMes() {
           let dt = new Date(parcela.vencimento);
           if (dt.getMonth() === dashboardMonth && dt.getFullYear() === dashboardYear) {
             despesasMes += parseFloat(parcela.valor) || 0;
+          }
+        });
+      } else if (despesa.formaPagamento === "recorrente" && despesa.recorrencias) {
+        despesa.recorrencias.forEach(recorrencia => {
+          let dt = new Date(recorrencia.vencimento);
+          if (dt.getMonth() === dashboardMonth && dt.getFullYear() === dashboardYear) {
+            despesasMes += parseFloat(recorrencia.valor) || 0;
           }
         });
       }
@@ -473,6 +684,23 @@ function carregarPainelDespesasMes() {
             listaContainer.appendChild(divDespesa);
           }
         });
+      } else if (despesa.formaPagamento === "recorrente" && despesa.recorrencias) {
+        despesa.recorrencias.forEach((recorrencia, index) => {
+          let dt = new Date(recorrencia.vencimento);
+          if (dt.getMonth() === dashboardMonth && dt.getFullYear() === dashboardYear) {
+            let divDespesa = document.createElement("div");
+            divDespesa.className = "despesa-item";
+            const mesAno = dt.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+            divDespesa.innerHTML = `
+              <div class="despesa-info">
+                <div class="despesa-titulo">${despesa.descricao}</div>
+                <div class="despesa-detalhe">Recorrente ${mesAno} - ${dt.toLocaleDateString()}</div>
+              </div>
+              <div class="despesa-valor">R$ ${parseFloat(recorrencia.valor).toFixed(2)}</div>
+            `;
+            listaContainer.appendChild(divDespesa);
+          }
+        });
       }
     });
     
@@ -522,6 +750,13 @@ function atualizarGrafico() {
             let dt = new Date(parcela.vencimento);
             if (dt.getMonth() === dashboardMonth && dt.getFullYear() === dashboardYear) {
               despesasPorCategoria[categoriaId] = (despesasPorCategoria[categoriaId] || 0) + parseFloat(parcela.valor);
+            }
+          });
+        } else if (despesa.formaPagamento === "recorrente" && despesa.recorrencias) {
+          despesa.recorrencias.forEach(recorrencia => {
+            let dt = new Date(recorrencia.vencimento);
+            if (dt.getMonth() === dashboardMonth && dt.getFullYear() === dashboardYear) {
+              despesasPorCategoria[categoriaId] = (despesasPorCategoria[categoriaId] || 0) + parseFloat(recorrencia.valor);
             }
           });
         }
@@ -655,16 +890,28 @@ function prevDashboardMonth() {
 }
 
 /**
- * Alterna a exibição do parcelamento
+ * Alterna a exibição do parcelamento e recorrência
  */
 function toggleParcelamento() {
   const formaPagamento = document.getElementById("formaPagamento").value;
   const parcelamentoDiv = document.getElementById("parcelamentoDiv");
+  const recorrenteDiv = document.getElementById("recorrenteDiv");
   
+  // Ocultar todas as opções primeiro
+  parcelamentoDiv.classList.add("hidden");
+  recorrenteDiv.classList.add("hidden");
+  
+  // Mostrar a opção apropriada
   if (formaPagamento === "cartao") {
     parcelamentoDiv.classList.remove("hidden");
-  } else {
-    parcelamentoDiv.classList.add("hidden");
+  } else if (formaPagamento === "recorrente") {
+    recorrenteDiv.classList.remove("hidden");
+    // Definir dia atual como padrão
+    const hoje = new Date();
+    const diaRecorrenciaInput = document.getElementById("diaRecorrencia");
+    if (diaRecorrenciaInput && !diaRecorrenciaInput.value) {
+      diaRecorrenciaInput.value = hoje.getDate();
+    }
   }
 }
 
@@ -689,12 +936,16 @@ function cadastrarDespesa() {
     return;
   }
   
+  // Capturar tipo de pagamento
+  const tipoPagamento = document.getElementById("tipoPagamento").value;
+  
   const novaDespesa = {
     descricao: descricao,
     valor: valor,
     dataCompra: dataCompra,
     categoria: categoria,
     formaPagamento: formaPagamento,
+    tipoPagamento: tipoPagamento, // Adicionar tipo de pagamento
     pago: false,
     userId: currentUser.uid // Adicionar ID do usuário
   };
@@ -727,22 +978,125 @@ function cadastrarDespesa() {
     novaDespesa.cartao = cartao;
     novaDespesa.parcelas = [];
     
-    // Calcular parcelas
-    const valorParcela = valor / numParcelas;
-    const dataBase = new Date(dataCompra);
-    
-    for (let i = 0; i < numParcelas; i++) {
-      const dataVencimento = new Date(dataBase);
-      dataVencimento.setMonth(dataBase.getMonth() + i);
+    // Buscar dados do cartão para obter fechamento e vencimento
+    db.ref("cartoes").child(cartao).once("value").then(cartaoSnapshot => {
+      const dadosCartao = cartaoSnapshot.val();
       
-      novaDespesa.parcelas.push({
-        valor: valorParcela,
-        vencimento: dataVencimento.toISOString().split("T")[0],
-        pago: false
+      if (!dadosCartao) {
+        exibirToast("Dados do cartão não encontrados.", "danger");
+        return;
+      }
+      
+      const diaFechamento = parseInt(dadosCartao.fechamento) || 1;
+      const diaVencimento = parseInt(dadosCartao.vencimento) || 10;
+      
+      // Calcular parcelas baseado na lógica do cartão
+      const valorParcela = valor / numParcelas;
+      const dataCompraObj = new Date(dataCompra);
+      
+      // Determinar se a compra entra na fatura atual ou próxima
+      let mesInicialParcela = dataCompraObj.getMonth();
+      let anoInicialParcela = dataCompraObj.getFullYear();
+      
+      // Se a compra foi feita após o fechamento do mês, vai para o próximo mês
+      if (dataCompraObj.getDate() > diaFechamento) {
+        mesInicialParcela += 1;
+        if (mesInicialParcela > 11) {
+          mesInicialParcela = 0;
+          anoInicialParcela += 1;
+        }
+      }
+      
+      for (let i = 0; i < numParcelas; i++) {
+        const mesVencimento = mesInicialParcela + i;
+        const anoVencimento = anoInicialParcela + Math.floor(mesVencimento / 12);
+        const mesAjustado = mesVencimento % 12;
+        
+        // Criar data de vencimento no dia especificado do cartão
+        const dataVencimento = new Date(anoVencimento, mesAjustado, diaVencimento);
+        
+        // Ajustar se o dia não existir no mês (ex: 31 de fevereiro vira 28/29)
+        if (dataVencimento.getDate() !== diaVencimento) {
+          dataVencimento.setDate(0); // Vai para o último dia do mês anterior
+        }
+        
+        novaDespesa.parcelas.push({
+          valor: valorParcela,
+          vencimento: dataVencimento.toISOString().split("T")[0],
+          pago: false
+        });
+      }
+      
+      // Salvar despesa após calcular parcelas
+      db.ref("despesas").push(novaDespesa)
+        .then(() => {
+          exibirToast("Despesa cadastrada com sucesso!", "success");
+          fecharModal("cadastroDespesaModal");
+          atualizarDashboard();
+          filtrarTodasDespesas();
+        })
+        .catch(error => {
+          console.error("Erro ao cadastrar despesa:", error);
+          exibirToast("Erro ao cadastrar despesa. Tente novamente.", "danger");
+        });
+      
+    }).catch(error => {
+      console.error("Erro ao buscar dados do cartão:", error);
+      exibirToast("Erro ao buscar dados do cartão. Tente novamente.", "danger");
+    });
+    
+    // Retornar aqui para evitar que o código continue executando
+    return;
+  } else if (formaPagamento === "recorrente") {
+    const diaRecorrenciaElement = document.getElementById("diaRecorrencia");
+    const mesesRecorrenciaElement = document.getElementById("mesesRecorrencia");
+    
+    if (!diaRecorrenciaElement) {
+      console.error("Elemento diaRecorrencia não encontrado");
+      exibirToast("Erro ao processar formulário. Tente novamente.", "danger");
+      return;
+    }
+    
+    const diaRecorrencia = parseInt(diaRecorrenciaElement.value);
+    const mesesRecorrencia = mesesRecorrenciaElement && mesesRecorrenciaElement.value.trim() !== "" ? parseInt(mesesRecorrenciaElement.value) : 0;
+    
+    if (isNaN(diaRecorrencia) || diaRecorrencia < 1 || diaRecorrencia > 31) {
+      exibirToast("Digite um dia válido (1-31) para a recorrência.", "warning");
+      return;
+    }
+    
+    novaDespesa.diaRecorrencia = diaRecorrencia;
+    novaDespesa.mesesRecorrencia = mesesRecorrencia;
+    novaDespesa.recorrencias = [];
+    novaDespesa.recorrenteInfinita = mesesRecorrencia === 0; // Marca se é recorrente infinita
+    
+    // Gerar recorrências - só criar algumas iniciais se for infinita
+    const dataBase = new Date(dataCompra);
+    const diaAtual = dataBase.getDate();
+    const quantidadeMeses = mesesRecorrencia > 0 ? mesesRecorrencia : 6; // Se infinita, criar apenas 6 iniciais
+    
+    // Determinar o mês inicial baseado na data atual vs dia de recorrência
+    let mesInicial = dataBase.getMonth();
+    if (diaAtual > diaRecorrencia) {
+      mesInicial += 1; // Começar do próximo mês se o dia já passou
+    }
+    
+    for (let i = 0; i < quantidadeMeses; i++) {
+      const dataRecorrencia = new Date(dataBase);
+      dataRecorrencia.setMonth(mesInicial + i);
+      dataRecorrencia.setDate(Math.min(diaRecorrencia, new Date(dataRecorrencia.getFullYear(), dataRecorrencia.getMonth() + 1, 0).getDate()));
+      
+      novaDespesa.recorrencias.push({
+        valor: valor,
+        vencimento: dataRecorrencia.toISOString().split("T")[0],
+        pago: false,
+        mes: dataRecorrencia.getMonth(),
+        ano: dataRecorrencia.getFullYear()
       });
     }
   }
   
+  // Para pagamentos à vista e recorrentes, salvar normalmente
   db.ref("despesas").push(novaDespesa)
     .then(() => {
       exibirToast("Despesa cadastrada com sucesso!", "success");
@@ -754,6 +1108,135 @@ function cadastrarDespesa() {
       console.error("Erro ao cadastrar despesa:", error);
       exibirToast("Erro ao cadastrar despesa. Tente novamente.", "danger");
     });
+}
+
+/**
+ * Processa pagamentos automáticos para despesas vencidas
+ */
+function processarPagamentosAutomaticos() {
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0); // Zero as horas para comparação apenas de data
+  
+  // Buscar apenas despesas do usuário atual
+  db.ref("despesas").orderByChild("userId").equalTo(currentUser.uid).once("value").then(snapshot => {
+    snapshot.forEach(child => {
+      const despesaId = child.key;
+      const despesa = child.val();
+      
+      // Processar apenas despesas com pagamento automático
+      if (despesa.tipoPagamento !== "automatico") return;
+      
+      if (despesa.formaPagamento === "avista" && !despesa.pago) {
+        const dataVencimento = new Date(despesa.dataCompra);
+        dataVencimento.setHours(0, 0, 0, 0);
+        
+        if (dataVencimento <= hoje) {
+          // Marcar como pago automaticamente
+          db.ref("despesas").child(despesaId).update({
+            pago: true,
+            pagoAutomaticamente: true,
+            dataPagamentoAutomatico: hoje.toISOString().split('T')[0]
+          });
+          console.log(`Despesa ${despesa.descricao} paga automaticamente`);
+          exibirToast(`Despesa "${despesa.descricao}" foi paga automaticamente!`, "info");
+        }
+      } else if (despesa.formaPagamento === "cartao" && despesa.parcelas) {
+        let houveAtualizacao = false;
+        const parcelasAtualizadas = despesa.parcelas.map(parcela => {
+          if (!parcela.pago) {
+            const dataVencimento = new Date(parcela.vencimento);
+            dataVencimento.setHours(0, 0, 0, 0);
+            
+            if (dataVencimento <= hoje) {
+              houveAtualizacao = true;
+              return {
+                ...parcela,
+                pago: true,
+                pagoAutomaticamente: true,
+                dataPagamentoAutomatico: hoje.toISOString().split('T')[0]
+              };
+            }
+          }
+          return parcela;
+        });
+        
+        if (houveAtualizacao) {
+          db.ref("despesas").child(despesaId).update({
+            parcelas: parcelasAtualizadas
+          });
+          console.log(`Parcelas de ${despesa.descricao} pagas automaticamente`);
+          exibirToast(`Parcelas de "${despesa.descricao}" foram pagas automaticamente!`, "info");
+        }
+      } else if (despesa.formaPagamento === "recorrente" && despesa.recorrencias) {
+        let houveAtualizacao = false;
+        const recorrenciasAtualizadas = despesa.recorrencias.map(recorrencia => {
+          if (!recorrencia.pago) {
+            const dataVencimento = new Date(recorrencia.vencimento);
+            dataVencimento.setHours(0, 0, 0, 0);
+            
+            if (dataVencimento <= hoje) {
+              houveAtualizacao = true;
+              return {
+                ...recorrencia,
+                pago: true,
+                pagoAutomaticamente: true,
+                dataPagamentoAutomatico: hoje.toISOString().split('T')[0]
+              };
+            }
+          }
+          return recorrencia;
+        });
+        
+        if (houveAtualizacao) {
+          db.ref("despesas").child(despesaId).update({
+            recorrencias: recorrenciasAtualizadas
+          });
+          console.log(`Recorrências de ${despesa.descricao} pagas automaticamente`);
+          exibirToast(`Recorrências de "${despesa.descricao}" foram pagas automaticamente!`, "info");
+        }
+      }
+    });
+  });
+}
+
+/**
+ * Gera novas recorrências para despesas infinitas quando necessário
+ */
+function gerarNovasRecorrencias(despesaId, despesa) {
+  if (!despesa.recorrenteInfinita) return;
+  
+  const hoje = new Date();
+  const ultimaRecorrencia = despesa.recorrencias[despesa.recorrencias.length - 1];
+  const ultimaData = new Date(ultimaRecorrencia.vencimento);
+  
+  // Se a última recorrência está dentro de 2 meses do presente, gerar mais
+  const diferenciaMeses = (hoje.getFullYear() - ultimaData.getFullYear()) * 12 + (hoje.getMonth() - ultimaData.getMonth());
+  
+  if (diferenciaMeses >= -2) {
+    const novasRecorrencias = [];
+    const quantidadeGerar = 6; // Gerar mais 6 meses
+    
+    for (let i = 1; i <= quantidadeGerar; i++) {
+      const novaData = new Date(ultimaData);
+      novaData.setMonth(ultimaData.getMonth() + i);
+      novaData.setDate(Math.min(despesa.diaRecorrencia, new Date(novaData.getFullYear(), novaData.getMonth() + 1, 0).getDate()));
+      
+      novasRecorrencias.push({
+        valor: despesa.valor,
+        vencimento: novaData.toISOString().split('T')[0],
+        pago: false,
+        mes: novaData.getMonth(),
+        ano: novaData.getFullYear()
+      });
+    }
+    
+    if (novasRecorrencias.length > 0) {
+      const recorrenciasAtualizadas = [...despesa.recorrencias, ...novasRecorrencias];
+      db.ref("despesas").child(despesaId).update({
+        recorrencias: recorrenciasAtualizadas
+      });
+    }
+  }
 }
 
 /**
@@ -795,6 +1278,25 @@ function pagarDespesa() {
         atualizarDashboard();
         filtrarTodasDespesas();
       });
+    } else if (despesa.formaPagamento === "recorrente") {
+      const parcelaIndex = parseInt(document.getElementById("parcelaSelect").value);
+      
+      if (isNaN(parcelaIndex)) {
+        exibirToast("Selecione uma recorrência para pagar.", "warning");
+        return;
+      }
+      
+      db.ref(`despesas/${despesaId}/recorrencias/${parcelaIndex}`).update({
+        pago: true
+      }).then(() => {
+        // Gerar novas recorrências se necessário para despesas infinitas
+        gerarNovasRecorrencias(despesaId, despesa);
+        
+        exibirToast("Recorrência paga com sucesso!", "success");
+        fecharModal("pagarDespesaModal");
+        atualizarDashboard();
+        filtrarTodasDespesas();
+      });
     }
   });
 }
@@ -822,6 +1324,18 @@ function carregarParcelas() {
           const option = document.createElement("option");
           option.value = index;
           option.text = `Parcela ${index+1} - Venc: ${parcela.vencimento} - R$ ${parseFloat(parcela.valor).toFixed(2)}`;
+          parcelaSelect.appendChild(option);
+        }
+      });
+    } else if (despesa.formaPagamento === "recorrente" && despesa.recorrencias) {
+      document.getElementById("parcelasDiv").classList.remove("hidden");
+      
+      despesa.recorrencias.forEach((recorrencia, index) => {
+        if (!recorrencia.pago) {
+          const option = document.createElement("option");
+          option.value = index;
+          const dataVenc = new Date(recorrencia.vencimento);
+          option.text = `${dataVenc.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })} - Venc: ${recorrencia.vencimento} - R$ ${parseFloat(recorrencia.valor).toFixed(2)}`;
           parcelaSelect.appendChild(option);
         }
       });
@@ -856,11 +1370,20 @@ function filtrarTodasDespesas() {
           <td>R$ ${parseFloat(despesa.valor).toFixed(2)}</td>
           <td>${dataCompra.toLocaleDateString()}</td>
           <td>${getCategoriaName(despesa.categoria)}</td>
-          <td>${despesa.pago ? '<span class="badge bg-success">Pago</span>' : '<span class="badge bg-warning">Pendente</span>'}</td>
+          <td>${despesa.pago ? 
+            (despesa.pagoAutomaticamente ? 
+              '<span class="badge bg-info">Pago Automaticamente</span>' : 
+              '<span class="badge bg-success">Pago</span>') : 
+            '<span class="badge bg-warning">Pendente</span>'}</td>
           <td>
-            <button class="btn-icon" onclick="excluirDespesa('${key}')">
-              <i class="fas fa-trash"></i>
-            </button>
+            <div class="action-buttons">
+              <button class="btn-icon" onclick="editarDespesa('${key}')" title="Editar">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-icon" onclick="excluirDespesa('${key}')" title="Excluir">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
           </td>
         `;
         
@@ -875,16 +1398,97 @@ function filtrarTodasDespesas() {
             <td>R$ ${parseFloat(parcela.valor).toFixed(2)}</td>
             <td>${dataVencimento.toLocaleDateString()}</td>
             <td>${getCategoriaName(despesa.categoria)}</td>
-            <td>${parcela.pago ? '<span class="badge bg-success">Pago</span>' : '<span class="badge bg-warning">Pendente</span>'}</td>
+            <td>${parcela.pago ? 
+              (parcela.pagoAutomaticamente ? 
+                '<span class="badge bg-info">Pago Automaticamente</span>' : 
+                '<span class="badge bg-success">Pago</span>') : 
+              '<span class="badge bg-warning">Pendente</span>'}</td>
             <td>
-              <button class="btn-icon" onclick="excluirDespesa('${key}')">
-                <i class="fas fa-trash"></i>
-              </button>
+              <div class="action-buttons">
+                <button class="btn-icon" onclick="editarDespesa('${key}')" title="Editar">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-icon" onclick="excluirDespesa('${key}')" title="Excluir">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
             </td>
           `;
           
           tbody.appendChild(tr);
         });
+      } else if (despesa.formaPagamento === "recorrente" && despesa.recorrencias) {
+        // Para despesas recorrentes, mostramos apenas uma linha na tabela
+        const tr = document.createElement("tr");
+        
+        // Para despesas recorrentes infinitas, não contamos as pendentes
+        let recorrenciasPendentes = 0;
+        let valorTotal = 0;
+        
+        if (!despesa.recorrenteInfinita) {
+          despesa.recorrencias.forEach(recorrencia => {
+            if (!recorrencia.pago) {
+              recorrenciasPendentes++;
+              valorTotal += parseFloat(recorrencia.valor);
+            }
+          });
+        }
+        
+        // Obtemos a próxima data de vencimento (a mais próxima que está pendente)
+        let proximaData = null;
+        for (let i = 0; i < despesa.recorrencias.length; i++) {
+          const recorrencia = despesa.recorrencias[i];
+          if (!recorrencia.pago) {
+            const dataVencimento = new Date(recorrencia.vencimento);
+            if (!proximaData || dataVencimento < proximaData) {
+              proximaData = dataVencimento;
+            }
+          }
+        }
+        
+        // Se não houver próxima data pendente, usamos a última data da recorrência
+        if (!proximaData && despesa.recorrencias.length > 0) {
+          const ultimaRecorrencia = despesa.recorrencias[despesa.recorrencias.length - 1];
+          proximaData = new Date(ultimaRecorrencia.vencimento);
+          
+          // Calculamos a próxima data com base no dia de recorrência
+          if (despesa.diaRecorrencia) {
+            const hoje = new Date();
+            proximaData = new Date(hoje.getFullYear(), hoje.getMonth() + 1, Math.min(despesa.diaRecorrencia, 28));
+          }
+        }
+        
+        const dataVencimentoStr = proximaData ? proximaData.toLocaleDateString() : "N/A";
+        
+        // Status: Para recorrentes infinitas sempre "Ativa", para outras mostra pendentes
+        let statusText;
+        if (despesa.recorrenteInfinita) {
+          statusText = '<span class="badge bg-info">Ativa (Recorrente)</span>';
+        } else {
+          statusText = recorrenciasPendentes > 0 ? 
+                     `<span class="badge bg-warning">Pendente (${recorrenciasPendentes})</span>` : 
+                     '<span class="badge bg-success">Concluída</span>';
+        }
+        
+        tr.innerHTML = `
+          <td>${despesa.descricao} - Recorrente</td>
+          <td>R$ ${parseFloat(despesa.valor).toFixed(2)}/mês</td>
+          <td>${dataVencimentoStr}</td>
+          <td>${getCategoriaName(despesa.categoria)}</td>
+          <td>${statusText}</td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-icon" onclick="editarDespesa('${key}')" title="Editar">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-icon" onclick="excluirDespesa('${key}')" title="Excluir">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        
+        tbody.appendChild(tr);
       }
     });
   });
@@ -898,6 +1502,60 @@ function filtrarTodasDespesas() {
 function getCategoriaName(categoriaId) {
   if (!categoriaId) return "Sem categoria";
   return window.novo_categoriasMap[categoriaId] || "Categoria não encontrada";
+}
+
+/**
+ * Carrega dados de uma despesa para edição
+ * @param {string} despesaId - ID da despesa
+ */
+function editarDespesa(despesaId) {
+  // Salvar ID para uso na atualização
+  document.getElementById("despesaIdEditar").value = despesaId;
+  
+  // Buscar dados da despesa
+  db.ref("despesas").child(despesaId).once("value").then(snapshot => {
+    const despesa = snapshot.val();
+    if (!despesa) {
+      exibirToast("Despesa não encontrada.", "danger");
+      return;
+    }
+    
+    // Preencher formulário com dados da despesa
+    document.getElementById("despesaDescricao").value = despesa.descricao;
+    document.getElementById("despesaValor").value = despesa.valor;
+    document.getElementById("dataCompra").value = despesa.dataCompra;
+    document.getElementById("categoriaDespesa").value = despesa.categoria || "";
+    document.getElementById("formaPagamento").value = despesa.formaPagamento;
+    document.getElementById("tipoPagamento").value = despesa.tipoPagamento || "manual";
+    
+    // Exibir campos específicos de acordo com a forma de pagamento
+    toggleParcelamento();
+    
+    // Preencher campos específicos para cada forma de pagamento
+    if (despesa.formaPagamento === "cartao") {
+      document.getElementById("cartaoDespesa").value = despesa.cartao || "";
+      document.getElementById("numeroParcelas").value = despesa.parcelas ? despesa.parcelas.length : 1;
+    } else if (despesa.formaPagamento === "recorrente") {
+      document.getElementById("diaRecorrencia").value = despesa.diaRecorrencia || "";
+      document.getElementById("mesesRecorrencia").value = despesa.mesesRecorrencia || "";
+    }
+    
+    // Mudar título do modal e botões
+    document.querySelector("#cadastroDespesaModal .modal-title").textContent = "Editar Despesa";
+    
+    // Esconder botão de cadastrar, mostrar botão de editar
+    const btnCadastrar = document.getElementById("btnCadastrarDespesa");
+    const btnEditar = document.getElementById("btnEditarDespesa");
+    if (btnCadastrar) {
+      btnCadastrar.style.display = "none";
+    }
+    if (btnEditar) {
+      btnEditar.style.display = "inline-block";
+    }
+    
+    // Abrir modal
+    abrirModal("cadastroDespesaModal");
+  });
 }
 
 /**
@@ -2865,12 +3523,227 @@ function cancelarEdicaoCategoria() {
 }
 
 /**
- * Salva uma despesa (alias para cadastrarDespesa)
- * Esta função serve como um alias para manter compatibilidade com o botão no modal
+ * Função principal para salvar despesa - verifica se é criação ou edição
  */
 function salvarDespesa() {
-  // Chama a função cadastrarDespesa que já implementa toda a lógica necessária
-  cadastrarDespesa();
+  const despesaIdEditar = document.getElementById("despesaIdEditar").value;
+  
+  if (despesaIdEditar && despesaIdEditar.trim() !== "") {
+    // Se há ID, é uma edição
+    atualizarDespesa();
+  } else {
+    // Se não há ID, é uma nova despesa
+    cadastrarDespesa();
+  }
+}
+
+/**
+ * Atualiza uma despesa existente
+ */
+function atualizarDespesa() {
+  const despesaId = document.getElementById("despesaIdEditar").value;
+  
+  if (!despesaId) {
+    exibirToast("ID da despesa não encontrado.", "danger");
+    return;
+  }
+  
+  const descricao = document.getElementById("despesaDescricao").value;
+  const valor = parseFloat(document.getElementById("despesaValor").value);
+  const dataCompra = document.getElementById("dataCompra").value;
+  const categoria = document.getElementById("categoriaDespesa").value;
+  const formaPagamento = document.getElementById("formaPagamento").value;
+  const tipoPagamento = document.getElementById("tipoPagamento").value;
+  
+  if (!descricao || isNaN(valor) || valor <= 0 || !dataCompra) {
+    exibirToast("Preencha todos os campos obrigatórios.", "warning");
+    return;
+  }
+  
+  // Verificar se o usuário está autenticado
+  if (!currentUser || !currentUser.uid) {
+    exibirToast("Usuário não autenticado. Faça login novamente.", "danger");
+    return;
+  }
+  
+  // Buscar despesa original para preservar dados que não devem ser alterados
+  db.ref("despesas").child(despesaId).once("value").then(snapshot => {
+    const despesaOriginal = snapshot.val();
+    
+    if (!despesaOriginal) {
+      exibirToast("Despesa não encontrada.", "danger");
+      return;
+    }
+    
+    // Verificar se a despesa pertence ao usuário atual
+    if (despesaOriginal.userId !== currentUser.uid) {
+      exibirToast("Você não tem permissão para editar esta despesa.", "danger");
+      return;
+    }
+    
+    // Preparar objeto de atualização
+    const despesaAtualizada = {
+      descricao: descricao,
+      valor: valor,
+      dataCompra: dataCompra,
+      categoria: categoria,
+      formaPagamento: formaPagamento,
+      tipoPagamento: tipoPagamento,
+      userId: currentUser.uid
+    };
+    
+    // Manter status de pagamento existente
+    despesaAtualizada.pago = despesaOriginal.pago || false;
+    
+    // Tratar campos específicos para cada tipo de pagamento
+    if (formaPagamento === "cartao") {
+      const cartao = document.getElementById("cartaoDespesa").value;
+      const numParcelas = parseInt(document.getElementById("numeroParcelas").value);
+      
+      if (!cartao || isNaN(numParcelas) || numParcelas <= 0) {
+        exibirToast("Preencha os dados do cartão e parcelas.", "warning");
+        return;
+      }
+      
+      despesaAtualizada.cartao = cartao;
+      
+      // Verificar se as parcelas foram alteradas
+      if (!despesaOriginal.parcelas || despesaOriginal.parcelas.length !== numParcelas || despesaOriginal.cartao !== cartao) {
+        // Buscar dados do cartão para recalcular parcelas
+        db.ref("cartoes").child(cartao).once("value").then(cartaoSnapshot => {
+          const dadosCartao = cartaoSnapshot.val();
+          
+          if (!dadosCartao) {
+            exibirToast("Dados do cartão não encontrados.", "danger");
+            return;
+          }
+          
+          const diaFechamento = parseInt(dadosCartao.fechamento) || 1;
+          const diaVencimento = parseInt(dadosCartao.vencimento) || 10;
+          
+          // Recalcular parcelas com nova lógica
+          despesaAtualizada.parcelas = [];
+          const valorParcela = valor / numParcelas;
+          const dataCompraObj = new Date(dataCompra);
+          
+          // Determinar se a compra entra na fatura atual ou próxima
+          let mesInicialParcela = dataCompraObj.getMonth();
+          let anoInicialParcela = dataCompraObj.getFullYear();
+          
+          // Se a compra foi feita após o fechamento do mês, vai para o próximo mês
+          if (dataCompraObj.getDate() > diaFechamento) {
+            mesInicialParcela += 1;
+            if (mesInicialParcela > 11) {
+              mesInicialParcela = 0;
+              anoInicialParcela += 1;
+            }
+          }
+          
+          for (let i = 0; i < numParcelas; i++) {
+            const mesVencimento = mesInicialParcela + i;
+            const anoVencimento = anoInicialParcela + Math.floor(mesVencimento / 12);
+            const mesAjustado = mesVencimento % 12;
+            
+            // Criar data de vencimento no dia especificado do cartão
+            const dataVencimento = new Date(anoVencimento, mesAjustado, diaVencimento);
+            
+            // Ajustar se o dia não existir no mês
+            if (dataVencimento.getDate() !== diaVencimento) {
+              dataVencimento.setDate(0);
+            }
+            
+            despesaAtualizada.parcelas.push({
+              valor: valorParcela,
+              vencimento: dataVencimento.toISOString().split("T")[0],
+              pago: false
+            });
+          }
+          
+          // Atualizar no Firebase
+          db.ref("despesas").child(despesaId).update(despesaAtualizada)
+            .then(() => {
+              exibirToast("Despesa atualizada com sucesso!", "success");
+              fecharModal("cadastroDespesaModal");
+              atualizarDashboard();
+              filtrarTodasDespesas();
+            })
+            .catch(error => {
+              console.error("Erro ao atualizar despesa:", error);
+              exibirToast("Erro ao atualizar despesa. Tente novamente.", "danger");
+            });
+        });
+        
+        // Retornar aqui para aguardar o callback do Firebase
+        return;
+      } else {
+        // Manter parcelas existentes, atualizando valores se necessário
+        despesaAtualizada.parcelas = despesaOriginal.parcelas.map(parcela => ({
+          ...parcela,
+          valor: valor / numParcelas
+        }));
+      }
+    } else if (formaPagamento === "recorrente") {
+      const diaRecorrencia = parseInt(document.getElementById("diaRecorrencia").value);
+      const mesesRecorrencia = document.getElementById("mesesRecorrencia").value.trim() !== "" ? 
+                               parseInt(document.getElementById("mesesRecorrencia").value) : 0;
+      
+      if (isNaN(diaRecorrencia) || diaRecorrencia < 1 || diaRecorrencia > 31) {
+        exibirToast("Digite um dia válido (1-31) para a recorrência.", "warning");
+        return;
+      }
+      
+      despesaAtualizada.diaRecorrencia = diaRecorrencia;
+      despesaAtualizada.mesesRecorrencia = mesesRecorrencia;
+      despesaAtualizada.recorrenteInfinita = mesesRecorrencia === 0;
+      
+      // Verificar se as recorrências foram alteradas
+      if (!despesaOriginal.recorrencias || despesaOriginal.diaRecorrencia !== diaRecorrencia) {
+        // Recalcular recorrências se algo mudou
+        despesaAtualizada.recorrencias = [];
+        
+        // Determinar o mês inicial baseado na data atual vs dia de recorrência
+        const dataBase = new Date(dataCompra);
+        const diaAtual = dataBase.getDate();
+        let mesInicial = dataBase.getMonth();
+        
+        if (diaAtual > diaRecorrencia) {
+          mesInicial += 1; // Começar do próximo mês se o dia já passou
+        }
+        
+        const quantidadeMeses = mesesRecorrencia > 0 ? mesesRecorrencia : 6; // Se infinita, criar apenas 6 iniciais
+        
+        for (let i = 0; i < quantidadeMeses; i++) {
+          const dataRecorrencia = new Date(dataBase);
+          dataRecorrencia.setMonth(mesInicial + i);
+          dataRecorrencia.setDate(Math.min(diaRecorrencia, new Date(dataRecorrencia.getFullYear(), dataRecorrencia.getMonth() + 1, 0).getDate()));
+          
+          despesaAtualizada.recorrencias.push({
+            valor: valor,
+            vencimento: dataRecorrencia.toISOString().split("T")[0],
+            pago: false,
+            mes: dataRecorrencia.getMonth(),
+            ano: dataRecorrencia.getFullYear()
+          });
+        }
+      } else {
+        // Manter recorrências existentes
+        despesaAtualizada.recorrencias = despesaOriginal.recorrencias;
+      }
+    }
+    
+    // Atualizar no Firebase
+    db.ref("despesas").child(despesaId).update(despesaAtualizada)
+      .then(() => {
+        exibirToast("Despesa atualizada com sucesso!", "success");
+        fecharModal("cadastroDespesaModal");
+        atualizarDashboard();
+        filtrarTodasDespesas();
+      })
+      .catch(error => {
+        console.error("Erro ao atualizar despesa:", error);
+        exibirToast("Erro ao atualizar despesa. Tente novamente.", "danger");
+      });
+  });
 }
 
 /**
@@ -2880,6 +3753,208 @@ function salvarDespesa() {
 function salvarRenda() {
   // Chama a função cadastrarPessoa que já implementa toda a lógica necessária
   cadastrarPessoa();
+}
+
+/**
+ * Carrega as rendas para o modal de recebimento de pagamento
+ */
+function carregarRendasParaRecebimento() {
+  const rendaSelect = document.getElementById("rendaSelect");
+  if (!rendaSelect) return;
+  
+  rendaSelect.innerHTML = "<option value=''>Selecione a Renda</option>";
+  
+  // Verificar se o usuário está autenticado
+  if (!currentUser || !currentUser.uid) {
+    return;
+  }
+  
+  // Buscar apenas as rendas do usuário atual
+  db.ref("pessoas").orderByChild("userId").equalTo(currentUser.uid).once("value").then(snapshot => {
+    snapshot.forEach(child => {
+      const key = child.key;
+      const pessoa = child.val();
+      
+      // Só adicionar rendas que tenham pagamentos configurados
+      if (pessoa.pagamentos && pessoa.pagamentos.length > 0) {
+        const option = document.createElement("option");
+        option.value = key;
+        option.text = pessoa.nome;
+        rendaSelect.appendChild(option);
+      }
+    });
+  }).catch(error => {
+    console.error("Erro ao carregar rendas:", error);
+    exibirToast("Erro ao carregar rendas. Tente novamente.", "danger");
+  });
+}
+
+/**
+ * Carrega os pagamentos de uma renda selecionada
+ */
+function carregarPagamentosRenda() {
+  const rendaId = document.getElementById("rendaSelect").value;
+  const pagamentoSelect = document.getElementById("pagamentoSelect");
+  const valorRecebidoInput = document.getElementById("valorRecebido");
+  
+  if (!pagamentoSelect || !valorRecebidoInput) return;
+  
+  // Limpar select de pagamentos
+  pagamentoSelect.innerHTML = "<option value=''>Selecione o Pagamento</option>";
+  valorRecebidoInput.value = "";
+  
+  if (!rendaId) return;
+  
+  // Buscar dados da renda selecionada
+  db.ref("pessoas").child(rendaId).once("value").then(snapshot => {
+    const pessoa = snapshot.val();
+    
+    if (!pessoa || !pessoa.pagamentos) {
+      exibirToast("Esta renda não possui pagamentos configurados.", "warning");
+      return;
+    }
+    
+    // Obter mês e ano atual
+    const hoje = new Date();
+    const mesAtual = hoje.getMonth();
+    const anoAtual = hoje.getFullYear();
+    const chaveMonthYear = `${anoAtual}-${mesAtual}`;
+    
+    // Verificar quais pagamentos já foram recebidos neste mês
+    const pagamentosRecebidos = pessoa.pagamentosRecebidos?.[chaveMonthYear] || [];
+    const diasRecebidos = new Set(pagamentosRecebidos.map(p => p.dia));
+    
+    // Adicionar pagamentos não recebidos ao select
+    pessoa.pagamentos.forEach((pagamento, index) => {
+      const dia = parseInt(pagamento.dia);
+      
+      // Só mostrar pagamentos que ainda não foram recebidos neste mês
+      if (!diasRecebidos.has(dia)) {
+        const option = document.createElement("option");
+        option.value = index;
+        option.text = `Dia ${dia} - R$ ${parseFloat(pagamento.valor).toFixed(2)}`;
+        option.setAttribute('data-valor', pagamento.valor);
+        option.setAttribute('data-dia', pagamento.dia);
+        pagamentoSelect.appendChild(option);
+      }
+    });
+    
+    // Se não há pagamentos pendentes
+    if (pagamentoSelect.children.length === 1) {
+      exibirToast("Todos os pagamentos deste mês já foram recebidos.", "info");
+    }
+  }).catch(error => {
+    console.error("Erro ao carregar pagamentos:", error);
+    exibirToast("Erro ao carregar pagamentos. Tente novamente.", "danger");
+  });
+  
+  // Atualizar valor quando selecionar um pagamento
+  pagamentoSelect.addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    if (selectedOption && selectedOption.getAttribute('data-valor')) {
+      valorRecebidoInput.value = selectedOption.getAttribute('data-valor');
+    }
+  });
+}
+
+/**
+ * Confirma o recebimento de um pagamento
+ */
+function confirmarRecebimentoPagamento() {
+  const rendaId = document.getElementById("rendaSelect").value;
+  const pagamentoIndex = document.getElementById("pagamentoSelect").value;
+  const valorRecebido = parseFloat(document.getElementById("valorRecebido").value);
+  const dataRecebimento = document.getElementById("dataRecebimento").value;
+  
+  // Validações
+  if (!rendaId) {
+    exibirToast("Selecione uma renda.", "warning");
+    return;
+  }
+  
+  if (!pagamentoIndex && pagamentoIndex !== "0") {
+    exibirToast("Selecione um pagamento.", "warning");
+    return;
+  }
+  
+  if (isNaN(valorRecebido) || valorRecebido <= 0) {
+    exibirToast("Digite um valor válido.", "warning");
+    return;
+  }
+  
+  if (!dataRecebimento) {
+    exibirToast("Selecione a data de recebimento.", "warning");
+    return;
+  }
+  
+  // Verificar se o usuário está autenticado
+  if (!currentUser || !currentUser.uid) {
+    exibirToast("Usuário não autenticado. Faça login novamente.", "danger");
+    return;
+  }
+  
+  // Obter dados do pagamento
+  db.ref("pessoas").child(rendaId).once("value").then(snapshot => {
+    const pessoa = snapshot.val();
+    
+    // Verificar se a renda pertence ao usuário
+    if (pessoa.userId !== currentUser.uid) {
+      exibirToast("Você não tem permissão para modificar esta renda.", "danger");
+      return;
+    }
+    
+    const pagamento = pessoa.pagamentos[parseInt(pagamentoIndex)];
+    if (!pagamento) {
+      exibirToast("Pagamento não encontrado.", "danger");
+      return;
+    }
+    
+    // Criar estrutura do pagamento recebido
+    const dataRec = new Date(dataRecebimento);
+    const mesAno = dataRec.getMonth();
+    const ano = dataRec.getFullYear();
+    const chaveMonthYear = `${ano}-${mesAno}`;
+    
+    const pagamentoRecebido = {
+      dia: parseInt(pagamento.dia),
+      valor: valorRecebido,
+      dataRecebimento: dataRecebimento,
+      dataRegistro: new Date().toISOString()
+    };
+    
+    // Atualizar no Firebase
+    const pagamentosRecebidosRef = db.ref(`pessoas/${rendaId}/pagamentosRecebidos/${chaveMonthYear}`);
+    
+    // Buscar pagamentos já recebidos para este mês
+    pagamentosRecebidosRef.once("value").then(recebidosSnapshot => {
+      let pagamentosExistentes = [];
+      
+      if (recebidosSnapshot.exists()) {
+        pagamentosExistentes = recebidosSnapshot.val();
+      }
+      
+      // Adicionar o novo pagamento
+      pagamentosExistentes.push(pagamentoRecebido);
+      
+      // Salvar de volta
+      return pagamentosRecebidosRef.set(pagamentosExistentes);
+    }).then(() => {
+      exibirToast("Pagamento registrado com sucesso!", "success");
+      fecharModal("receberPagamentoModal");
+      atualizarDashboard(); // Atualizar o saldo
+      
+      // Limpar campos
+      document.getElementById("rendaSelect").value = "";
+      document.getElementById("pagamentoSelect").innerHTML = "<option value=''>Selecione o Pagamento</option>";
+      document.getElementById("valorRecebido").value = "";
+    }).catch(error => {
+      console.error("Erro ao registrar pagamento:", error);
+      exibirToast("Erro ao registrar pagamento: " + error.message, "danger");
+    });
+  }).catch(error => {
+    console.error("Erro ao buscar dados da renda:", error);
+    exibirToast("Erro ao buscar dados da renda. Tente novamente.", "danger");
+  });
 }
 
 /**

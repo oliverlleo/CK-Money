@@ -420,6 +420,64 @@ tbody tr:hover {
   border-top: 1px solid #e9ecef;
 }
 
+/* Botões de ação específicos */
+.btn-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all var(--transition-speed);
+  margin: 0 2px;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.btn-icon i.fa-edit:hover {
+  color: var(--success);
+}
+
+.btn-icon i.fa-trash:hover {
+  color: var(--danger);
+}
+
+/* Botão remover pagamento (mais discreto) */
+.remover-pagamento {
+  width: 2rem;
+  height: 2rem;
+  background: transparent;
+  border: none;
+  color: #ccc;
+  font-size: 0.9rem;
+  opacity: 0.5;
+  transition: opacity 0.2s, color 0.2s;
+}
+
+.remover-pagamento:hover {
+  opacity: 1;
+  color: var(--danger);
+}
+
+.pagamento-item {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px dashed #eee;
+}
+
+.pagamento-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
 /* Dashboard Cards */
 .dashboard-cards {
   display: grid;
@@ -856,6 +914,11 @@ tbody tr:hover {
 .bg-danger {
   background-color: var(--danger);
   color: white;
+}
+
+.bg-info {
+  background-color: var(--info);
+  color: var(--text-color);
 }
 
 /* Autenticação */
