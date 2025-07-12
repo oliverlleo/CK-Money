@@ -3031,10 +3031,79 @@ function adicionarBotaoLogout() {
       logoutLink.id = 'logoutButton';
       logoutLink.className = 'nav-link';
       logoutLink.innerHTML = '<i class="fa-solid fa-sign-out-alt"></i><span>Sair</span>';
-      logoutLink.addEventListener('click', fazerLogout);
+      logoutLink.addEventListener('click', logout);
       
       // Adicionar ao sidebar
       document.getElementById('sidebar').appendChild(logoutLink);
+    }
+  }
+}
+
+/**
+ * Realiza logout do usuário
+ */
+function logout() {
+  firebase.auth().signOut().then(() => {
+    // Limpar dados do usuário
+    currentUser = null;
+    
+    // Redirecionar para a página de login
+    window.location.href = 'login.html';
+  }).catch((error) => {
+    console.error('Erro ao fazer logout:', error);
+    exibirToast('Erro ao fazer logout', 'danger');
+  });
+}
+
+/**
+ * Toggle do dropdown mobile do usuário
+ */
+function toggleMobileUserDropdown() {
+  const dropdown = document.getElementById('mobileUserDropdown');
+  if (dropdown) {
+    dropdown.classList.toggle('active');
+    
+    // Fechar dropdown se clicar fora
+    if (dropdown.classList.contains('active')) {
+      document.addEventListener('click', closeMobileDropdownOnClickOutside);
+    } else {
+      document.removeEventListener('click', closeMobileDropdownOnClickOutside);
+    }
+  }
+}
+
+/**
+ * Fecha dropdown mobile ao clicar fora
+ */
+function closeMobileDropdownOnClickOutside(event) {
+  const dropdown = document.getElementById('mobileUserDropdown');
+  const logo = document.querySelector('.logo');
+  
+  if (dropdown && !dropdown.contains(event.target) && !logo.contains(event.target)) {
+    dropdown.classList.remove('active');
+    document.removeEventListener('click', closeMobileDropdownOnClickOutside);
+  }
+}
+
+/**
+ * Atualiza informações do usuário no dropdown mobile
+ */
+function atualizarInfoUsuarioMobile(user) {
+  const mobileUserName = document.getElementById('mobileUserName');
+  const mobileUserEmail = document.getElementById('mobileUserEmail');
+  const mobileUserAvatar = document.getElementById('mobileUserAvatar');
+  
+  if (mobileUserName && mobileUserEmail && mobileUserAvatar) {
+    mobileUserName.textContent = user.displayName || 'Usuário';
+    mobileUserEmail.textContent = user.email || '';
+    
+    // Atualizar avatar
+    if (user.photoURL) {
+      mobileUserAvatar.innerHTML = `<img src="${user.photoURL}" alt="Avatar">`;
+    } else {
+      // Usar iniciais do nome ou ícone padrão
+      const iniciais = user.displayName ? user.displayName.split(' ').map(n => n[0]).join('').toUpperCase() : user.email[0].toUpperCase();
+      mobileUserAvatar.innerHTML = iniciais;
     }
   }
 }
@@ -3050,8 +3119,11 @@ function handleAuthStateChanged(user) {
     // Atualizar referência do banco de dados para o usuário atual
     atualizarReferenciaDB(user.uid);
     
-    // Exibir informações do usuário
+    // Exibir informações do usuário (desktop)
     exibirInfoUsuario(user);
+    
+    // Atualizar informações do usuário (mobile)
+    atualizarInfoUsuarioMobile(user);
     
     // Adicionar botão de logout
     adicionarBotaoLogout();

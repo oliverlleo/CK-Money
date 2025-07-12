@@ -44,8 +44,24 @@
 <body>
   <!-- Mobile Top Bar -->
   <div class="mobile-top-bar">
-    <div class="logo">
+    <div class="logo" onclick="toggleMobileUserDropdown()">
       <i class="fa-solid fa-wallet"></i> Contas
+      <div class="mobile-user-dropdown" id="mobileUserDropdown">
+        <div class="mobile-user-info">
+          <div class="mobile-user-avatar" id="mobileUserAvatar">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <div class="mobile-user-details">
+            <div class="mobile-user-name" id="mobileUserName">Carregando...</div>
+            <div class="mobile-user-email" id="mobileUserEmail">Carregando...</div>
+          </div>
+        </div>
+        <div class="mobile-dropdown-divider"></div>
+        <button class="mobile-logout-btn" onclick="logout()">
+          <i class="fa-solid fa-sign-out-alt"></i>
+          Sair da conta
+        </button>
+      </div>
     </div>
     <div class="mobile-top-actions">
       <button class="action-btn" onclick="exportData()" title="Exportar">
