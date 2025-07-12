@@ -141,6 +141,7 @@
   padding: 1.5rem;
   background-color: rgba(67, 97, 238, 0.05);
   border-radius: var(--border-radius-md);
+  display: none; /* Ocultando a div de insights conforme solicitado */
 }
 
 .inteligencia-insights h5 {

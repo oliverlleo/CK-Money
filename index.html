@@ -308,7 +308,7 @@
               <h3 class="relatorio-title">Resumo Financeiro</h3>
               <div class="relatorio-filters">
                 <div class="form-group mb-0">
-                  <input type="text" id="dataRange" class="form-control" placeholder="00/00/0000 - 00/00/0000">
+                  <input type="text" id="dataRange" class="form-control" placeholder="Todo Período" value="Todo Período">
                 </div>
               </div>
             </div>
@@ -956,11 +956,36 @@
         
         // Inicializar componentes específicos da aba
         if (tabId === 'relatorioTab') {
-          atualizarRelatorios();
+          // Garantir que "Todo Período" está selecionado
+          setTimeout(() => {
+            const dataRangeInput = document.getElementById('dataRange');
+            if (dataRangeInput) {
+              // Sempre resetar para "Todo Período" quando abrir a aba de relatórios
+              dataRangeInput.value = 'Todo Período';
+              dataRangeInput.placeholder = 'Todo Período';
+              
+              // Definir período como todo período (sem filtro de data)
+              rangeStart = null;
+              rangeEnd = null;
+              
+              // Atualizar relatórios
+              atualizarRelatorios();
+            }
+          }, 50);
         } else if (tabId === 'previsaoTab') {
+          // Executar previsões com o período atual
           novo_calcularPrevisoes();
         } else if (tabId === 'categoriasTab') {
-          atualizarGraficoCategorias(new Date(rangeStart || new Date()), new Date(rangeEnd || new Date()));
+          // Para categoria, usar o mesmo período já definido
+          let inicio, fim;
+          if (!rangeStart || !rangeEnd) {
+            inicio = new Date('2020-01-01');
+            fim = new Date('2030-12-31');
+          } else {
+            inicio = new Date(rangeStart);
+            fim = new Date(rangeEnd);
+          }
+          atualizarGraficoCategorias(inicio, fim);
         }
       };
       
@@ -975,8 +1000,24 @@
         } else if (sectionId === 'metasFinanceirasSection') {
           renderizarPainelMetas();
         } else if (sectionId === 'relatorioIntegradoSection') {
-          // Inicializar a primeira aba
+          // Inicializar a primeira aba com "Todo Período" padrão
           showRelatorioTab('relatorioTab');
+          
+          // Definir "Todo Período" como padrão
+          setTimeout(() => {
+            const dataRangeInput = document.getElementById('dataRange');
+            if (dataRangeInput) {
+              dataRangeInput.value = 'Todo Período';
+              dataRangeInput.placeholder = 'Todo Período';
+              
+              // Definir período como todo período (sem filtro de data)
+              rangeStart = null;
+              rangeEnd = null;
+              
+              // Atualizar relatórios imediatamente
+              atualizarRelatorios();
+            }
+          }, 100);
         }
       };
     });
@@ -984,6 +1025,8 @@
   
   <!-- Utilitários compartilhados -->
   <script src="js/utils.js"></script>
+  
+
   
   <!-- Mobile Bottom Navigation -->
   <div class="mobile-bottom-nav">

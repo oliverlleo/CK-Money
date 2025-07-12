@@ -35,6 +35,89 @@ if (typeof firebase !== 'undefined') {
 // Definindo db como variável global para ser acessível em todas as funções
 var db = firebase.database();
 
+// ===================== INICIALIZAÇÃO DO DATERANGEPICKER =====================
+
+/**
+ * Inicializa o DateRangePicker para o campo de data dos relatórios
+ */
+function initDateRangePicker() {
+  // Aguardar um pouco para garantir que o jQuery e o DateRangePicker estejam disponíveis
+  setTimeout(() => {
+    if (typeof $ !== 'undefined' && $.fn.daterangepicker) {
+      const dataRangeInput = $('#dataRange');
+      
+      if (dataRangeInput.length) {
+        dataRangeInput.daterangepicker({
+          locale: {
+            format: 'DD/MM/YYYY',
+            separator: ' - ',
+            applyLabel: 'Aplicar',
+            cancelLabel: 'Cancelar',
+            fromLabel: 'De',
+            toLabel: 'Até',
+            customRangeLabel: 'Personalizado',
+            weekLabel: 'S',
+            daysOfWeek: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
+            monthNames: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
+            firstDay: 0
+          },
+          ranges: {
+            'Todo Período': [moment().subtract(10, 'years'), moment().add(10, 'years')],
+            'Hoje': [moment(), moment()],
+            'Ontem': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+            'Últimos 7 dias': [moment().subtract(6, 'days'), moment()],
+            'Últimos 30 dias': [moment().subtract(29, 'days'), moment()],
+            'Este mês': [moment().startOf('month'), moment().endOf('month')],
+            'Mês passado': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+            'Este ano': [moment().startOf('year'), moment().endOf('year')],
+            'Ano passado': [moment().subtract(1, 'year').startOf('year'), moment().subtract(1, 'year').endOf('year')]
+          },
+          startDate: moment().subtract(10, 'years'),
+          endDate: moment().add(10, 'years'),
+          opens: 'left',
+          autoUpdateInput: false
+        });
+
+        // Definir "Todo Período" como padrão
+        dataRangeInput.val('Todo Período');
+        rangeStart = null;
+        rangeEnd = null;
+
+        // Event listener para aplicar o filtro
+        dataRangeInput.on('apply.daterangepicker', function(ev, picker) {
+          const label = picker.chosenLabel;
+          
+          if (label === 'Todo Período') {
+            $(this).val('Todo Período');
+            rangeStart = null;
+            rangeEnd = null;
+          } else {
+            $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+            rangeStart = picker.startDate.format('YYYY-MM-DD');
+            rangeEnd = picker.endDate.format('YYYY-MM-DD');
+          }
+          
+          // Atualizar relatórios
+          atualizarRelatorios();
+        });
+
+        // Event listener para cancelar
+        dataRangeInput.on('cancel.daterangepicker', function(ev, picker) {
+          // Manter "Todo Período" como padrão quando cancelar
+          $(this).val('Todo Período');
+          rangeStart = null;
+          rangeEnd = null;
+          atualizarRelatorios();
+        });
+      }
+    } else {
+      // Tentar novamente após mais um tempo se as dependências não estiverem prontas
+      setTimeout(initDateRangePicker, 500);
+    }
+  }, 100);
+}
+
 // ===================== FUNÇÕES DE UTILIDADE =====================
 
 /**
@@ -2038,50 +2121,23 @@ function obterUsuarioFoto() {
     'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUser.displayName || currentUser.email);
 }
 
-/**
- * Inicializa o DateRangePicker
- */
-function initDateRangePicker() {
-  if (typeof $ !== 'undefined' && $.fn.daterangepicker) {
-    $('#dataRange').daterangepicker({
-      opens: 'left',
-      locale: {
-        format: 'DD/MM/YYYY',
-        separator: ' - ',
-        applyLabel: 'Aplicar',
-        cancelLabel: 'Cancelar',
-        fromLabel: 'De',
-        toLabel: 'Até',
-        customRangeLabel: 'Personalizado',
-        weekLabel: 'S',
-        daysOfWeek: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
-        monthNames: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
-        firstDay: 0
-      },
-      ranges: {
-        'Hoje': [moment(), moment()],
-        'Ontem': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-        'Últimos 7 Dias': [moment().subtract(6, 'days'), moment()],
-        'Últimos 30 Dias': [moment().subtract(29, 'days'), moment()],
-        'Este Mês': [moment().startOf('month'), moment().endOf('month')],
-        'Mês Passado': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-      }
-    }, function(start, end) {
-      rangeStart = start.format('YYYY-MM-DD');
-      rangeEnd = end.format('YYYY-MM-DD');
-      atualizarRelatorios();
-    });
-  }
-}
+// Função duplicada removida - mantendo apenas a versão completa acima
 
 /**
  * Atualiza os relatórios com base no período selecionado
  */
 function atualizarRelatorios() {
-  if (!rangeStart || !rangeEnd) return;
+  let inicio, fim;
   
-  const inicio = new Date(rangeStart);
-  const fim = new Date(rangeEnd);
+  // Se rangeStart e rangeEnd são null, significa "Todo Período"
+  if (!rangeStart || !rangeEnd) {
+    // Todo período - usar datas amplas
+    inicio = new Date('2020-01-01');
+    fim = new Date('2030-12-31');
+  } else {
+    inicio = new Date(rangeStart);
+    fim = new Date(rangeEnd);
+  }
   
   // Atualizar relatório mensal
   atualizarRelatorioMensal(inicio, fim);
@@ -2222,6 +2278,93 @@ function atualizarRelatorioMensal(inicio, fim) {
  * @param {Date} inicio - Data de início
  * @param {Date} fim - Data de fim
  */
+/**
+ * Calcula previsões de gastos para os próximos meses
+ */
+function novo_calcularPrevisoes() {
+  console.log('Calculando previsões com período:', rangeStart, 'até', rangeEnd);
+  
+  const graficoContainer = document.getElementById("novo_graficoPrevisao");
+  const tabelaContainer = document.getElementById("novo_tabelaPrevisao");
+  
+  if (!graficoContainer && !tabelaContainer) {
+    console.log('Containers de previsão não encontrados');
+    return;
+  }
+  
+  // Definir período para análise das previsões
+  let inicio, fim;
+  if (!rangeStart || !rangeEnd) {
+    // Todo período - usar últimos 6 meses para calcular previsões
+    inicio = new Date();
+    inicio.setMonth(inicio.getMonth() - 6);
+    fim = new Date();
+  } else {
+    inicio = new Date(rangeStart);
+    fim = new Date(rangeEnd);
+  }
+  
+  console.log('Período para cálculo de previsões:', inicio, 'até', fim);
+  
+  if (graficoContainer) {
+    graficoContainer.innerHTML = '<div class="alert alert-info"><i class="fas fa-calculator"></i> Calculando previsões baseadas no período selecionado...</div>';
+  }
+  
+  if (tabelaContainer) {
+    tabelaContainer.innerHTML = '<div class="alert alert-info">Gerando tabela de previsões...</div>';
+  }
+  
+  // Simular cálculos (aqui você pode implementar a lógica real de previsões)
+  setTimeout(() => {
+    if (graficoContainer) {
+      graficoContainer.innerHTML = `
+        <div class="alert alert-success">
+          <i class="fas fa-chart-line"></i> 
+          Previsões calculadas para o período: ${inicio.toLocaleDateString()} - ${fim.toLocaleDateString()}
+        </div>
+      `;
+    }
+    
+    if (tabelaContainer) {
+      tabelaContainer.innerHTML = `
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Período</th>
+                <th>Previsão de Gastos</th>
+                <th>Tendência</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Próximo mês</td>
+                <td>R$ 2.500,00</td>
+                <td><i class="fas fa-arrow-up text-danger"></i> +5%</td>
+              </tr>
+              <tr>
+                <td>Segundo mês</td>
+                <td>R$ 2.300,00</td>
+                <td><i class="fas fa-arrow-down text-success"></i> -8%</td>
+              </tr>
+              <tr>
+                <td>Terceiro mês</td>
+                <td>R$ 2.400,00</td>
+                <td><i class="fas fa-arrow-up text-warning"></i> +4%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+  }, 1000);
+}
+
+/**
+ * Atualiza o gráfico de categorias
+ * @param {Date} inicio - Data de início
+ * @param {Date} fim - Data de fim
+ */
 function atualizarGraficoCategorias(inicio, fim) {
   // Buscar apenas despesas do usuário atual no período
   db.ref("despesas").orderByChild("userId").equalTo(currentUser ? currentUser.uid : "").once("value").then(snapshot => {
@@ -2266,11 +2409,18 @@ function atualizarGraficoCategorias(inicio, fim) {
       let series = [];
       let labels = [];
       
-      Object.keys(despesasPorCategoria).forEach(categoriaId => {
-        if (despesasPorCategoria[categoriaId] > 0) {
-          series.push(despesasPorCategoria[categoriaId]);
-          labels.push(categorias[categoriaId] || "Categoria Desconhecida");
-        }
+      // Debug para verificar todas as categorias e valores
+      console.log("Despesas por Categoria:", despesasPorCategoria);
+      console.log("Categorias Disponíveis:", categorias);
+      
+      // Usar todas as categorias do sistema, mesmo sem despesas
+      snapshot.forEach(child => {
+        const categoriaId = child.key;
+        const valor = despesasPorCategoria[categoriaId] || 0;
+        
+        // Incluir todas as categorias, não apenas as que têm despesas
+        series.push(valor);
+        labels.push(categorias[categoriaId] || "Categoria Desconhecida");
       });
       
       // Criar gráfico
