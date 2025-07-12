@@ -2,7 +2,12 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Gestão Financeira">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#4361ee">
   <title>Sistema de Gerenciamento de Contas Pessoais</title>
   
   <!-- Meta tags para evitar cache -->
@@ -21,7 +26,7 @@
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css?v=1.0.0" />
   
   <!-- ApexCharts para gráficos interativos -->
-  <script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script><script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script><script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   
   <!-- Toastify para notificações -->
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
@@ -37,10 +42,23 @@
 
 </head>
 <body>
-  <!-- Botão de menu para dispositivos móveis -->
-  <button class="menu-toggle" id="menuToggle">
-    <i class="fas fa-bars"></i>
-  </button>
+  <!-- Mobile Top Bar -->
+  <div class="mobile-top-bar">
+    <div class="logo">
+      <i class="fa-solid fa-wallet"></i> Contas
+    </div>
+    <div class="mobile-top-actions">
+      <button class="action-btn" onclick="exportData()" title="Exportar">
+        <i class="fa-solid fa-file-export"></i>
+      </button>
+      <button class="action-btn" onclick="showSection('alertasSection')" title="Alertas">
+        <i class="fa-solid fa-bell"></i>
+      </button>
+      <button class="action-btn" onclick="showSection('configuracoesSection')" title="Configurações">
+        <i class="fa-solid fa-cog"></i>
+      </button>
+    </div>
+  </div>
   
   <div class="app-container">
     <!-- Menu Lateral -->
@@ -131,6 +149,13 @@
               <span>Atualizar</span>
             </button>
           </div>
+          <!-- Botão de data para mobile -->
+          <div class="mobile-date-button" style="display: none;">
+            <button class="mobile-date-btn" onclick="abrirModal('mobileDataModal')">
+              <i class="fas fa-calendar-alt"></i>
+              <span id="mobileDateText">Março 2025</span>
+            </button>
+          </div>
         </div>
         
         <div class="dashboard-cards">
@@ -143,8 +168,8 @@
             </div>
             <div class="dashboard-card-value" id="saldoAtual">R$ 0.00</div>
             <div class="dashboard-card-label">
-              Disponível para uso 
-              <button class="btn-icon" style="margin-left: 8px;" onclick="abrirModal('receberPagamentoModal')" title="Marcar Pagamento Recebido">
+              <span>Disponível para uso</span>
+              <button class="btn-icon" onclick="abrirModal('receberPagamentoModal')" title="Marcar Pagamento Recebido">
                 <i class="fas fa-plus-circle"></i>
               </button>
             </div>
@@ -176,6 +201,12 @@
             <div class="dashboard-card-value" id="proximosVencimentos">0</div>
             <div class="dashboard-card-label">Dias até o próximo vencimento</div>
           </div>
+          
+          <!-- Botão Cadastrar Despesa Mobile -->
+          <button class="mobile-add-expense-btn" onclick="abrirModal('cadastroDespesaModal')" style="display: none;">
+            <i class="fas fa-plus"></i>
+            Cadastrar Despesa
+          </button>
         </div>
         
         <div class="chart-container">
@@ -803,6 +834,60 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal: Seleção de Data Mobile -->
+  <div id="mobileDataModal" class="modal">
+    <div class="modal-content mobile-modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Selecionar Período</h2>
+        <button class="close" onclick="fecharModal('mobileDataModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="mobile-date-selector">
+          <div class="form-group">
+            <label class="form-label">Mês:</label>
+            <select id="mobileMonth" class="form-control">
+              <option value="0">Janeiro</option>
+              <option value="1">Fevereiro</option>
+              <option value="2">Março</option>
+              <option value="3">Abril</option>
+              <option value="4">Maio</option>
+              <option value="5">Junho</option>
+              <option value="6">Julho</option>
+              <option value="7">Agosto</option>
+              <option value="8">Setembro</option>
+              <option value="9">Outubro</option>
+              <option value="10">Novembro</option>
+              <option value="11">Dezembro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ano:</label>
+            <select id="mobileYear" class="form-control">
+              <option value="2020">2020</option>
+              <option value="2021">2021</option>
+              <option value="2022">2022</option>
+              <option value="2023">2023</option>
+              <option value="2024">2024</option>
+              <option value="2025">2025</option>
+              <option value="2026">2026</option>
+              <option value="2027">2027</option>
+              <option value="2028">2028</option>
+              <option value="2029">2029</option>
+              <option value="2030">2030</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="atualizarDashboardMobile()">
+          <i class="fas fa-sync-alt"></i>
+          <span>Atualizar</span>
+        </button>
+        <button class="btn btn-outline" onclick="fecharModal('mobileDataModal')">Cancelar</button>
+      </div>
+    </div>
+  </div>
   
   <!-- Scripts -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -900,8 +985,29 @@
   <!-- Utilitários compartilhados -->
   <script src="js/utils.js"></script>
   
-
-  
+  <!-- Mobile Bottom Navigation -->
+  <div class="mobile-bottom-nav">
+    <div class="nav-item active" onclick="showSection('dashboardSection'); setActiveBottomNav(this);">
+      <i class="fa-solid fa-house"></i>
+      <span>Dashboard</span>
+    </div>
+    <div class="nav-item" onclick="showSection('despesasSection'); setActiveBottomNav(this);">
+      <i class="fa-solid fa-money-bill-wave"></i>
+      <span>Despesas</span>
+    </div>
+    <div class="nav-item" onclick="showSection('relatorioIntegradoSection'); setActiveBottomNav(this);">
+      <i class="fa-solid fa-chart-line"></i>
+      <span>Relatórios</span>
+    </div>
+    <div class="nav-item" onclick="showSection('inteligenciaFinanceiraSection'); setActiveBottomNav(this);">
+      <i class="fa-solid fa-brain"></i>
+      <span>Inteligência</span>
+    </div>
+    <div class="nav-item" onclick="showSection('metasFinanceirasSection'); setActiveBottomNav(this);">
+      <i class="fa-solid fa-bullseye"></i>
+      <span>Metas</span>
+    </div>
+  </div>
 
 </body>
 </html>

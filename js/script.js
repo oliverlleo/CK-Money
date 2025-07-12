@@ -38,19 +38,72 @@ var db = firebase.database();
 // ===================== FUNÇÕES DE UTILIDADE =====================
 
 /**
- * Inicializa o menu toggle para dispositivos móveis
+ * Atualiza o dashboard através do modal mobile
+ */
+function atualizarDashboardMobile() {
+  const mobileMonth = document.getElementById('mobileMonth').value;
+  const mobileYear = document.getElementById('mobileYear').value;
+  
+  // Sincronizar com os seletores desktop
+  document.getElementById('dashboardMonth').value = mobileMonth;
+  document.getElementById('dashboardYear').value = mobileYear;
+  
+  // Atualizar texto do botão mobile
+  const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  const mobileDateText = document.getElementById('mobileDateText');
+  if (mobileDateText) {
+    mobileDateText.textContent = `${meses[mobileMonth]} ${mobileYear}`;
+  }
+  
+  // Executar atualização do dashboard
+  atualizarDashboard();
+  
+  // Fechar modal
+  fecharModal('mobileDataModal');
+  
+  // Mostrar toast de confirmação
+  showToast('Dashboard atualizado com sucesso!', 'success');
+}
+
+/**
+ * Inicializa dispositivos móveis e otimizações mobile
  */
 document.addEventListener('DOMContentLoaded', function() {
-  const menuToggle = document.getElementById('menuToggle');
   const sidebar = document.getElementById('sidebar');
   
-  if (menuToggle && sidebar) {
-    menuToggle.addEventListener('click', function() {
-      sidebar.classList.toggle('active');
-    });
+  // Detectar se é dispositivo móvel
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+  
+  // Inicializar valores do modal mobile com os valores atuais
+  const initMobileModal = () => {
+    const dashboardMonth = document.getElementById('dashboardMonth');
+    const dashboardYear = document.getElementById('dashboardYear');
+    const mobileMonth = document.getElementById('mobileMonth');
+    const mobileYear = document.getElementById('mobileYear');
+    const mobileDateText = document.getElementById('mobileDateText');
     
+    if (dashboardMonth && mobileMonth) {
+      mobileMonth.value = dashboardMonth.value;
+    }
+    if (dashboardYear && mobileYear) {
+      mobileYear.value = dashboardYear.value;
+    }
+    
+    // Atualizar texto do botão mobile
+    if (mobileDateText && dashboardMonth && dashboardYear) {
+      const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+      mobileDateText.textContent = `${meses[dashboardMonth.value]} ${dashboardYear.value}`;
+    }
+  };
+  
+  // Executar inicialização após carregamento
+  setTimeout(initMobileModal, 100);
+  
+  if (sidebar) {
     // Fechar menu ao clicar em um link do menu em dispositivos móveis
-    const navLinks = document.querySelectorAll('#sidebar-nav .nav-link');
+    const navLinks = document.querySelectorAll('#sidebar-nav .nav-link, aside .nav-link');
     navLinks.forEach(link => {
       link.addEventListener('click', function() {
         if (window.innerWidth <= 768) {
@@ -64,6 +117,53 @@ document.addEventListener('DOMContentLoaded', function() {
       if (window.innerWidth > 768) {
         sidebar.classList.remove('active');
       }
+    });
+    
+    // Gestos touch para fechar menu (swipe down)
+    if (isMobile) {
+      let startY = 0;
+      let endY = 0;
+      
+      sidebar.addEventListener('touchstart', function(e) {
+        startY = e.touches[0].clientY;
+      });
+      
+      sidebar.addEventListener('touchend', function(e) {
+        endY = e.changedTouches[0].clientY;
+        const deltaY = endY - startY;
+        
+        // Se fez swipe para baixo por mais de 100px, fechar menu
+        if (deltaY > 100) {
+          sidebar.classList.remove('active');
+        }
+      });
+    }
+  }
+  
+  // Otimizações mobile adicionais
+  if (isMobile) {
+    // Adicionar classes mobile ao body
+    document.body.classList.add('mobile-device');
+    
+    // Melhorar performance de scroll
+    document.documentElement.style.setProperty('-webkit-overflow-scrolling', 'touch');
+    
+    // Evitar zoom em inputs (iOS)
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+      if (input.type !== 'range') {
+        input.style.fontSize = '16px';
+      }
+    });
+    
+    // Adicionar feedback haptic para botões importantes (se suportado)
+    const importantButtons = document.querySelectorAll('.btn-primary, .btn-danger');
+    importantButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        if (navigator.vibrate) {
+          navigator.vibrate(50); // Vibração sutil
+        }
+      });
     });
   }
   
@@ -191,12 +291,12 @@ function showSection(sectionId) {
   sections.forEach(sec => sec.style.display = 'none');
   document.getElementById(sectionId).style.display = 'block';
   
-  // Atualizar navegação
+  // Atualizar navegação desktop
   document.querySelectorAll('#sidebar .nav-link').forEach(link => {
     link.classList.remove('active');
   });
   
-  // Encontrar e ativar o link correspondente
+  // Encontrar e ativar o link correspondente no desktop
   const links = document.querySelectorAll('#sidebar .nav-link');
   for (let i = 0; i < links.length; i++) {
     if (links[i].getAttribute('onclick') && links[i].getAttribute('onclick').includes(sectionId)) {
@@ -219,6 +319,20 @@ function showSection(sectionId) {
     // Carregar despesas quando esta seção for mostrada
     filtrarTodasDespesas();
   }
+}
+
+/**
+ * Gerencia a navegação ativa da barra inferior mobile
+ * @param {Element} clickedItem - Elemento clicado na barra inferior
+ */
+function setActiveBottomNav(clickedItem) {
+  // Remove active de todos os itens da barra inferior
+  document.querySelectorAll('.mobile-bottom-nav .nav-item').forEach(item => {
+    item.classList.remove('active');
+  });
+  
+  // Adiciona active ao item clicado
+  clickedItem.classList.add('active');
 }
 
 /**
@@ -261,6 +375,31 @@ function showConfigTab(tabId) {
  * @param {string} id - ID do modal a ser aberto
  */
 window.abrirModal = function(id) {
+  // Otimizações mobile para modais
+  const isMobile = window.innerWidth <= 768;
+  const modal = document.getElementById(id);
+  
+  if (isMobile && modal) {
+    // Adicionar classe mobile ao modal
+    modal.classList.add('mobile-modal');
+    
+    // Adicionar animação de entrada
+    const modalContent = modal.querySelector('.modal-content');
+    if (modalContent) {
+      modalContent.classList.add('slide-up-mobile');
+    }
+    
+    // Prevenir scroll do body em mobile
+    document.body.style.overflow = 'hidden';
+    
+    // Auto-scroll para o topo do modal
+    setTimeout(() => {
+      if (modalContent) {
+        modalContent.scrollTop = 0;
+      }
+    }, 100);
+  }
+  
   // Resetar formulários e elementos específicos por modal
   if (id === "cadastroDespesaModal") {
     // Verificar se não estamos abrindo o modal para edição (chamado pela função editarDespesa)
@@ -396,7 +535,30 @@ function filtrarDespesas() {
  * @param {string} id - ID do modal a ser fechado
  */
 window.fecharModal = function(id) {
-  document.getElementById(id).style.display = "none";
+  const modal = document.getElementById(id);
+  const isMobile = window.innerWidth <= 768;
+  
+  if (isMobile && modal) {
+    // Restaurar scroll do body
+    document.body.style.overflow = '';
+    
+    // Adicionar animação de saída
+    const modalContent = modal.querySelector('.modal-content');
+    if (modalContent) {
+      modalContent.style.animation = 'slideDownMobile 0.2s ease-in';
+      
+      // Aguardar animação antes de fechar
+      setTimeout(() => {
+        modal.style.display = "none";
+        modalContent.style.animation = '';
+        modal.classList.remove('mobile-modal');
+      }, 200);
+    } else {
+      modal.style.display = "none";
+    }
+  } else {
+    modal.style.display = "none";
+  }
   
   // Reset específico para modal de despesas
   if (id === "cadastroDespesaModal") {
@@ -677,7 +839,7 @@ function carregarPainelDespesasMes() {
             divDespesa.innerHTML = `
               <div class="despesa-info">
                 <div class="despesa-titulo">${despesa.descricao}</div>
-                <div class="despesa-detalhe">Parcela ${index+1}/${totalParcelas} - ${dt.toLocaleDateString()}</div>
+                <div class="despesa-detalhe">Parcela ${index+1}/${totalParcelas}\n${dt.toLocaleDateString()}</div>
               </div>
               <div class="despesa-valor">R$ ${parseFloat(parcela.valor).toFixed(2)}</div>
             `;
@@ -694,7 +856,7 @@ function carregarPainelDespesasMes() {
             divDespesa.innerHTML = `
               <div class="despesa-info">
                 <div class="despesa-titulo">${despesa.descricao}</div>
-                <div class="despesa-detalhe">Recorrente ${mesAno} - ${dt.toLocaleDateString()}</div>
+                <div class="despesa-detalhe">Recorrente ${mesAno}\n${dt.toLocaleDateString()}</div>
               </div>
               <div class="despesa-valor">R$ ${parseFloat(recorrencia.valor).toFixed(2)}</div>
             `;
@@ -1716,7 +1878,7 @@ function showDayDetails(day, despesas) {
       despesaElement.innerHTML = `
         <div class="despesa-info">
           <div class="despesa-titulo">${despesa.descricao}</div>
-          <div class="despesa-detalhe">Parcela ${despesa.parcela}/${despesa.totalParcelas} - ${getCategoriaName(despesa.categoria)}</div>
+          <div class="despesa-detalhe">Parcela ${despesa.parcela}/${despesa.totalParcelas}\n${getCategoriaName(despesa.categoria)}</div>
         </div>
         <div class="despesa-valor">R$ ${parseFloat(despesa.valorParcela).toFixed(2)}</div>
       `;
