@@ -35,6 +35,112 @@ if (typeof firebase !== 'undefined') {
 // Definindo db como variável global para ser acessível em todas as funções
 var db = firebase.database();
 
+// ===================== SISTEMA DE TEMA ESCURO =====================
+
+// Função para alternar tema
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  
+  // Aplicar o tema
+  document.documentElement.setAttribute('data-theme', newTheme);
+  
+  // Salvar preferência localmente
+  localStorage.setItem('theme', newTheme);
+  
+  // Salvar preferência no Firebase se o usuário estiver logado
+  if (currentUser) {
+    saveThemeToFirebase(newTheme);
+  }
+  
+  // Atualizar ícones
+  updateThemeIcons(newTheme);
+  
+  // Mostrar feedback
+  exibirToast(
+    newTheme === 'dark' ? 'Modo escuro ativado' : 'Modo claro ativado',
+    'info'
+  );
+}
+
+// Função para atualizar ícones do tema
+function updateThemeIcons(theme) {
+  const desktopIcon = document.getElementById('themeIcon');
+  const mobileIcon = document.getElementById('themeMobileIcon');
+  
+  if (theme === 'dark') {
+    // Modo escuro ativo - mostrar ícone da lua
+    if (desktopIcon) {
+      desktopIcon.className = 'fas fa-moon';
+    }
+    if (mobileIcon) {
+      mobileIcon.className = 'fas fa-moon';
+    }
+  } else {
+    // Modo claro ativo - mostrar ícone do sol
+    if (desktopIcon) {
+      desktopIcon.className = 'fas fa-sun';
+    }
+    if (mobileIcon) {
+      mobileIcon.className = 'fas fa-sun';
+    }
+  }
+}
+
+// Função para salvar tema no Firebase
+function saveThemeToFirebase(theme) {
+  if (!currentUser) return;
+  
+  try {
+    db.ref(`users/${currentUser.uid}/preferences`).update({
+      theme: theme,
+      updatedAt: new Date().toISOString()
+    });
+  } catch (error) {
+    console.log('Erro ao salvar tema no Firebase:', error);
+  }
+}
+
+// Função para carregar tema do Firebase
+function loadThemeFromFirebase() {
+  if (!currentUser) {
+    loadSavedTheme();
+    return;
+  }
+  
+  db.ref(`users/${currentUser.uid}/preferences/theme`).once('value')
+    .then((snapshot) => {
+      const firebaseTheme = snapshot.val();
+      const localTheme = localStorage.getItem('theme');
+      
+      // Priorizar tema do Firebase se existir
+      const theme = firebaseTheme || localTheme || 'light';
+      
+      // Aplicar tema
+      document.documentElement.setAttribute('data-theme', theme);
+      updateThemeIcons(theme);
+      
+      // Sincronizar localStorage
+      localStorage.setItem('theme', theme);
+    })
+    .catch((error) => {
+      console.log('Erro ao carregar tema do Firebase:', error);
+      loadSavedTheme(); // Fallback para localStorage
+    });
+}
+
+// Função para carregar tema salvo (fallback)
+function loadSavedTheme() {
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  updateThemeIcons(savedTheme);
+}
+
+// Carregar tema ao inicializar a página
+document.addEventListener('DOMContentLoaded', () => {
+  loadSavedTheme();
+});
+
 // ===================== INICIALIZAÇÃO DO DATERANGEPICKER =====================
 
 /**
@@ -3058,16 +3164,22 @@ function logout() {
 /**
  * Toggle do dropdown mobile do usuário
  */
-function toggleMobileUserDropdown() {
+function toggleMobileUserDropdown(event) {
+  event.stopPropagation();
   const dropdown = document.getElementById('mobileUserDropdown');
   if (dropdown) {
-    dropdown.classList.toggle('active');
+    const isActive = dropdown.classList.contains('active');
     
-    // Fechar dropdown se clicar fora
-    if (dropdown.classList.contains('active')) {
-      document.addEventListener('click', closeMobileDropdownOnClickOutside);
-    } else {
+    if (isActive) {
+      // Fechar dropdown
+      dropdown.classList.remove('active');
       document.removeEventListener('click', closeMobileDropdownOnClickOutside);
+    } else {
+      // Abrir dropdown
+      dropdown.classList.add('active');
+      setTimeout(() => {
+        document.addEventListener('click', closeMobileDropdownOnClickOutside);
+      }, 100);
     }
   }
 }
@@ -3089,23 +3201,26 @@ function closeMobileDropdownOnClickOutside(event) {
  * Atualiza informações do usuário no dropdown mobile
  */
 function atualizarInfoUsuarioMobile(user) {
-  const mobileUserName = document.getElementById('mobileUserName');
-  const mobileUserEmail = document.getElementById('mobileUserEmail');
-  const mobileUserAvatar = document.getElementById('mobileUserAvatar');
-  
-  if (mobileUserName && mobileUserEmail && mobileUserAvatar) {
-    mobileUserName.textContent = user.displayName || 'Usuário';
-    mobileUserEmail.textContent = user.email || '';
+  // Aguardar um pouco para garantir que os elementos estejam no DOM
+  setTimeout(() => {
+    const mobileUserName = document.getElementById('mobileUserName');
+    const mobileUserEmail = document.getElementById('mobileUserEmail');
+    const mobileUserAvatar = document.getElementById('mobileUserAvatar');
     
-    // Atualizar avatar
-    if (user.photoURL) {
-      mobileUserAvatar.innerHTML = `<img src="${user.photoURL}" alt="Avatar">`;
-    } else {
-      // Usar iniciais do nome ou ícone padrão
-      const iniciais = user.displayName ? user.displayName.split(' ').map(n => n[0]).join('').toUpperCase() : user.email[0].toUpperCase();
-      mobileUserAvatar.innerHTML = iniciais;
+    if (mobileUserName && mobileUserEmail && mobileUserAvatar) {
+      mobileUserName.textContent = user.displayName || 'Usuário';
+      mobileUserEmail.textContent = user.email || '';
+      
+      // Atualizar avatar
+      if (user.photoURL) {
+        mobileUserAvatar.innerHTML = `<img src="${user.photoURL}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">`;
+      } else {
+        // Usar iniciais do nome ou ícone padrão
+        const iniciais = user.displayName ? user.displayName.split(' ').map(n => n[0]).join('').toUpperCase() : user.email[0].toUpperCase();
+        mobileUserAvatar.innerHTML = iniciais;
+      }
     }
-  }
+  }, 500);
 }
 
 /**
@@ -3115,6 +3230,9 @@ function handleAuthStateChanged(user) {
   if (user) {
     // Usuário está logado
     currentUser = user;
+    
+    // Carregar tema do Firebase
+    loadThemeFromFirebase();
     
     // Atualizar referência do banco de dados para o usuário atual
     atualizarReferenciaDB(user.uid);

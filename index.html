@@ -44,7 +44,7 @@
 <body>
   <!-- Mobile Top Bar -->
   <div class="mobile-top-bar">
-    <div class="logo" onclick="toggleMobileUserDropdown()">
+    <div class="logo" onclick="toggleMobileUserDropdown(event)">
       <i class="fa-solid fa-wallet"></i> Contas
       <div class="mobile-user-dropdown" id="mobileUserDropdown">
         <div class="mobile-user-info">
@@ -69,6 +69,10 @@
       </button>
       <button class="action-btn" onclick="showSection('alertasSection')" title="Alertas">
         <i class="fa-solid fa-bell"></i>
+      </button>
+      <!-- Botão Dark Mode - Mobile -->
+      <button class="action-btn mobile-only" onclick="toggleTheme()" title="Alternar tema">
+        <i class="fas fa-sun" id="themeMobileIcon"></i>
       </button>
       <button class="action-btn" onclick="showSection('configuracoesSection')" title="Configurações">
         <i class="fa-solid fa-cog"></i>
@@ -114,6 +118,11 @@
           <i class="fa-solid fa-bell"></i>
           <span>Alertas</span>
         </a>
+        
+        <!-- Botão Dark Mode - Desktop -->
+        <button class="theme-toggle desktop-only" onclick="toggleTheme()" title="Alternar tema">
+          <i class="fas fa-sun" id="themeIcon"></i>
+        </button>
         <!-- Botão de logout será inserido aqui pelo auth.js -->
       </div>
     </aside>

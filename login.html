@@ -37,12 +37,12 @@
     </div>
     
     <form id="loginForm" class="login-form">
-      <div class="form-group">
+      <div class="form-group" style="margin-bottom: 0;">
         <label class="form-label" for="email">Email:</label>
         <input type="email" id="email" class="form-control" placeholder="Seu email" required>
       </div>
       
-      <div class="form-group">
+      <div class="form-group" style="margin-top: 0;">
         <label class="form-label" for="password">Senha:</label>
         <input type="password" id="password" class="form-control" placeholder="Sua senha" required>
       </div>
@@ -51,6 +51,10 @@
         <i class="fas fa-sign-in-alt"></i>
         <span>Entrar</span>
       </button>
+      
+      <div class="forgot-password">
+        <a href="#" id="forgotPasswordLink">Esqueci minha senha</a>
+      </div>
     </form>
     
     <div class="login-divider">ou</div>
@@ -66,6 +70,13 @@
       <p>Não tem uma conta? <a href="#" id="registerLink">Registre-se</a></p>
     </div>
     
+    <!-- Botão de alternância de tema -->
+    <div class="theme-toggle-login">
+      <button onclick="toggleTheme()" title="Alternar tema" class="theme-btn">
+        <i class="fas fa-sun" id="themeToggleIcon"></i>
+      </button>
+    </div>
+    
     <!-- Link discreto para ver código -->
     <div style="position: fixed; bottom: 10px; right: 10px; opacity: 0.3; font-size: 11px;">
       <a href="ver-codigo.html" target="_blank" style="color: #666; text-decoration: none;">
@@ -74,6 +85,32 @@
     </div>
   </div>
   
+  <!-- Modal de Recuperação de Senha -->
+  <div id="forgotPasswordModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Recuperar Senha</h2>
+        <button class="close" onclick="fecharModal('forgotPasswordModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 1.5rem; color: #666; text-align: center;">
+          Digite seu email para receber as instruções de recuperação de senha
+        </p>
+        <form id="forgotPasswordForm" class="login-form">
+          <div class="form-group">
+            <label class="form-label" for="resetEmail">Email:</label>
+            <input type="email" id="resetEmail" class="form-control" placeholder="Seu email" required>
+          </div>
+          
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-paper-plane"></i>
+            <span>Enviar Email de Recuperação</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal de Registro -->
   <div id="registerModal" class="modal">
     <div class="modal-content">
@@ -291,6 +328,56 @@
       abrirModal('registerModal');
     });
     
+    // Abrir modal de recuperação de senha
+    document.getElementById('forgotPasswordLink').addEventListener('click', function(e) {
+      e.preventDefault();
+      abrirModal('forgotPasswordModal');
+    });
+    
+    // Recuperação de senha
+    document.getElementById('forgotPasswordForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const email = document.getElementById('resetEmail').value;
+      
+      if (!email) {
+        exibirToast('Por favor, digite seu email.', 'warning');
+        return;
+      }
+      
+      // Mostrar loading
+      const submitBtn = document.querySelector('#forgotPasswordForm button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+      submitBtn.disabled = true;
+      
+      // Enviar email de recuperação
+      auth.sendPasswordResetEmail(email)
+        .then(() => {
+          exibirToast('Email de recuperação enviado com sucesso! Verifique sua caixa de entrada.', 'success');
+          fecharModal('forgotPasswordModal');
+          document.getElementById('resetEmail').value = '';
+        })
+        .catch((error) => {
+          let mensagemErro = 'Erro ao enviar email de recuperação. Tente novamente.';
+          
+          if (error.code === 'auth/user-not-found') {
+            mensagemErro = 'Nenhuma conta encontrada com este email.';
+          } else if (error.code === 'auth/invalid-email') {
+            mensagemErro = 'Email inválido.';
+          } else if (error.code === 'auth/too-many-requests') {
+            mensagemErro = 'Muitas tentativas. Tente novamente mais tarde.';
+          }
+          
+          exibirToast(mensagemErro, 'danger');
+        })
+        .finally(() => {
+          // Restaurar botão
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
+        });
+    });
+    
     // Registro de novo usuário
     document.getElementById('registerForm').addEventListener('submit', function(e) {
       e.preventDefault();
@@ -343,6 +430,58 @@
           
           exibirToast(mensagemErro, 'danger');
         });
+    });
+    
+    // ===================== SISTEMA DE TEMA ESCURO =====================
+
+    // Função para alternar tema
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      
+      // Aplicar o tema
+      document.documentElement.setAttribute('data-theme', newTheme);
+      
+      // Salvar preferência
+      localStorage.setItem('theme', newTheme);
+      
+      // Atualizar ícones
+      updateThemeIcons(newTheme);
+      
+      // Mostrar feedback
+      exibirToast(
+        newTheme === 'dark' ? 'Modo escuro ativado' : 'Modo claro ativado',
+        'info'
+      );
+    }
+
+    // Função para atualizar ícones do tema
+    function updateThemeIcons(theme) {
+      const themeIcon = document.getElementById('themeToggleIcon');
+      
+      if (theme === 'dark') {
+        // Modo escuro ativo - mostrar ícone da lua
+        if (themeIcon) {
+          themeIcon.className = 'fas fa-moon';
+        }
+      } else {
+        // Modo claro ativo - mostrar ícone do sol
+        if (themeIcon) {
+          themeIcon.className = 'fas fa-sun';
+        }
+      }
+    }
+
+    // Função para carregar tema salvo
+    function loadSavedTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      updateThemeIcons(savedTheme);
+    }
+
+    // Carregar tema ao inicializar a página
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSavedTheme();
     });
   </script>
   

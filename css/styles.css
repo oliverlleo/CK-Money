@@ -9,11 +9,12 @@
   --warning: #f8961e;
   --info: #90e0ef;
   
-  /* Cores de fundo e texto */
+  /* Cores de fundo e texto - LIGHT MODE */
   --bg-color: #f8f9fa;
   --card-color: #ffffff;
   --text-color: #212529;
   --text-muted: #6c757d;
+  --border-color: #e9ecef;
   
   /* Sombras */
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
@@ -27,6 +28,21 @@
   
   /* Transições */
   --transition-speed: 0.3s;
+}
+
+/* DARK MODE */
+[data-theme="dark"] {
+  /* Cores de fundo e texto - DARK MODE */
+  --bg-color: #121212;
+  --card-color: #1e1e1e;
+  --text-color: #ffffff;
+  --text-muted: #a0a0a0;
+  --border-color: #333333;
+  
+  /* Sombras para modo escuro */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
 }
 
 /* Reset e estilos base */
@@ -301,7 +317,7 @@ header h1 {
 
 /* Formulários */
 .form-group {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
 }
 
 .form-label {
@@ -314,7 +330,7 @@ header h1 {
 .form-control {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--border-color);
   border-radius: var(--border-radius-md);
   background: var(--card-color);
   font-size: 1rem;
@@ -540,7 +556,7 @@ tbody tr:hover {
   gap: 0.5rem;
   margin-bottom: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 1px dashed #eee;
+  border-bottom: 1px dashed var(--border-color);
 }
 
 .pagamento-item:last-child {
@@ -1288,6 +1304,93 @@ body.login-page {
   text-decoration: underline;
 }
 
+.forgot-password {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.forgot-password a {
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.forgot-password a:hover {
+  text-decoration: underline;
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+  background: var(--card-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  color: var(--text-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin: 0.5rem 1rem;
+  transition: all var(--transition-speed);
+  font-size: 1.1rem;
+}
+
+.theme-toggle:hover {
+  background: var(--primary);
+  color: white;
+  transform: scale(1.05);
+}
+
+/* Visibilidade por dispositivo */
+.desktop-only {
+  display: block;
+}
+
+.mobile-only {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none;
+  }
+  
+  .mobile-only {
+    display: flex !important;
+  }
+}
+
+/* Theme toggle na página de login */
+.theme-toggle-login {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.theme-btn {
+  background: var(--card-color);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  color: var(--text-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  transition: all var(--transition-speed);
+  font-size: 1.1rem;
+  box-shadow: var(--shadow-md);
+}
+
+.theme-btn:hover {
+  background: var(--primary);
+  color: white;
+  transform: scale(1.05);
+}
+
 /* Botão de logout */
 #logoutButton {
   margin-top: auto;
@@ -1371,17 +1474,32 @@ body.login-page {
   
   /* Modais mobile */
   .modal {
-    padding: 1rem;
-    align-items: flex-end;
+    padding: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important; /* Dynamic viewport height for mobile */
+    margin: 0 !important;
+    inset: 0 !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(4px);
+    z-index: 9999 !important;
   }
   
   .modal-content {
-    width: 100%;
+    width: calc(100% - 1rem);
     max-width: none;
-    margin: 0;
-    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
-    max-height: 90vh;
+    margin: 0.5rem;
+    border-radius: var(--border-radius-lg);
+    max-height: calc(100vh - 1rem);
     overflow-y: auto;
+    position: relative;
   }
   
   .modal-header {
@@ -1520,24 +1638,27 @@ body.login-page {
 /* Mobile User Dropdown */
 .mobile-user-dropdown {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 0.5rem);
   left: 0;
   background: var(--card-color);
   box-shadow: var(--shadow-lg);
   border-radius: var(--border-radius-md);
   padding: 1rem;
   min-width: 280px;
+  max-width: 320px;
   z-index: 300;
   opacity: 0;
   visibility: hidden;
   transform: translateY(-10px);
   transition: all var(--transition-speed);
+  display: none;
 }
 
 .mobile-user-dropdown.active {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
+  display: block;
 }
 
 .mobile-user-info {
@@ -1622,6 +1743,15 @@ body.login-page {
 @media (max-width: 768px) {
   .mobile-top-bar {
     display: flex;
+  }
+  
+  /* Garantir que o dropdown mobile esteja oculto por padrão */
+  .mobile-user-dropdown {
+    display: none !important;
+  }
+  
+  .mobile-user-dropdown.active {
+    display: block !important;
   }
 }
 
