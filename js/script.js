@@ -4537,3 +4537,80 @@ function excluirCategoria(categoriaId) {
       });
   }
 }
+
+/**
+ * Renderiza o calendário de despesas
+ */
+function renderCalendar() {
+  const calendarContainer = document.getElementById('calendarContainer');
+  if (!calendarContainer) return;
+  
+  const monthNames = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+  ];
+  
+  const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  
+  // Atualizar título do calendário
+  const calendarTitle = document.getElementById('calendarMonthYear');
+  if (calendarTitle) {
+    calendarTitle.textContent = `${monthNames[currentCalendarMonth]} ${currentCalendarYear}`;
+  }
+  
+  // Criar grid do calendário
+  const firstDay = new Date(currentCalendarYear, currentCalendarMonth, 1);
+  const lastDay = new Date(currentCalendarYear, currentCalendarMonth + 1, 0);
+  const startDate = new Date(firstDay);
+  startDate.setDate(startDate.getDate() - firstDay.getDay());
+  
+  let calendarHTML = '<div class="calendar-grid">';
+  
+  // Headers dos dias da semana
+  dayNames.forEach(day => {
+    calendarHTML += `<div class="calendar-day-header">${day}</div>`;
+  });
+  
+  // Dias do calendário
+  const currentDate = new Date(startDate);
+  for (let i = 0; i < 42; i++) {
+    const isCurrentMonth = currentDate.getMonth() === currentCalendarMonth;
+    const isToday = currentDate.toDateString() === new Date().toDateString();
+    
+    calendarHTML += `
+      <div class="calendar-day ${isCurrentMonth ? 'current-month' : 'other-month'} ${isToday ? 'today' : ''}" 
+           data-date="${currentDate.toISOString().split('T')[0]}">
+        <span class="day-number">${currentDate.getDate()}</span>
+      </div>
+    `;
+    
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+  
+  calendarHTML += '</div>';
+  calendarContainer.innerHTML = calendarHTML;
+}
+
+/**
+ * Navega para o mês anterior no calendário
+ */
+function prevMonth() {
+  currentCalendarMonth--;
+  if (currentCalendarMonth < 0) {
+    currentCalendarMonth = 11;
+    currentCalendarYear--;
+  }
+  renderCalendar();
+}
+
+/**
+ * Navega para o próximo mês no calendário
+ */
+function nextMonth() {
+  currentCalendarMonth++;
+  if (currentCalendarMonth > 11) {
+    currentCalendarMonth = 0;
+    currentCalendarYear++;
+  }
+  renderCalendar();
+}

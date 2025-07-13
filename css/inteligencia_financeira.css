@@ -36,6 +36,31 @@
   background-color: var(--border-color);
 }
 
+/* Correções para textos dos gráficos no modo escuro */
+@media (max-width: 768px) {
+  [data-theme="dark"] .apexcharts-legend-text {
+    color: #e0e0e0 !important;
+    fill: #e0e0e0 !important;
+  }
+
+  [data-theme="dark"] .apexcharts-text {
+    color: #e0e0e0 !important;
+    fill: #e0e0e0 !important;
+  }
+
+  [data-theme="dark"] .apexcharts-datalabel-label,
+  [data-theme="dark"] .apexcharts-datalabel-value {
+    color: #e0e0e0 !important;
+    fill: #e0e0e0 !important;
+  }
+
+  [data-theme="dark"] .apexcharts-xaxis-label,
+  [data-theme="dark"] .apexcharts-yaxis-label {
+    color: #e0e0e0 !important;
+    fill: #e0e0e0 !important;
+  }
+}
+
 /* Painel de Inteligência Financeira */
 .inteligencia-header {
   display: flex;
@@ -382,6 +407,16 @@
   overflow-x: auto;
 }
 
+/* Mobile responsive adjustments for report tabs */
+@media (max-width: 768px) {
+  .relatorio-tabs {
+    overflow-x: visible !important;
+    gap: 0.25rem;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+  }
+}
+
 .relatorio-tab-btn {
   padding: 0.75rem 1.5rem;
   background: transparent;
@@ -392,6 +427,29 @@
   cursor: pointer;
   transition: all var(--transition-speed);
   white-space: nowrap;
+}
+
+/* Mobile responsive adjustments for report tab buttons */
+@media (max-width: 768px) {
+  .relatorio-tab-btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .relatorio-tab-btn i {
+    font-size: 0.875rem;
+    margin-right: 0.25rem;
+  }
+  
+  .relatorio-tab-btn span {
+    font-size: 0.75rem;
+  }
 }
 
 .relatorio-tab-btn:hover {

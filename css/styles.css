@@ -45,6 +45,23 @@
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
 }
 
+/* Correções de texto no modo escuro para mobile */
+@media (max-width: 768px) {
+  [data-theme="dark"] .despesas-detalhe,
+  [data-theme="dark"] .despesas-detalhe span,
+  [data-theme="dark"] .despesas-detalhe small,
+  [data-theme="dark"] .despesas-detalhe .text-muted {
+    color: #e0e0e0 !important;
+  }
+
+  /* Texto "Sem Categoria" mais claro no modo escuro */
+  [data-theme="dark"] span:contains("Sem Categoria"),
+  [data-theme="dark"] .categoria-sem span,
+  [data-theme="dark"] .sem-categoria {
+    color: #d0d0d0 !important;
+  }
+}
+
 /* Reset e estilos base */
 * {
   box-sizing: border-box;
@@ -95,6 +112,136 @@ aside h2 {
 /* Menu toggle removido */
 
 /* Mobile Optimizations - Início */
+
+/* Ocultar o calendário inserido pela biblioteca Youware */
+#despesasSection h2.mb-3::after,
+h2.mb-3::after {
+  display: none !important;
+  flex: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Header de despesas com calendário para mobile */
+.despesas-header-mobile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.despesas-header-mobile h2 {
+  margin-bottom: 0;
+}
+
+.mobile-calendar-btn {
+  display: none;
+}
+
+/* Mostrar botão de calendário apenas no mobile */
+@media (max-width: 768px) {
+  .mobile-calendar-btn {
+    display: inline-flex !important;
+    padding: 0.325rem 0.65rem; /* Reduzido em 35% (0.5rem * 0.65 = 0.325rem, 1rem * 0.65 = 0.65rem) */
+    font-size: 0.569rem; /* Reduzido em 35% (0.875rem * 0.65 = 0.569rem) */
+    transform: scale(0.65); /* Reduz o botão em 35% */
+    transform-origin: center right; /* Mantém o alinhamento à direita */
+  }
+  
+  .mobile-calendar-btn span {
+    display: none;
+  }
+  
+  .mobile-calendar-btn i {
+    font-size: 0.8125rem; /* Reduzido em 35% (1.25rem * 0.65 = 0.8125rem) */
+  }
+}
+
+/* Botões de renda na aba de configurações - apenas mobile */
+@media (max-width: 768px) {
+  .renda-buttons-container,
+  .categorias-buttons-container {
+    flex-direction: row !important;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem !important;
+  }
+  
+  .renda-btn-cadastrar,
+  .renda-btn-atualizar,
+  .categoria-btn-gerenciar,
+  .categoria-btn-limites {
+    flex: 1;
+    min-width: 0;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+  
+  .renda-btn-cadastrar span,
+  .renda-btn-atualizar span,
+  .categoria-btn-gerenciar span,
+  .categoria-btn-limites span {
+    font-size: 0.75rem;
+  }
+  
+  .renda-btn-cadastrar i,
+  .renda-btn-atualizar i,
+  .categoria-btn-gerenciar i,
+  .categoria-btn-limites i {
+    font-size: 0.875rem;
+    margin-right: 0.25rem;
+  }
+}
+
+/* Estilos adicionais para o calendário */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+  margin-top: 1rem;
+}
+
+.calendar-day-header {
+  text-align: center;
+  font-weight: 600;
+  padding: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: background-color var(--transition-speed);
+  position: relative;
+  min-height: 40px;
+}
+
+.calendar-day:hover {
+  background-color: rgba(67, 97, 238, 0.1);
+}
+
+.calendar-day.other-month {
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.calendar-day.today {
+  background-color: var(--primary);
+  color: white;
+}
+
+.day-number {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
 
 /* Mobile Navigation - Bottom Sheet */
 @media (max-width: 768px) {
@@ -1714,6 +1861,31 @@ body.login-page {
   height: 1px;
   background: #e9ecef;
   margin-bottom: 1rem;
+}
+
+/* Mobile menu buttons - common styles */
+.mobile-menu-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-speed);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.mobile-menu-btn:hover {
+  background: var(--secondary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .mobile-logout-btn {
