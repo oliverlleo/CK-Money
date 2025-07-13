@@ -1621,32 +1621,44 @@ body.login-page {
   
   /* Modais mobile */
   .modal {
-    padding: 0.5rem;
-    align-items: center;
-    justify-content: center;
+    padding: 0.5rem !important;
+    align-items: center !important;
+    justify-content: center !important;
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    height: 100dvh !important; /* Dynamic viewport height for mobile */
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
     margin: 0 !important;
+    padding-right: 0 !important;
+    padding-left: 0 !important;
     inset: 0 !important;
     background: rgba(0, 0, 0, 0.6) !important;
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px) !important;
     z-index: 9999 !important;
+    box-sizing: border-box !important;
   }
   
   .modal-content {
-    width: calc(100% - 1rem);
+    width: calc(100% - 2rem);
     max-width: none;
-    margin: 0.5rem;
+    margin: 1rem;
+    padding: 1.5rem;
     border-radius: var(--border-radius-lg);
-    max-height: calc(100vh - 1rem);
+    max-height: calc(100vh - 2rem);
     overflow-y: auto;
     position: relative;
+    /* Ocultar barra de rolagem mas manter funcionalidade */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+  }
+
+  .modal-content::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
   }
   
   .modal-header {
