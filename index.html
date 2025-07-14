@@ -40,6 +40,20 @@
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/inteligencia_financeira.css">
   
+  <style>
+    /* Reduzir largura específica da TD de valor para 65% no mobile - sem cortar texto */
+    @media (max-width: 768px) {
+      #todasDespesasTable td[data-label="Valor"] {
+        width: 65% !important;
+        max-width: 65% !important;
+        box-sizing: border-box !important;
+        overflow: visible !important;
+        white-space: nowrap !important;
+        text-overflow: visible !important;
+      }
+    }
+  </style>
+  
 
 </head>
 <body>

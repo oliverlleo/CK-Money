@@ -16,6 +16,33 @@ let currentUser = null;
 // Mapa de categorias para uso global
 window.novo_categoriasMap = {};
 
+/**
+ * Obtém o nome da categoria pelo ID
+ * @param {string} categoriaId - ID da categoria
+ * @returns {string} Nome da categoria ou "Sem categoria"
+ */
+function getCategoriaName(categoriaId) {
+  if (!categoriaId) return "Sem categoria";
+  
+  // Verificar no mapa de categorias
+  if (window.novo_categoriasMap[categoriaId]) {
+    return window.novo_categoriasMap[categoriaId];
+  }
+  
+  // Buscar no Firebase se não estiver no mapa
+  if (currentUser) {
+    db.ref(`users/${currentUser.uid}/data/categorias/${categoriaId}`).once("value").then(snapshot => {
+      if (snapshot.exists()) {
+        const categoria = snapshot.val();
+        window.novo_categoriasMap[categoriaId] = categoria.nome;
+        return categoria.nome;
+      }
+    });
+  }
+  
+  return "Categoria não encontrada";
+}
+
 // ===================== CONFIGURAÇÃO DO FIREBASE =====================
 const firebaseConfig = {
   apiKey: "AIzaSyAG6LktPXGe6F-vSTHV2Y3n95vSwhpXch8",
@@ -1717,11 +1744,15 @@ function filtrarTodasDespesas() {
         const dataCompra = new Date(despesa.dataCompra);
         
         tr.innerHTML = `
-          <td>${despesa.descricao}</td>
-          <td>R$ ${parseFloat(despesa.valor).toFixed(2)}</td>
-          <td>${dataCompra.toLocaleDateString()}</td>
-          <td>${getCategoriaName(despesa.categoria)}</td>
-          <td>${despesa.pago ? 
+          <td data-label="Descrição">${despesa.descricao}</td>
+          <td data-label="Valor">R$ ${parseFloat(despesa.valor).toFixed(2)}</td>
+          <td data-label="Detalhes">${dataCompra.toLocaleDateString()} • ${getCategoriaName(despesa.categoria)} • ${despesa.pago ? 
+            (despesa.pagoAutomaticamente ? 
+              '<span class="badge bg-info">Pago Auto</span>' : 
+              '<span class="badge bg-success">Pago</span>') : 
+            '<span class="badge bg-warning">Pendente</span>'}</td>
+          <td data-label="Categoria" style="display: none;">${getCategoriaName(despesa.categoria)}</td>
+          <td data-label="Status" style="display: none;">${despesa.pago ? 
             (despesa.pagoAutomaticamente ? 
               '<span class="badge bg-info">Pago Automaticamente</span>' : 
               '<span class="badge bg-success">Pago</span>') : 
@@ -1745,11 +1776,15 @@ function filtrarTodasDespesas() {
           const dataVencimento = new Date(parcela.vencimento);
           
           tr.innerHTML = `
-            <td>${despesa.descricao} - Parcela ${index+1}/${despesa.parcelas.length}</td>
-            <td>R$ ${parseFloat(parcela.valor).toFixed(2)}</td>
-            <td>${dataVencimento.toLocaleDateString()}</td>
-            <td>${getCategoriaName(despesa.categoria)}</td>
-            <td>${parcela.pago ? 
+            <td data-label="Descrição">${despesa.descricao} - Parcela ${index+1}/${despesa.parcelas.length}</td>
+            <td data-label="Valor">R$ ${parseFloat(parcela.valor).toFixed(2)}</td>
+            <td data-label="Detalhes">${dataVencimento.toLocaleDateString()} • ${getCategoriaName(despesa.categoria)} • ${parcela.pago ? 
+              (parcela.pagoAutomaticamente ? 
+                '<span class="badge bg-info">Pago Auto</span>' : 
+                '<span class="badge bg-success">Pago</span>') : 
+              '<span class="badge bg-warning">Pendente</span>'}</td>
+            <td data-label="Categoria" style="display: none;">${getCategoriaName(despesa.categoria)}</td>
+            <td data-label="Status" style="display: none;">${parcela.pago ? 
               (parcela.pagoAutomaticamente ? 
                 '<span class="badge bg-info">Pago Automaticamente</span>' : 
                 '<span class="badge bg-success">Pago</span>') : 
@@ -1822,11 +1857,11 @@ function filtrarTodasDespesas() {
         }
         
         tr.innerHTML = `
-          <td>${despesa.descricao} - Recorrente</td>
-          <td>R$ ${parseFloat(despesa.valor).toFixed(2)}/mês</td>
-          <td>${dataVencimentoStr}</td>
-          <td>${getCategoriaName(despesa.categoria)}</td>
-          <td>${statusText}</td>
+          <td data-label="Descrição">${despesa.descricao} - Recorrente</td>
+          <td data-label="Valor">R$ ${parseFloat(despesa.valor).toFixed(2)}/mês</td>
+          <td data-label="Detalhes">${dataVencimentoStr} • ${getCategoriaName(despesa.categoria)} • ${statusText}</td>
+          <td data-label="Categoria" style="display: none;">${getCategoriaName(despesa.categoria)}</td>
+          <td data-label="Status" style="display: none;">${statusText}</td>
           <td>
             <div class="action-buttons">
               <button class="btn-icon" onclick="editarDespesa('${key}')" title="Editar">
@@ -2132,6 +2167,9 @@ function carregarDadosUsuario() {
         // Criar estrutura inicial de dados
         criarDadosIniciais();
       } else {
+        // Carregar categorias primeiro
+        carregarCategoriasNoMapa();
+        
         // Carregar categorias
         loadCategorias();
         
@@ -2149,6 +2187,26 @@ function carregarDadosUsuario() {
       console.error('Erro ao verificar dados do usuário:', error);
       exibirToast("Erro ao carregar dados. Tente novamente.", "danger");
     });
+}
+
+/**
+ * Carrega todas as categorias no mapa global
+ */
+function carregarCategoriasNoMapa() {
+  if (!currentUser) return;
+  
+  db.ref(`users/${currentUser.uid}/data/categorias`).once("value").then(snapshot => {
+    if (snapshot.exists()) {
+      window.novo_categoriasMap = {};
+      snapshot.forEach(child => {
+        const categoriaId = child.key;
+        const categoria = child.val();
+        window.novo_categoriasMap[categoriaId] = categoria.nome;
+      });
+    }
+  }).catch(error => {
+    console.error('Erro ao carregar categorias:', error);
+  });
 }
 
 /**
