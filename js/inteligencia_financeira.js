@@ -11,6 +11,12 @@
  */
 function analisarSituacaoFinanceira() {
   return new Promise((resolve, reject) => {
+    // Verificar se o usuário está autenticado
+    if (!currentUser || !currentUser.uid) {
+      reject(new Error("Usuário não autenticado"));
+      return;
+    }
+    
     // Obter ano atual
     const hoje = new Date();
     const anoAtual = hoje.getFullYear();
@@ -31,12 +37,13 @@ function analisarSituacaoFinanceira() {
       }
     };
     
-    // Obter todas as rendas
-    db.ref("pessoas").once("value")
+    // Obter apenas as rendas do usuário atual
+    db.ref(`users/${currentUser.uid}/data/pessoas`).once("value")
       .then(snapshot => {
-        // Processar rendas
-        snapshot.forEach(child => {
-          const pessoa = child.val();
+        // Processar rendas apenas do usuário atual
+        if (snapshot.exists()) {
+          snapshot.forEach(child => {
+            const pessoa = child.val();
           
           // Adicionar saldo inicial
           if (pessoa.saldoInicial) {
@@ -58,14 +65,16 @@ function analisarSituacaoFinanceira() {
             });
           }
         });
+        }
         
-        // Obter todas as despesas
-        return db.ref("despesas").once("value");
+        // Obter apenas as despesas do usuário atual
+        return db.ref(`users/${currentUser.uid}/data/despesas`).once("value");
       })
       .then(snapshot => {
-        // Processar despesas
-        snapshot.forEach(child => {
-          const despesa = child.val();
+        // Processar despesas apenas do usuário atual
+        if (snapshot.exists()) {
+          snapshot.forEach(child => {
+            const despesa = child.val();
           
           // Processar despesas à vista
           if (despesa.formaPagamento === "avista" && despesa.dataCompra) {
@@ -101,7 +110,8 @@ function analisarSituacaoFinanceira() {
               }
             });
           }
-        });
+          });
+        }
         
         // Calcular saldos
         dadosFinanceiros.saldo.anual = dadosFinanceiros.receitas.anual - dadosFinanceiros.despesas.anual;
@@ -198,6 +208,12 @@ function gerarRecomendacoes(dadosFinanceiros) {
  */
 function analisarGastosPorCategoria() {
   return new Promise((resolve, reject) => {
+    // Verificar se o usuário está autenticado
+    if (!currentUser || !currentUser.uid) {
+      reject(new Error("Usuário não autenticado"));
+      return;
+    }
+    
     // Obter ano atual
     const hoje = new Date();
     const anoAtual = hoje.getFullYear();
@@ -206,8 +222,8 @@ function analisarGastosPorCategoria() {
     // Estrutura para armazenar gastos por categoria
     const gastosPorCategoria = {};
     
-    // Obter limites de categorias
-    db.ref("limites_categorias").once("value")
+    // Obter limites de categorias apenas do usuário atual
+    db.ref(`users/${currentUser.uid}/data/limites_categorias`).once("value")
       .then(limSnapshot => {
         // Processar limites
         if (limSnapshot.exists()) {
@@ -227,13 +243,14 @@ function analisarGastosPorCategoria() {
           });
         }
         
-        // Obter categorias que não têm limites
-        return db.ref("categorias").once("value");
+        // Obter categorias que não têm limites apenas do usuário atual
+        return db.ref(`users/${currentUser.uid}/data/categorias`).once("value");
       })
       .then(catSnapshot => {
         // Processar categorias sem limites
-        catSnapshot.forEach(child => {
-          const categoriaId = child.key;
+        if (catSnapshot.exists()) {
+          catSnapshot.forEach(child => {
+            const categoriaId = child.key;
           
           if (!gastosPorCategoria[categoriaId]) {
             gastosPorCategoria[categoriaId] = {
@@ -246,16 +263,18 @@ function analisarGastosPorCategoria() {
               historico: Array(6).fill(0) // Últimos 6 meses
             };
           }
-        });
+          });
+        }
         
-        // Obter despesas
-        return db.ref("despesas").once("value");
+        // Obter despesas apenas do usuário atual
+        return db.ref(`users/${currentUser.uid}/data/despesas`).once("value");
       })
       .then(snapshot => {
-        // Processar despesas
-        snapshot.forEach(child => {
-          const despesa = child.val();
-          const categoriaId = despesa.categoria;
+        // Processar despesas apenas do usuário atual
+        if (snapshot.exists()) {
+          snapshot.forEach(child => {
+            const despesa = child.val();
+            const categoriaId = despesa.categoria;
           
           // Ignorar despesas sem categoria
           if (!categoriaId || !gastosPorCategoria[categoriaId]) return;
@@ -316,7 +335,8 @@ function analisarGastosPorCategoria() {
               }
             });
           }
-        });
+          });
+        }
         
         // Calcular percentuais e tendências
         Object.keys(gastosPorCategoria).forEach(categoriaId => {
@@ -366,7 +386,7 @@ function carregarMetas() {
     }
     
     // Buscar apenas as metas do usuário atual
-    db.ref("metas").orderByChild("userId").equalTo(currentUser.uid).once("value")
+    db.ref(`users/${currentUser.uid}/data/metas`).once("value")
       .then(snapshot => {
         const metas = [];
         
@@ -415,18 +435,17 @@ function salvarMeta(meta) {
       valorAtual: parseFloat(meta.valorAtual || 0),
       dataAlvo: meta.dataAlvo,
       dataCriacao: meta.dataCriacao || new Date().toISOString(),
-      categoria: meta.categoria || "outros",
-      userId: currentUser.uid // Adicionar ID do usuário
+      categoria: meta.categoria || "outros"
     };
     
-    // Salvar no Firebase
+    // Salvar no Firebase apenas no espaço do usuário
     let ref;
     if (meta.id) {
       // Atualizar meta existente
-      ref = db.ref(`metas/${meta.id}`).update(metaData);
+      ref = db.ref(`users/${currentUser.uid}/data/metas/${meta.id}`).update(metaData);
     } else {
       // Criar nova meta
-      ref = db.ref("metas").push(metaData);
+      ref = db.ref(`users/${currentUser.uid}/data/metas`).push(metaData);
     }
     
     ref.then(() => {
@@ -457,23 +476,8 @@ function atualizarProgressoMeta(metaId, novoValor) {
       return;
     }
     
-    // Primeiro verificar se a meta pertence ao usuário atual
-    db.ref(`metas/${metaId}`).once("value")
-      .then(snapshot => {
-        if (!snapshot.exists()) {
-          reject(new Error("Meta não encontrada"));
-          return;
-        }
-        
-        const meta = snapshot.val();
-        if (meta.userId !== currentUser.uid) {
-          reject(new Error("Acesso negado: meta pertence a outro usuário"));
-          return;
-        }
-        
-        // Se chegou aqui, pode atualizar
-        return db.ref(`metas/${metaId}/valorAtual`).set(parseFloat(novoValor));
-      })
+    // Atualizar diretamente no espaço do usuário (já garante isolamento)
+    db.ref(`users/${currentUser.uid}/data/metas/${metaId}/valorAtual`).set(parseFloat(novoValor))
       .then(() => {
         resolve({ success: true });
       })
@@ -502,23 +506,8 @@ function excluirMeta(metaId) {
       return;
     }
     
-    // Primeiro verificar se a meta pertence ao usuário atual
-    db.ref(`metas/${metaId}`).once("value")
-      .then(snapshot => {
-        if (!snapshot.exists()) {
-          reject(new Error("Meta não encontrada"));
-          return;
-        }
-        
-        const meta = snapshot.val();
-        if (meta.userId !== currentUser.uid) {
-          reject(new Error("Acesso negado: meta pertence a outro usuário"));
-          return;
-        }
-        
-        // Se chegou aqui, pode excluir
-        return db.ref(`metas/${metaId}`).remove();
-      })
+    // Excluir diretamente do espaço do usuário (já garante isolamento)
+    db.ref(`users/${currentUser.uid}/data/metas/${metaId}`).remove()
       .then(() => {
         resolve({ success: true });
       })
@@ -1085,8 +1074,8 @@ function renderizarPainelMetas() {
  * @param {string} metaId - ID da meta a ser editada
  */
 function abrirModalEditarMeta(metaId) {
-  // Carregar dados da meta
-  db.ref(`metas/${metaId}`).once("value")
+  // Carregar dados da meta do usuário atual
+  db.ref(`users/${currentUser.uid}/data/metas/${metaId}`).once("value")
     .then(snapshot => {
       if (snapshot.exists()) {
         const meta = snapshot.val();
@@ -1127,8 +1116,8 @@ function abrirModalEditarMeta(metaId) {
  * @param {string} metaId - ID da meta a ser atualizada
  */
 function abrirModalAtualizarMeta(metaId) {
-  // Carregar dados da meta
-  db.ref(`metas/${metaId}`).once("value")
+  // Carregar dados da meta do usuário atual
+  db.ref(`users/${currentUser.uid}/data/metas/${metaId}`).once("value")
     .then(snapshot => {
       if (snapshot.exists()) {
         const meta = snapshot.val();

@@ -525,7 +525,7 @@ function showSection(sectionId) {
   if (sectionId === 'previsaoSection') {
     novo_calcularPrevisoes();
   } else if (sectionId === 'alertasSection') {
-    novo_verificarAlertas();
+    verificarLimitesCategorias();
   } else if (sectionId === 'configuracoesSection') {
     // Carregar dados para as abas de configurações
     loadRendas();
@@ -1099,8 +1099,14 @@ function atualizarGrafico() {
     let despesasPorCategoria = {};
     let categorias = [];
     
-    // Primeiro, obter todas as categorias
-    db.ref("categorias").once("value").then(catSnapshot => {
+    // Verificar se o usuário está autenticado
+    if (!currentUser || !currentUser.uid) {
+      console.error("Usuário não autenticado");
+      return;
+    }
+    
+    // Primeiro, obter apenas categorias do usuário atual
+    db.ref(`users/${currentUser.uid}/data/categorias`).once("value").then(catSnapshot => {
       catSnapshot.forEach(catChild => {
         const categoria = catChild.val();
         categorias.push({
@@ -1357,7 +1363,7 @@ function cadastrarDespesa() {
     novaDespesa.parcelas = [];
     
     // Buscar dados do cartão para obter fechamento e vencimento
-    db.ref("cartoes").child(cartao).once("value").then(cartaoSnapshot => {
+    db.ref(`users/${currentUser.uid}/data/cartoes`).child(cartao).once("value").then(cartaoSnapshot => {
       const dadosCartao = cartaoSnapshot.val();
       
       if (!dadosCartao) {
@@ -2936,8 +2942,14 @@ function atualizarGraficoCategorias(inicio, fim) {
       }
     });
     
-    // Buscar nomes das categorias
-    db.ref("categorias").once("value").then(snapshot => {
+    // Verificar se o usuário está autenticado
+    if (!currentUser || !currentUser.uid) {
+      console.error("Usuário não autenticado");
+      return;
+    }
+    
+    // Buscar apenas nomes das categorias do usuário atual
+    db.ref(`users/${currentUser.uid}/data/categorias`).once("value").then(snapshot => {
       let categorias = {};
       
       snapshot.forEach(child => {
@@ -2952,7 +2964,7 @@ function atualizarGraficoCategorias(inicio, fim) {
       console.log("Despesas por Categoria:", despesasPorCategoria);
       console.log("Categorias Disponíveis:", categorias);
       
-      // Usar todas as categorias do sistema, mesmo sem despesas
+      // Usar todas as categorias do usuário, mesmo sem despesas
       snapshot.forEach(child => {
         const categoriaId = child.key;
         const valor = despesasPorCategoria[categoriaId] || 0;
@@ -3013,10 +3025,18 @@ function loadCategorias() {
   if (categoriasLista) categoriasLista.innerHTML = "";
   if (categoriasListaPrincipal) categoriasListaPrincipal.innerHTML = "";
   
+  // Verificar se o usuário está autenticado
+  if (!currentUser || !currentUser.uid) {
+    console.error("Usuário não autenticado");
+    exibirToast("Você precisa estar autenticado para acessar as categorias", "danger");
+    return;
+  }
+  
   // Limpar mapa de categorias
   window.novo_categoriasMap = {};
   
-  db.ref("categorias").once("value").then(snapshot => {
+  // Buscar apenas categorias do usuário atual
+  db.ref(`users/${currentUser.uid}/data/categorias`).once("value").then(snapshot => {
     if (categoriasLista) {
       snapshot.forEach(child => {
         const key = child.key;
@@ -3085,7 +3105,14 @@ function loadCategoriasFiltro() {
   
   categoriaFiltro.innerHTML = "<option value=''>Todas as Categorias</option>";
   
-  db.ref("categorias").once("value").then(snapshot => {
+  // Verificar se o usuário está autenticado
+  if (!currentUser || !currentUser.uid) {
+    console.error("Usuário não autenticado");
+    return;
+  }
+  
+  // Buscar apenas categorias do usuário atual
+  db.ref(`users/${currentUser.uid}/data/categorias`).once("value").then(snapshot => {
     snapshot.forEach(child => {
       const categoria = child.val();
       const option = document.createElement("option");
@@ -3105,7 +3132,14 @@ function updateCategoriaSelect() {
   
   categoriaSelect.innerHTML = "<option value=''>Selecione a Categoria</option>";
   
-  db.ref("categorias").once("value").then(snapshot => {
+  // Verificar se o usuário está autenticado
+  if (!currentUser || !currentUser.uid) {
+    console.error("Usuário não autenticado");
+    return;
+  }
+  
+  // Buscar apenas categorias do usuário atual
+  db.ref(`users/${currentUser.uid}/data/categorias`).once("value").then(snapshot => {
     snapshot.forEach(child => {
       const categoria = child.val();
       const option = document.createElement("option");
@@ -3127,7 +3161,14 @@ function adicionarCategoria() {
     return;
   }
   
-  db.ref("categorias").push({
+  // Verificar se o usuário está autenticado
+  if (!currentUser || !currentUser.uid) {
+    exibirToast("Você precisa estar autenticado para adicionar categorias", "danger");
+    return;
+  }
+  
+  // Adicionar categoria no namespace do usuário atual
+  db.ref(`users/${currentUser.uid}/data/categorias`).push({
     nome: novaCategoria
   }).then(() => {
     exibirToast("Categoria adicionada com sucesso!", "success");
@@ -3144,8 +3185,14 @@ function adicionarCategoria() {
  * Exclui uma categoria
  */
 function excluirCategoria(categoriaId) {
+  // Verificar se o usuário está autenticado
+  if (!currentUser || !currentUser.uid) {
+    exibirToast("Você precisa estar autenticado para excluir categorias", "danger");
+    return;
+  }
+  
   if (confirm("Tem certeza que deseja excluir esta categoria?")) {
-    db.ref("categorias").child(categoriaId).remove()
+    db.ref(`users/${currentUser.uid}/data/categorias`).child(categoriaId).remove()
       .then(() => {
         exibirToast("Categoria excluída com sucesso!", "success");
         loadCategorias();
@@ -3187,7 +3234,14 @@ function adicionarCartao() {
     return;
   }
   
-  db.ref("cartoes").push({
+  // Verificar se o usuário está autenticado
+  if (!currentUser || !currentUser.uid) {
+    exibirToast("Você precisa estar autenticado para adicionar cartões", "danger");
+    return;
+  }
+  
+  // Adicionar cartão no namespace do usuário atual
+  db.ref(`users/${currentUser.uid}/data/cartoes`).push({
     nome: nomeCartao,
     limite: limiteCartao,
     diaFechamento: fechamentoCartao,
@@ -3216,7 +3270,15 @@ function loadCartoes() {
   if (cartoesList) cartoesList.innerHTML = "";
   if (cartoesListaPrincipal) cartoesListaPrincipal.innerHTML = "";
   
-  db.ref("cartoes").once("value").then(snapshot => {
+  // Verificar se o usuário está autenticado
+  if (!currentUser || !currentUser.uid) {
+    console.error("Usuário não autenticado");
+    exibirToast("Você precisa estar autenticado para acessar os cartões", "danger");
+    return;
+  }
+  
+  // Buscar apenas cartões do usuário atual
+  db.ref(`users/${currentUser.uid}/data/cartoes`).once("value").then(snapshot => {
     if (cartoesList) {
       snapshot.forEach(child => {
         const key = child.key;
@@ -3279,7 +3341,14 @@ function updateCartaoSelect() {
   
   cartaoSelect.innerHTML = "<option value=''>Selecione o Cartão</option>";
   
-  db.ref("cartoes").once("value").then(snapshot => {
+  // Verificar se o usuário está autenticado
+  if (!currentUser || !currentUser.uid) {
+    console.error("Usuário não autenticado");
+    return;
+  }
+  
+  // Buscar apenas cartões do usuário atual
+  db.ref(`users/${currentUser.uid}/data/cartoes`).once("value").then(snapshot => {
     snapshot.forEach(child => {
       const cartao = child.val();
       const option = document.createElement("option");
@@ -3294,8 +3363,14 @@ function updateCartaoSelect() {
  * Exclui um cartão
  */
 function excluirCartao(cartaoId) {
+  // Verificar se o usuário está autenticado
+  if (!currentUser || !currentUser.uid) {
+    exibirToast("Você precisa estar autenticado para excluir cartões", "danger");
+    return;
+  }
+  
   if (confirm("Tem certeza que deseja excluir este cartão?")) {
-    db.ref("cartoes").child(cartaoId).remove()
+    db.ref(`users/${currentUser.uid}/data/cartoes`).child(cartaoId).remove()
       .then(() => {
         exibirToast("Cartão excluído com sucesso!", "success");
         loadCartoes();
@@ -3929,8 +4004,8 @@ function verificarLimitesCategorias(container = null) {
     return;
   }
   
-  // Obter limites de categorias
-  db.ref("limites_categorias").once("value").then(limSnapshot => {
+  // Obter limites de categorias apenas do usuário atual
+  db.ref(`users/${currentUser.uid}/data/limites_categorias`).once("value").then(limSnapshot => {
     if (!limSnapshot.exists()) return;
     
     const limites = {};
@@ -3944,7 +4019,7 @@ function verificarLimitesCategorias(container = null) {
     const anoAtual = hoje.getFullYear();
     
     // Buscar apenas despesas do usuário atual
-    db.ref("despesas").orderByChild("userId").equalTo(currentUser.uid).once("value").then(snapshot => {
+    db.ref(`users/${currentUser.uid}/data/despesas`).once("value").then(snapshot => {
       const gastosPorCategoria = {};
       
       snapshot.forEach(child => {
@@ -4045,17 +4120,23 @@ function novo_carregarLimites() {
   const container = document.getElementById("novo_limitesContainer");
   if (!container) return;
   
+  // Verificar se usuário está autenticado
+  if (!currentUser || !currentUser.uid) {
+    container.innerHTML = "<p>Usuário não autenticado.</p>";
+    return;
+  }
+  
   container.innerHTML = "";
   
-  // Obter categorias
-  db.ref("categorias").once("value").then(snapshot => {
+  // Obter categorias apenas do usuário atual
+  db.ref(`users/${currentUser.uid}/data/categorias`).once("value").then(snapshot => {
     if (!snapshot.exists()) {
       container.innerHTML = "<p>Nenhuma categoria cadastrada.</p>";
       return;
     }
     
-    // Obter limites atuais
-    db.ref("limites_categorias").once("value").then(limSnapshot => {
+    // Obter limites atuais apenas do usuário atual
+    db.ref(`users/${currentUser.uid}/data/limites_categorias`).once("value").then(limSnapshot => {
       const limites = {};
       
       if (limSnapshot.exists()) {
@@ -4091,6 +4172,12 @@ function novo_carregarLimites() {
  * Salva os limites de categorias
  */
 function novo_salvarLimites() {
+  // Verificar se usuário está autenticado
+  if (!currentUser || !currentUser.uid) {
+    exibirToast("Usuário não autenticado", "danger");
+    return;
+  }
+  
   const inputs = document.querySelectorAll(".limite-categoria");
   const limites = {};
   
@@ -4103,11 +4190,12 @@ function novo_salvarLimites() {
     };
   });
   
-  db.ref("limites_categorias").set(limites)
+  // Salvar limites apenas para o usuário atual
+  db.ref(`users/${currentUser.uid}/data/limites_categorias`).set(limites)
     .then(() => {
       exibirToast("Limites salvos com sucesso!", "success");
       fecharModal("novo_limitesModal");
-      novo_verificarAlertas();
+      verificarLimitesCategorias();
     })
     .catch(err => {
       console.error("Erro ao salvar limites:", err);
@@ -4151,8 +4239,20 @@ function novo_calcularPrevisoes() {
     });
   }
   
-  // Obter despesas
-  db.ref("despesas").once("value").then(snapshot => {
+  // Verificar se o usuário está autenticado
+  if (!currentUser || !currentUser.uid) {
+    console.error("Usuário não autenticado");
+    if (graficoContainer) {
+      graficoContainer.innerHTML = '<div class="alert alert-danger">Você precisa estar autenticado para visualizar previsões</div>';
+    }
+    if (tabelaContainer) {
+      tabelaContainer.innerHTML = '<div class="alert alert-danger">Você precisa estar autenticado para visualizar previsões</div>';
+    }
+    return;
+  }
+
+  // Obter apenas despesas do usuário atual
+  db.ref("despesas").orderByChild("userId").equalTo(currentUser.uid).once("value").then(snapshot => {
     snapshot.forEach(child => {
       const despesa = child.val();
       
@@ -4545,7 +4645,7 @@ function atualizarDespesa() {
       // Verificar se as parcelas foram alteradas
       if (!despesaOriginal.parcelas || despesaOriginal.parcelas.length !== numParcelas || despesaOriginal.cartao !== cartao) {
         // Buscar dados do cartão para recalcular parcelas
-        db.ref("cartoes").child(cartao).once("value").then(cartaoSnapshot => {
+        db.ref(`users/${currentUser.uid}/data/cartoes`).child(cartao).once("value").then(cartaoSnapshot => {
           const dadosCartao = cartaoSnapshot.val();
           
           if (!dadosCartao) {
