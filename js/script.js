@@ -1757,17 +1757,12 @@ function filtrarTodasDespesas() {
               '<span class="badge bg-info">Pago Automaticamente</span>' : 
               '<span class="badge bg-success">Pago</span>') : 
             '<span class="badge bg-warning">Pendente</span>'}</td>
-          <td>
-            <div class="action-buttons">
-              <button class="btn-icon" onclick="editarDespesa('${key}')" title="Editar">
-                <i class="fas fa-edit"></i>
-              </button>
-              <button class="btn-icon" onclick="excluirDespesa('${key}')" title="Excluir">
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          </td>
         `;
+        
+        // Adicionar dados para swipe
+        tr.setAttribute('data-despesa-id', key);
+        tr.setAttribute('data-despesa-tipo', 'avista');
+        tr.classList.add('swipeable-row');
         
         tbody.appendChild(tr);
       } else if (despesa.formaPagamento === "cartao" && despesa.parcelas) {
@@ -1789,17 +1784,13 @@ function filtrarTodasDespesas() {
                 '<span class="badge bg-info">Pago Automaticamente</span>' : 
                 '<span class="badge bg-success">Pago</span>') : 
               '<span class="badge bg-warning">Pendente</span>'}</td>
-            <td>
-              <div class="action-buttons">
-                <button class="btn-icon" onclick="editarDespesa('${key}')" title="Editar">
-                  <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn-icon" onclick="excluirDespesa('${key}')" title="Excluir">
-                  <i class="fas fa-trash"></i>
-                </button>
-              </div>
-            </td>
           `;
+          
+          // Adicionar dados para swipe
+          tr.setAttribute('data-despesa-id', key);
+          tr.setAttribute('data-despesa-tipo', 'cartao');
+          tr.setAttribute('data-parcela-index', index);
+          tr.classList.add('swipeable-row');
           
           tbody.appendChild(tr);
         });
@@ -1862,17 +1853,12 @@ function filtrarTodasDespesas() {
           <td data-label="Detalhes">${dataVencimentoStr} • ${getCategoriaName(despesa.categoria)} • ${statusText}</td>
           <td data-label="Categoria" style="display: none;">${getCategoriaName(despesa.categoria)}</td>
           <td data-label="Status" style="display: none;">${statusText}</td>
-          <td>
-            <div class="action-buttons">
-              <button class="btn-icon" onclick="editarDespesa('${key}')" title="Editar">
-                <i class="fas fa-edit"></i>
-              </button>
-              <button class="btn-icon" onclick="excluirDespesa('${key}')" title="Excluir">
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          </td>
         `;
+        
+        // Adicionar dados para swipe
+        tr.setAttribute('data-despesa-id', key);
+        tr.setAttribute('data-despesa-tipo', 'recorrente');
+        tr.classList.add('swipeable-row');
         
         tbody.appendChild(tr);
       }
@@ -2136,6 +2122,395 @@ function nextMonth() {
     currentCalendarYear++;
   }
   renderCalendar();
+}
+
+// ========== SISTEMA DE SWIPE PARA TABELA ==========
+
+let swipeStartX = 0;
+let swipeStartY = 0;
+let currentSwipeRow = null;
+let swipeThreshold = 50;
+let currentSwipeData = {};
+
+// Inicializar eventos de swipe quando a página carregar
+document.addEventListener('DOMContentLoaded', function() {
+  initSwipeEvents();
+});
+
+function initSwipeEvents() {
+  const tableBody = document.getElementById('todasDespesasBody');
+  if (!tableBody) return;
+  
+  // Usar delegação de eventos para capturar eventos em linhas criadas dinamicamente
+  tableBody.addEventListener('touchstart', handleTouchStart, {passive: false});
+  tableBody.addEventListener('touchmove', handleTouchMove, {passive: false});
+  tableBody.addEventListener('touchend', handleTouchEnd, {passive: false});
+  
+  // Também suportar mouse para desktop
+  tableBody.addEventListener('mousedown', handleMouseDown);
+  tableBody.addEventListener('mousemove', handleMouseMove);
+  tableBody.addEventListener('mouseup', handleMouseUp);
+}
+
+function handleTouchStart(e) {
+  if (!e.target.closest('.swipeable-row')) return;
+  
+  const touch = e.touches[0];
+  swipeStartX = touch.clientX;
+  swipeStartY = touch.clientY;
+  currentSwipeRow = e.target.closest('.swipeable-row');
+  
+  prepareSwipeRow(currentSwipeRow);
+}
+
+function handleMouseDown(e) {
+  if (!e.target.closest('.swipeable-row')) return;
+  
+  swipeStartX = e.clientX;
+  swipeStartY = e.clientY;
+  currentSwipeRow = e.target.closest('.swipeable-row');
+  
+  prepareSwipeRow(currentSwipeRow);
+}
+
+function handleTouchMove(e) {
+  if (!currentSwipeRow) return;
+  
+  const touch = e.touches[0];
+  handleSwipeMove(touch.clientX, touch.clientY);
+  e.preventDefault();
+}
+
+function handleMouseMove(e) {
+  if (!currentSwipeRow) return;
+  
+  handleSwipeMove(e.clientX, e.clientY);
+}
+
+function handleSwipeMove(currentX, currentY) {
+  const deltaX = currentX - swipeStartX;
+  const deltaY = currentY - swipeStartY;
+  
+  // Verificar se é um movimento horizontal predominante
+  if (Math.abs(deltaY) > Math.abs(deltaX)) {
+    resetSwipe();
+    return;
+  }
+  
+  const absX = Math.abs(deltaX);
+  
+  if (absX > 10) { // Mínimo de movimento para começar a animação
+    currentSwipeRow.classList.add('swiping');
+    currentSwipeRow.style.transform = `translateX(${deltaX}px)`;
+    
+    // Mostrar indicadores visuais
+    updateSwipeIndicators(deltaX);
+  }
+}
+
+function handleTouchEnd(e) {
+  if (!currentSwipeRow) return;
+  
+  const touch = e.changedTouches[0];
+  handleSwipeEnd(touch.clientX);
+}
+
+function handleMouseUp(e) {
+  if (!currentSwipeRow) return;
+  
+  handleSwipeEnd(e.clientX);
+}
+
+function handleSwipeEnd(endX) {
+  const deltaX = endX - swipeStartX;
+  const absX = Math.abs(deltaX);
+  
+  if (absX > swipeThreshold) {
+    if (deltaX > 0) {
+      // Swipe para direita - Editar/Excluir
+      triggerRightSwipeAction();
+    } else {
+      // Swipe para esquerda - Pagar
+      triggerLeftSwipeAction();
+    }
+  }
+  
+  resetSwipe();
+}
+
+function prepareSwipeRow(row) {
+  // Remover indicadores antigos
+  const existingIndicators = row.querySelectorAll('.swipe-indicator');
+  existingIndicators.forEach(indicator => indicator.remove());
+  
+  // Criar indicadores
+  const rightIndicator = document.createElement('div');
+  rightIndicator.className = 'swipe-indicator right';
+  rightIndicator.innerHTML = '<i class="fas fa-cog"></i>';
+  
+  const leftIndicator = document.createElement('div');
+  leftIndicator.className = 'swipe-indicator left';
+  leftIndicator.innerHTML = '<i class="fas fa-dollar-sign"></i>';
+  
+  row.appendChild(rightIndicator);
+  row.appendChild(leftIndicator);
+  
+  // Capturar dados da despesa
+  currentSwipeData = {
+    despesaId: row.getAttribute('data-despesa-id'),
+    tipo: row.getAttribute('data-despesa-tipo'),
+    parcelaIndex: row.getAttribute('data-parcela-index')
+  };
+}
+
+function updateSwipeIndicators(deltaX) {
+  if (!currentSwipeRow) return;
+  
+  const rightIndicator = currentSwipeRow.querySelector('.swipe-indicator.right');
+  const leftIndicator = currentSwipeRow.querySelector('.swipe-indicator.left');
+  
+  if (deltaX > swipeThreshold) {
+    rightIndicator.classList.add('active');
+    leftIndicator.classList.remove('active');
+  } else if (deltaX < -swipeThreshold) {
+    leftIndicator.classList.add('active');
+    rightIndicator.classList.remove('active');
+  } else {
+    rightIndicator.classList.remove('active');
+    leftIndicator.classList.remove('active');
+  }
+}
+
+function resetSwipe() {
+  if (currentSwipeRow) {
+    currentSwipeRow.classList.remove('swiping');
+    currentSwipeRow.style.transform = '';
+    
+    // Remover indicadores
+    const indicators = currentSwipeRow.querySelectorAll('.swipe-indicator');
+    indicators.forEach(indicator => indicator.remove());
+  }
+  
+  currentSwipeRow = null;
+  swipeStartX = 0;
+  swipeStartY = 0;
+  currentSwipeData = {};
+}
+
+function triggerRightSwipeAction() {
+  // Abrir modal de editar/excluir
+  loadSwipeRightModal();
+  abrirModal('swipeRightModal');
+}
+
+function triggerLeftSwipeAction() {
+  // Abrir modal de pagar
+  loadSwipeLeftModal();
+  abrirModal('swipeLeftModal');
+}
+
+function loadSwipeRightModal() {
+  if (!currentSwipeData.despesaId) return;
+  
+  // Buscar dados da despesa
+  db.ref("despesas").child(currentSwipeData.despesaId).once("value").then(snapshot => {
+    const despesa = snapshot.val();
+    if (!despesa) return;
+    
+    const nomeElement = document.getElementById('swipeDespesaNome');
+    const detalhesElement = document.getElementById('swipeDespesaDetalhes');
+    
+    let nome = despesa.descricao;
+    let detalhes = `Valor: R$ ${parseFloat(despesa.valor).toFixed(2)}`;
+    
+    if (currentSwipeData.tipo === 'cartao' && currentSwipeData.parcelaIndex !== undefined) {
+      const parcela = despesa.parcelas[parseInt(currentSwipeData.parcelaIndex)];
+      nome += ` - Parcela ${parseInt(currentSwipeData.parcelaIndex) + 1}/${despesa.parcelas.length}`;
+      detalhes = `Valor: R$ ${parseFloat(parcela.valor).toFixed(2)} • Vencimento: ${parcela.vencimento}`;
+    } else if (currentSwipeData.tipo === 'recorrente') {
+      nome += ' - Recorrente';
+      detalhes += '/mês';
+    } else if (currentSwipeData.tipo === 'avista') {
+      detalhes += ` • Data: ${new Date(despesa.dataCompra).toLocaleDateString()}`;
+    }
+    
+    nomeElement.textContent = nome;
+    detalhesElement.textContent = detalhes;
+  });
+}
+
+function loadSwipeLeftModal() {
+  if (!currentSwipeData.despesaId) return;
+  
+  // Buscar dados da despesa
+  db.ref("despesas").child(currentSwipeData.despesaId).once("value").then(snapshot => {
+    const despesa = snapshot.val();
+    if (!despesa) return;
+    
+    const nomeElement = document.getElementById('swipePayDespesaNome');
+    const detalhesElement = document.getElementById('swipePayDespesaDetalhes');
+    const optionsContainer = document.getElementById('swipePayOptions');
+    
+    let nome = despesa.descricao;
+    let detalhes = '';
+    let optionsHtml = '';
+    
+    if (currentSwipeData.tipo === 'avista') {
+      nome = despesa.descricao;
+      detalhes = `Valor: R$ ${parseFloat(despesa.valor).toFixed(2)} • Data: ${new Date(despesa.dataCompra).toLocaleDateString()}`;
+      
+      if (!despesa.pago) {
+        optionsHtml = `
+          <div class="pay-option selected" data-payment-type="avista">
+            <div class="pay-option-title">Pagar Despesa Completa</div>
+            <div class="pay-option-details">R$ ${parseFloat(despesa.valor).toFixed(2)}</div>
+          </div>
+        `;
+      } else {
+        optionsHtml = '<p class="text-muted">Esta despesa já foi paga.</p>';
+      }
+    } else if (currentSwipeData.tipo === 'cartao' && currentSwipeData.parcelaIndex !== undefined) {
+      const parcelaIndex = parseInt(currentSwipeData.parcelaIndex);
+      const parcela = despesa.parcelas[parcelaIndex];
+      
+      nome += ` - Parcela ${parcelaIndex + 1}/${despesa.parcelas.length}`;
+      detalhes = `Valor: R$ ${parseFloat(parcela.valor).toFixed(2)} • Vencimento: ${parcela.vencimento}`;
+      
+      if (!parcela.pago) {
+        optionsHtml = `
+          <div class="pay-option selected" data-payment-type="cartao" data-parcela-index="${parcelaIndex}">
+            <div class="pay-option-title">Pagar Esta Parcela</div>
+            <div class="pay-option-details">Parcela ${parcelaIndex + 1} - R$ ${parseFloat(parcela.valor).toFixed(2)}</div>
+          </div>
+        `;
+      } else {
+        optionsHtml = '<p class="text-muted">Esta parcela já foi paga.</p>';
+      }
+    } else if (currentSwipeData.tipo === 'recorrente') {
+      nome += ' - Recorrente';
+      detalhes = `Valor: R$ ${parseFloat(despesa.valor).toFixed(2)}/mês`;
+      
+      // Encontrar próximas recorrências não pagas
+      const recorrenciasNaoPagas = [];
+      if (despesa.recorrencias) {
+        despesa.recorrencias.forEach((recorrencia, index) => {
+          if (!recorrencia.pago) {
+            recorrenciasNaoPagas.push({...recorrencia, index});
+          }
+        });
+      }
+      
+      if (recorrenciasNaoPagas.length > 0) {
+        optionsHtml = recorrenciasNaoPagas.slice(0, 3).map(recorrencia => `
+          <div class="pay-option" data-payment-type="recorrente" data-recorrencia-index="${recorrencia.index}">
+            <div class="pay-option-title">${new Date(recorrencia.vencimento).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</div>
+            <div class="pay-option-details">Vencimento: ${recorrencia.vencimento} - R$ ${parseFloat(recorrencia.valor).toFixed(2)}</div>
+          </div>
+        `).join('');
+        
+        // Selecionar a primeira opção por padrão
+        optionsHtml = optionsHtml.replace('pay-option', 'pay-option selected');
+      } else {
+        optionsHtml = '<p class="text-muted">Não há recorrências pendentes para pagar.</p>';
+      }
+    }
+    
+    nomeElement.textContent = nome;
+    detalhesElement.textContent = detalhes;
+    optionsContainer.innerHTML = optionsHtml;
+    
+    // Adicionar eventos de clique nas opções
+    const payOptions = optionsContainer.querySelectorAll('.pay-option');
+    payOptions.forEach(option => {
+      option.addEventListener('click', function() {
+        payOptions.forEach(opt => opt.classList.remove('selected'));
+        this.classList.add('selected');
+      });
+    });
+  });
+}
+
+function editarDespesaSwipe() {
+  fecharModal('swipeRightModal');
+  if (currentSwipeData.despesaId) {
+    editarDespesa(currentSwipeData.despesaId);
+  }
+}
+
+function excluirDespesaSwipe() {
+  fecharModal('swipeRightModal');
+  if (currentSwipeData.despesaId) {
+    excluirDespesa(currentSwipeData.despesaId);
+  }
+}
+
+function confirmarPagamentoDespesa() {
+  const selectedOption = document.querySelector('#swipePayOptions .pay-option.selected');
+  if (!selectedOption) {
+    exibirToast('Selecione uma opção de pagamento', 'error');
+    return;
+  }
+  
+  const paymentType = selectedOption.getAttribute('data-payment-type');
+  const despesaId = currentSwipeData.despesaId;
+  
+  if (paymentType === 'avista') {
+    // Marcar despesa à vista como paga
+    db.ref("despesas").child(despesaId).update({
+      pago: true,
+      dataPagamento: new Date().toISOString().split('T')[0]
+    }).then(() => {
+      exibirToast('Despesa paga com sucesso!', 'success');
+      fecharModal('swipeLeftModal');
+      filtrarTodasDespesas(); // Recarregar tabela
+    });
+  } else if (paymentType === 'cartao') {
+    // Marcar parcela específica como paga
+    const parcelaIndex = parseInt(selectedOption.getAttribute('data-parcela-index'));
+    
+    db.ref("despesas").child(despesaId).once("value").then(snapshot => {
+      const despesa = snapshot.val();
+      if (despesa && despesa.parcelas && despesa.parcelas[parcelaIndex]) {
+        const parcelasAtualizadas = [...despesa.parcelas];
+        parcelasAtualizadas[parcelaIndex] = {
+          ...parcelasAtualizadas[parcelaIndex],
+          pago: true,
+          dataPagamento: new Date().toISOString().split('T')[0]
+        };
+        
+        db.ref("despesas").child(despesaId).update({
+          parcelas: parcelasAtualizadas
+        }).then(() => {
+          exibirToast('Parcela paga com sucesso!', 'success');
+          fecharModal('swipeLeftModal');
+          filtrarTodasDespesas(); // Recarregar tabela
+        });
+      }
+    });
+  } else if (paymentType === 'recorrente') {
+    // Marcar recorrência específica como paga
+    const recorrenciaIndex = parseInt(selectedOption.getAttribute('data-recorrencia-index'));
+    
+    db.ref("despesas").child(despesaId).once("value").then(snapshot => {
+      const despesa = snapshot.val();
+      if (despesa && despesa.recorrencias && despesa.recorrencias[recorrenciaIndex]) {
+        const recorrenciasAtualizadas = [...despesa.recorrencias];
+        recorrenciasAtualizadas[recorrenciaIndex] = {
+          ...recorrenciasAtualizadas[recorrenciaIndex],
+          pago: true,
+          dataPagamento: new Date().toISOString().split('T')[0]
+        };
+        
+        db.ref("despesas").child(despesaId).update({
+          recorrencias: recorrenciasAtualizadas
+        }).then(() => {
+          exibirToast('Recorrência paga com sucesso!', 'success');
+          fecharModal('swipeLeftModal');
+          filtrarTodasDespesas(); // Recarregar tabela
+        });
+      }
+    });
+  }
 }
 
 // ===================== MÓDULO DE AUTENTICAÇÃO =====================

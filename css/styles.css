@@ -2648,6 +2648,143 @@ body.login-page {
     gap: 1rem;
     align-items: center;
   }
+}
+
+/* Estilos para Swipe nas linhas da tabela */
+.swipeable-row {
+  position: relative;
+  transition: transform 0.3s ease;
+  cursor: grab;
+}
+
+.swipeable-row:active {
+  cursor: grabbing;
+}
+
+.swipeable-row.swiping {
+  z-index: 1000;
+}
+
+/* Indicadores de direção do swipe */
+.swipe-indicator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.2rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.swipe-indicator.right {
+  right: -80px;
+  background: linear-gradient(to right, rgba(40, 167, 69, 0.8), rgba(40, 167, 69, 0.9));
+}
+
+.swipe-indicator.left {
+  left: -80px;
+  background: linear-gradient(to left, rgba(23, 162, 184, 0.8), rgba(23, 162, 184, 0.9));
+}
+
+.swipe-indicator.active {
+  opacity: 1;
+}
+
+/* Estilos para os modais de swipe */
+.swipe-action-container {
+  padding: 1rem 0;
+}
+
+.despesa-info-modal {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: var(--bg-color);
+  border-radius: 8px;
+}
+
+.despesa-info-modal h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--primary);
+}
+
+.despesa-info-modal p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.action-buttons-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pay-options-container {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: var(--bg-color);
+  border-radius: 8px;
+}
+
+.pay-option {
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: var(--card-color);
+}
+
+.pay-option:hover {
+  background: rgba(67, 97, 238, 0.1);
+  border-color: var(--primary);
+}
+
+.pay-option.selected {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.pay-option-title {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.pay-option-details {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+/* Ajustes responsivos para swipe */
+@media (max-width: 768px) {
+  .swipe-indicator {
+    width: 60px;
+    font-size: 1rem;
+  }
+  
+  .swipe-indicator.right {
+    right: -60px;
+  }
+  
+  .swipe-indicator.left {
+    left: -60px;
+  }
+  
+  .despesa-info-modal {
+    padding: 0.75rem;
+  }
+  
+  .action-buttons-modal {
+    gap: 0.75rem;
+  }
   
   .mobile-top-actions .action-btn {
     background: none;
@@ -2667,6 +2804,41 @@ body.login-page {
   .mobile-top-actions .action-btn:hover {
     background: rgba(67, 97, 238, 0.1);
     color: var(--primary);
+  }
+}
+
+/* Controle de visibilidade entre desktop e mobile */
+.despesas-header-mobile {
+  display: none;
+}
+
+.despesas-header-desktop {
+  display: block;
+}
+
+.mobile-calendar-btn {
+  display: none;
+}
+
+/* Mostrar elementos mobile apenas em dispositivos móveis */
+@media (max-width: 768px) {
+  .despesas-header-mobile {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .mobile-calendar-btn {
+    display: flex !important;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+  
+  .despesas-header-desktop {
+    display: none;
   }
   
   /* Ocultar header na versão mobile */

@@ -288,6 +288,11 @@
             <span>Calendário</span>
           </button>
         </div>
+        
+        <!-- Cabeçalho para desktop -->
+        <div class="despesas-header-desktop">
+          <h2 class="mb-3">Despesas</h2>
+        </div>
         <div class="d-flex gap-2 flex-wrap mb-3">
           <button class="btn btn-primary" onclick="abrirModal('cadastroDespesaModal')">
             <i class="fas fa-plus"></i>
@@ -946,6 +951,61 @@
           <span>Atualizar</span>
         </button>
         <button class="btn btn-outline" onclick="fecharModal('mobileDataModal')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Ações de Deslize para Direita (Editar/Excluir) -->
+  <div id="swipeRightModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Ações da Despesa</h2>
+        <button class="close" onclick="fecharModal('swipeRightModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="swipe-action-container">
+          <div class="despesa-info-modal">
+            <h4 id="swipeDespesaNome"></h4>
+            <p id="swipeDespesaDetalhes"></p>
+          </div>
+          <div class="action-buttons-modal">
+            <button class="btn btn-primary btn-block" onclick="editarDespesaSwipe()">
+              <i class="fas fa-edit"></i>
+              <span>Editar Despesa</span>
+            </button>
+            <button class="btn btn-danger btn-block" onclick="excluirDespesaSwipe()">
+              <i class="fas fa-trash"></i>
+              <span>Excluir Despesa</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Ações de Deslize para Esquerda (Pagar) -->
+  <div id="swipeLeftModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Pagar Despesa</h2>
+        <button class="close" onclick="fecharModal('swipeLeftModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="swipe-action-container">
+          <div class="despesa-info-modal">
+            <h4 id="swipePayDespesaNome"></h4>
+            <p id="swipePayDespesaDetalhes"></p>
+          </div>
+          <div id="swipePayOptions" class="pay-options-container">
+            <!-- Conteúdo será preenchido dinamicamente -->
+          </div>
+          <div class="action-buttons-modal">
+            <button class="btn btn-success btn-block" onclick="confirmarPagamentoDespesa()">
+              <i class="fas fa-check"></i>
+              <span>Confirmar Pagamento</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
