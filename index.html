@@ -1,1187 +1,462 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Gestão Financeira">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#4361ee">
-  <title>Sistema de Gerenciamento de Contas Pessoais</title>
-  
-  <!-- Meta tags para evitar cache -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  
-
-  
-  <!-- Google Fonts: Roboto -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-  
-  <!-- CSS do Daterangepicker -->
-  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css?v=1.0.0" />
-  
-  <!-- ApexCharts para gráficos interativos -->
-  <script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script>
-  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-  
-  <!-- Toastify para notificações -->
-  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-  
-  <!-- Ícones (Font Awesome) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css?v=1.0.0">
-  
-  <!-- CSS unificado -->
-  <link rel="stylesheet" href="css/styles.css">
-  <link rel="stylesheet" href="css/inteligencia_financeira.css">
-  
-  <style>
-    /* Reduzir largura específica da TD de valor para 65% no mobile - sem cortar texto */
-    @media (max-width: 768px) {
-      #todasDespesasTable td[data-label="Valor"] {
-        width: 65% !important;
-        max-width: 65% !important;
-        box-sizing: border-box !important;
-        overflow: visible !important;
-        white-space: nowrap !important;
-        text-overflow: visible !important;
-      }
-    }
-  </style>
-  
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gerenciamento de Pedidos</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://lib.youware.com/youware-lib-editor.1752562065.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1752562065.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script>
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    
+    <!-- CSS customizado -->
+    <link rel="stylesheet" href="./css/styles.css">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <!-- SheetJS para processamento de planilhas -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-  <!-- Mobile Top Bar -->
-  <div class="mobile-top-bar">
-    <div class="logo" onclick="toggleMobileUserDropdown(event)">
-      <i class="fa-solid fa-wallet"></i> Contas
-      <div class="mobile-user-dropdown" id="mobileUserDropdown">
-        <div class="mobile-user-info">
-          <div class="mobile-user-avatar" id="mobileUserAvatar">
-            <i class="fa-solid fa-user"></i>
-          </div>
-          <div class="mobile-user-details">
-            <div class="mobile-user-name" id="mobileUserName">Carregando...</div>
-            <div class="mobile-user-email" id="mobileUserEmail">Carregando...</div>
-          </div>
-        </div>
-        <div class="mobile-dropdown-divider"></div>
-        
-        <!-- Exportar dados -->
-        <button class="mobile-menu-btn" onclick="exportData()">
-          <i class="fa-solid fa-file-export"></i>
-          Exportar
-        </button>
-        
-        <!-- Alternar tema -->
-        <button class="mobile-menu-btn" onclick="toggleTheme()">
-          <i class="fas fa-sun" id="themeMobileDropdownIcon"></i>
-          Alternar tema
-        </button>
-        
-        <div class="mobile-dropdown-divider"></div>
-        
-        <!-- Sair da conta -->
-        <button class="mobile-logout-btn" onclick="logout()">
-          <i class="fa-solid fa-sign-out-alt"></i>
-          Sair da conta
-        </button>
-      </div>
-    </div>
-    <div class="mobile-top-actions">
-      <button class="action-btn" onclick="showSection('alertasSection')" title="Alertas">
-        <i class="fa-solid fa-bell"></i>
-      </button>
-      <button class="action-btn" onclick="showSection('configuracoesSection')" title="Configurações">
-        <i class="fa-solid fa-cog"></i>
-      </button>
-    </div>
-  </div>
-  
-  <div class="app-container">
-    <!-- Menu Lateral -->
-    <aside id="sidebar">
-      <h2><i class="fa-solid fa-wallet"></i> Contas</h2>
-      <!-- Informações do usuário serão inseridas aqui pelo auth.js -->
-      <div id="sidebar-nav">
-        <a href="#" class="nav-link active" onclick="showSection('dashboardSection')">
-          <i class="fa-solid fa-house"></i>
-          <span>Dashboard</span>
-        </a>
-        <a href="#" class="nav-link" onclick="showSection('despesasSection')">
-          <i class="fa-solid fa-money-bill-wave"></i>
-          <span>Despesas</span>
-        </a>
-        <a href="#" class="nav-link" onclick="showSection('relatorioIntegradoSection')">
-          <i class="fa-solid fa-chart-line"></i>
-          <span>Relatórios & Previsões</span>
-        </a>
-        <a href="#" class="nav-link" onclick="showSection('inteligenciaFinanceiraSection')">
-          <i class="fa-solid fa-brain"></i>
-          <span>Inteligência Financeira</span>
-        </a>
-        <a href="#" class="nav-link" onclick="showSection('metasFinanceirasSection')">
-          <i class="fa-solid fa-bullseye"></i>
-          <span>Metas</span>
-        </a>
-        <a href="#" class="nav-link" onclick="showSection('configuracoesSection')">
-          <i class="fa-solid fa-cog"></i>
-          <span>Configurações</span>
-        </a>
-        <a href="#" class="nav-link" onclick="exportData()">
-          <i class="fa-solid fa-file-export"></i>
-          <span>Exportar</span>
-        </a>
-        <a href="#" class="nav-link" onclick="showSection('alertasSection')">
-          <i class="fa-solid fa-bell"></i>
-          <span>Alertas</span>
-        </a>
-        
-        <!-- Botão Dark Mode - Desktop -->
-        <button class="theme-toggle desktop-only" onclick="toggleTheme()" title="Alternar tema">
-          <i class="fas fa-sun" id="themeIcon"></i>
-        </button>
-        <!-- Botão de logout será inserido aqui pelo auth.js -->
-      </div>
-    </aside>
-    
-    <!-- Conteúdo Principal -->
-    <main>
-      <header>
-        <h1>Sistema de Gerenciamento de Contas</h1>
-      </header>
-      
-      <!-- Dashboard Resumido -->
-      <section id="dashboardSection" class="container">
-        <div class="chart-header">
-          <h2>Dashboard Resumido</h2>
-          <div id="dashboardMonthSelector" class="d-flex align-center gap-2 flex-wrap">
-            <div class="form-group mb-0">
-              <select id="dashboardMonth" class="form-control">
-                <option value="0">Janeiro</option>
-                <option value="1">Fevereiro</option>
-                <option value="2">Março</option>
-                <option value="3">Abril</option>
-                <option value="4">Maio</option>
-                <option value="5">Junho</option>
-                <option value="6">Julho</option>
-                <option value="7">Agosto</option>
-                <option value="8">Setembro</option>
-                <option value="9">Outubro</option>
-                <option value="10">Novembro</option>
-                <option value="11">Dezembro</option>
-              </select>
-            </div>
-            <div class="form-group mb-0">
-              <select id="dashboardYear" class="form-control">
-                <option value="2020">2020</option>
-                <option value="2021">2021</option>
-                <option value="2022">2022</option>
-                <option value="2023">2023</option>
-                <option value="2024">2024</option>
-                <option value="2025">2025</option>
-                <option value="2026">2026</option>
-                <option value="2027">2027</option>
-                <option value="2028">2028</option>
-                <option value="2029">2029</option>
-                <option value="2030">2030</option>
-              </select>
-            </div>
-            <button class="btn btn-primary" onclick="atualizarDashboard()">
-              <i class="fas fa-sync-alt"></i>
-              <span>Atualizar</span>
-            </button>
-          </div>
-          <!-- Botão de data para mobile -->
-          <div class="mobile-date-button" style="display: none;">
-            <button class="mobile-date-btn" onclick="abrirModal('mobileDataModal')">
-              <i class="fas fa-calendar-alt"></i>
-              <span id="mobileDateText">Março 2025</span>
-            </button>
-          </div>
-        </div>
-        
-        <div class="dashboard-cards">
-          <div class="dashboard-card">
-            <div class="dashboard-card-header">
-              <div class="dashboard-card-title">Saldo Atual</div>
-              <div class="dashboard-card-icon">
-                <i class="fas fa-wallet"></i>
-              </div>
-            </div>
-            <div class="dashboard-card-value" id="saldoAtual">R$ 0.00</div>
-            <div class="dashboard-card-label">
-              <span>Disponível para uso</span>
-              <button class="btn-icon" onclick="abrirModal('receberPagamentoModal')" title="Marcar Pagamento Recebido">
-                <i class="fas fa-plus-circle"></i>
-              </button>
-            </div>
-          </div>
-          
-          <div class="dashboard-card">
-            <div class="dashboard-card-header">
-              <div class="dashboard-card-title">Despesas do Mês</div>
-              <div class="d-flex gap-1">
-                <button class="btn-icon" onclick="prevDashboardMonth()">
-                  <i class="fas fa-chevron-left"></i>
-                </button>
-                <button class="btn-icon" onclick="nextDashboardMonth()">
-                  <i class="fas fa-chevron-right"></i>
-                </button>
-              </div>
-            </div>
-            <div class="dashboard-card-value" id="despesasMes">R$ 0.00</div>
-            <div class="dashboard-card-label" id="despesasMesTitle">Março de 2025</div>
-          </div>
-          
-          <div class="dashboard-card">
-            <div class="dashboard-card-header">
-              <div class="dashboard-card-title">Próximos Vencimentos</div>
-              <div class="dashboard-card-icon">
-                <i class="fas fa-calendar-alt"></i>
-              </div>
-            </div>
-            <div class="dashboard-card-value" id="proximosVencimentos">0</div>
-            <div class="dashboard-card-label">Dias até o próximo vencimento</div>
-          </div>
-          
-          <!-- Botão Cadastrar Despesa Mobile -->
-          <button class="mobile-add-expense-btn" onclick="abrirModal('cadastroDespesaModal')" style="display: none;">
-            <i class="fas fa-plus"></i>
-            Cadastrar Despesa
-          </button>
-        </div>
-        
-        <div class="chart-container">
-          <div class="chart-header">
-            <h3 class="chart-title">Análise de Despesas</h3>
-          </div>
-          <div class="grafico-painel-container">
-            <div class="chart-panel" style="flex: 3;">
-              <div id="graficoDespesas"></div>
-            </div>
-            <div class="chart-panel" style="flex: 2;">
-              <h4 class="mb-2">Despesas do Mês</h4>
-              <div id="listaDespesasMes" class="despesas-lista"></div>
-            </div>
-          </div>
-        </div>
-        
-        <button class="btn btn-primary btn-block" onclick="abrirModal('cadastroDespesaModal')">
-          <i class="fas fa-plus"></i>
-          <span>Cadastrar Nova Despesa</span>
-        </button>
-      </section>
-      
-      <!-- Seção de Despesas -->
-      <section id="despesasSection" class="container" style="display: none;">
-        <div class="despesas-header-mobile">
-          <h2 class="mb-3">Despesas</h2>
-          <button class="btn btn-outline mobile-calendar-btn" onclick="abrirModal('calendarModal'); renderCalendar()">
-            <i class="fas fa-calendar-alt"></i>
-            <span>Calendário</span>
-          </button>
-        </div>
-        
-        <!-- Cabeçalho para desktop -->
-        <div class="despesas-header-desktop">
-          <h2 class="mb-3">Despesas</h2>
-        </div>
-        <div class="d-flex gap-2 flex-wrap mb-3">
-          <button class="btn btn-primary" onclick="abrirModal('cadastroDespesaModal')">
-            <i class="fas fa-plus"></i>
-            <span>Cadastrar Despesa</span>
-          </button>
-          <button class="btn btn-success" onclick="abrirModal('pagarDespesaModal')">
-            <i class="fas fa-check"></i>
-            <span>Pagar Despesa</span>
-          </button>
-          <button class="btn btn-outline" onclick="abrirModal('calendarModal'); renderCalendar()">
-            <i class="fas fa-calendar-alt"></i>
-            <span>Calendário</span>
-          </button>
-        </div>
-        
-        <div class="chart-container">
-          <div class="chart-header">
-            <h3 class="chart-title">Todas as Despesas</h3>
-            <div class="d-flex gap-2">
-              <div class="form-group mb-0">
-                <input type="text" id="filtroDescricao" class="form-control" placeholder="Filtrar por descrição">
-              </div>
-              <button class="btn btn-primary" onclick="filtrarTodasDespesas()">
-                <i class="fas fa-filter"></i>
-              </button>
-            </div>
-          </div>
-          <div class="table-container">
-            <table id="todasDespesasTable">
-              <thead>
-                <tr>
-                  <th>Descrição</th>
-                  <th>Valor</th>
-                  <th>Data</th>
-                  <th>Categoria</th>
-                  <th>Status</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody id="todasDespesasBody">
-                <!-- Preenchido dinamicamente -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-      
-      <!-- Seção Integrada de Relatórios e Previsões -->
-      <section id="relatorioIntegradoSection" class="container" style="display: none;">
-        <h2 class="mb-3">Relatórios & Previsões</h2>
-        
-        <!-- Abas de navegação -->
-        <div class="relatorio-tabs">
-          <button class="relatorio-tab-btn active" onclick="showRelatorioTab('relatorioTab')">
-            <i class="fas fa-chart-line"></i>
-            <span>Relatórios</span>
-          </button>
-          <button class="relatorio-tab-btn" onclick="showRelatorioTab('previsaoTab')">
-            <i class="fas fa-chart-pie"></i>
-            <span>Previsões</span>
-          </button>
-          <button class="relatorio-tab-btn" onclick="showRelatorioTab('categoriasTab')">
-            <i class="fas fa-tags"></i>
-            <span>Análise por Categoria</span>
-          </button>
-        </div>
-        
-        <!-- Conteúdo das abas -->
-        <div class="relatorio-tab-content">
-          <!-- Aba de Relatórios -->
-          <div id="relatorioTab" class="relatorio-tab-pane active">
-            <div class="relatorio-header">
-              <h3 class="relatorio-title">Resumo Financeiro</h3>
-              <div class="relatorio-filters">
-                <div class="form-group mb-0">
-                  <input type="text" id="dataRange" class="form-control" placeholder="Todo Período" value="Todo Período">
+    <!-- Header -->
+    <header class="header">
+        <h1>Sistema de Gerenciamento de Pedidos</h1>
+        <p>Gerencie todos os seus pedidos e projetos de forma eficiente</p>
+    </header>
+
+    <!-- Container principal -->
+    <div class="main-container">
+        <main class="dashboard-container">
+            <!-- Barra de Ações e Filtros -->
+            <section class="filters-section">
+                <div class="filters-header">
+                    <h2 class="section-title">Pedidos Cadastrados</h2>
+                    <div class="flex gap-3">
+                        <!-- Dropdown de Análise -->
+                        <div class="dropdown-container">
+                            <button id="btnAnalise" class="btn btn-secondary dropdown-toggle">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                                </svg>
+                                Análise
+                                <svg class="w-4 h-4 dropdown-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div id="dropdownAnalise" class="dropdown-menu">
+                                <a href="./analise-estoque.html" class="dropdown-item">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                                    </svg>
+                                    Análise de Estoque
+                                </a>
+                                <a href="./tratamento-empenho.html" class="dropdown-item">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                                    </svg>
+                                    Análise Final
+                                </a>
+                            </div>
+                        </div>
+                        <button id="btnDashboardCliente" class="btn btn-info">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            Dashboard
+                        </button>
+                        <button id="btnRecebimento" class="btn btn-success">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M9 1v6m6-6v6"></path>
+                            </svg>
+                            Recebimento
+                        </button>
+                        <!-- Dropdown de Separação -->
+                        <div class="dropdown-container">
+                            <button id="btnSeparacao" class="btn btn-warning dropdown-toggle">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                </svg>
+                                Separação
+                                <svg class="w-4 h-4 dropdown-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div id="dropdownSeparacao" class="dropdown-menu">
+                                <a href="./empenho.html" class="dropdown-item">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                    </svg>
+                                    Empenho
+                                </a>
+                                <a href="./separacao-producao.html" class="dropdown-item">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Separação Prod
+                                </a>
+                            </div>
+                        </div>
+                        <!-- Dropdown de Compra -->
+                        <div class="dropdown-container">
+                            <button id="btnCompra" class="btn btn-info dropdown-toggle">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m0 0h10m-10 0a1 1 0 01-1-1v-1a1 1 0 011-1h10a1 1 0 011 1v1a1 1 0 01-1 1"></path>
+                                </svg>
+                                Compra
+                                <svg class="w-4 h-4 dropdown-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div id="dropdownCompra" class="dropdown-menu">
+                                <button id="btnCompraInicial" class="dropdown-item">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M8 11v6a2 2 0 002 2h4a2 2 0 002-2v-6M8 11h8"></path>
+                                    </svg>
+                                    Compra Inicial
+                                </button>
+                                <button id="btnCompraFinal" class="dropdown-item">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Compra Final
+                                </button>
+                            </div>
+                        </div>
+                        <button id="btnNovoPedido" class="btn btn-primary">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Novo Pedido
+                        </button>
+                    </div>
                 </div>
-              </div>
-            </div>
-            
-            <div id="relatorioMensalContainer"></div>
-          </div>
-          
-          <!-- Aba de Previsões -->
-          <div id="previsaoTab" class="relatorio-tab-pane">
-            <div class="relatorio-header">
-              <h3 class="relatorio-title">Tendência de Gastos</h3>
-              <button class="btn btn-primary" onclick="novo_calcularPrevisoes()">
-                <i class="fas fa-calculator"></i>
-                <span>Gerar Previsões</span>
-              </button>
-            </div>
-            
-            <div id="novo_graficoPrevisao"></div>
-            
-            <div class="relatorio-header mt-4">
-              <h3 class="relatorio-title">Próximos 3 Meses</h3>
-            </div>
-            
-            <div id="novo_tabelaPrevisao"></div>
-          </div>
-          
-          <!-- Aba de Categorias -->
-          <div id="categoriasTab" class="relatorio-tab-pane">
-            <div class="relatorio-header">
-              <h3 class="relatorio-title">Despesas por Categoria</h3>
-            </div>
-            
-            <div id="graficoCategorias"></div>
-          </div>
-        </div>
-      </section>
-      
-      <!-- Seção de Inteligência Financeira -->
-      <section id="inteligenciaFinanceiraSection" class="container" style="display: none;">
-        <h2 class="mb-3">Inteligência Financeira</h2>
-        <p class="mb-3">Análise completa da sua situação financeira, com recomendações personalizadas para melhorar sua saúde financeira.</p>
-        
-        <div id="inteligenciaFinanceiraContainer">
-          <!-- Conteúdo será preenchido dinamicamente -->
-        </div>
-      </section>
-      
-      <!-- Seção de Metas Financeiras -->
-      <section id="metasFinanceirasSection" class="container" style="display: none;">
-        <h2 class="mb-3">
-          Metas Financeiras
-          <button id="botaoMetaMobile" onclick="abrirModal('novametaModal')">
-            <i class="fas fa-plus"></i>
-            Meta
-          </button>
-        </h2>
-        <p class="mb-3">Defina e acompanhe suas metas financeiras para alcançar seus objetivos.</p>
-        
-        <div id="metasFinanceirasContainer">
-          <!-- Conteúdo será preenchido dinamicamente -->
-        </div>
-      </section>
-      
-      <!-- Nova Seção de Configurações (Unificada) -->
-      <section id="configuracoesSection" class="container" style="display: none;">
-        <h2 class="mb-3">Configurações</h2>
-        
-        <!-- Abas de navegação -->
-        <div class="config-tabs">
-          <button class="config-tab-btn active" onclick="showConfigTab('rendaTab')">
-            <i class="fas fa-user"></i>
-            <span>Rendas</span>
-          </button>
-          <button class="config-tab-btn" onclick="showConfigTab('configCategoriasTab')">
-            <i class="fas fa-tags"></i>
-            <span>Categorias</span>
-          </button>
-          <button class="config-tab-btn" onclick="showConfigTab('cartoesTab')">
-            <i class="fas fa-credit-card"></i>
-            <span>Cartões</span>
-          </button>
-        </div>
-        
-        <!-- Conteúdo das abas -->
-        <div class="config-tab-content">
-          <!-- Aba de Rendas -->
-          <div id="rendaTab" class="config-tab-pane">
-            <div class="renda-buttons-container d-flex gap-2 flex-wrap mb-3">
-              <button class="btn btn-primary renda-btn-cadastrar" onclick="abrirModal('cadastroModal')">
-                <i class="fas fa-plus"></i>
-                <span>Cadastra Renda</span>
-              </button>
-              <button class="btn btn-outline renda-btn-atualizar" onclick="loadRendas()">
-                <i class="fas fa-list"></i>
-                <span>Atualizar Lista</span>
-              </button>
-            </div>
-            
-            <div class="chart-container">
-              <div id="usuariosListaPrincipal"></div>
-            </div>
-          </div>
-          
-          <!-- Aba de Categorias -->
-          <div id="configCategoriasTab" class="config-tab-pane" style="display: none;">
-            <div class="categorias-buttons-container d-flex gap-2 flex-wrap mb-3">
-              <button class="btn btn-primary categoria-btn-gerenciar" onclick="abrirModal('categoriasModal')">
-                <i class="fas fa-tags"></i>
-                <span>Gerenciar Categorias</span>
-              </button>
-              <!-- Botão "Configurar Limites" movido da tela de alertas para a tela de configurações -->
-              <button class="btn btn-primary categoria-btn-limites" onclick="abrirModal('novo_limitesModal')">
-                <i class="fas fa-sliders"></i>
-                <span>Configurar Limites</span>
-              </button>
-            </div>
-            
-            <div class="chart-container">
-              <div id="categoriasListaPrincipal"></div>
-            </div>
-          </div>
-          
-          <!-- Aba de Cartões -->
-          <div id="cartoesTab" class="config-tab-pane" style="display: none;">
-            <button class="btn btn-primary mb-3" onclick="abrirModal('cartaoModal')">
-              <i class="fas fa-credit-card"></i>
-              <span>Gerenciar Cartões</span>
-            </button>
-            
-            <div class="chart-container">
-              <div id="cartoesListaPrincipal"></div>
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      <!-- Seção de Alertas -->
-      <section id="alertasSection" class="container" style="display:none;">
-        <h2 class="mb-3">Alertas</h2>
-        <!-- Botão "Configurar Limites" foi movido para a tela de configurações -->
-        
-        <div class="chart-container">
-          <div id="novo_listaAlertas"></div>
-        </div>
-      </section>
-    </main>
-  </div>
-  
-  <!-- ===================== MODAIS ===================== -->
-  <!-- Modal: Cadastro de Despesa -->
-  <div id="cadastroDespesaModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title">Cadastrar Despesa</h2>
-        <button class="close" onclick="fecharModal('cadastroDespesaModal')">&times;</button>
-      </div>
-      <div class="modal-body">
-        <!-- Campo oculto para ID da despesa em edição -->
-        <input type="hidden" id="despesaIdEditar">
-        <div class="form-group">
-          <label class="form-label">Descrição:</label>
-          <input type="text" id="despesaDescricao" class="form-control" placeholder="Descrição da despesa" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Valor (R$):</label>
-          <input type="number" id="despesaValor" class="form-control" placeholder="Valor" step="0.01" required pattern="[0-9]*" inputmode="decimal">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Data da Compra:</label>
-          <input type="date" id="dataCompra" class="form-control" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Categoria:</label>
-          <select id="categoriaDespesa" class="form-control">
-            <option value="">Selecione a Categoria</option>
-            <!-- Preenchido dinamicamente -->
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Forma de Pagamento:</label>
-          <select id="formaPagamento" class="form-control" onchange="toggleParcelamento()">
-            <option value="avista">À Vista</option>
-            <option value="cartao">Cartão de Crédito</option>
-            <option value="recorrente">Recorrente (Mensal)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Tipo de Pagamento:</label>
-          <select id="tipoPagamento" class="form-control">
-            <option value="manual">Manual (Marcar como pago manualmente)</option>
-            <option value="automatico">Automático (Desconta automaticamente no dia do vencimento)</option>
-          </select>
-          <small class="form-text">Escolha se a despesa será paga manualmente ou descontada automaticamente</small>
-        </div>
-        <div id="parcelamentoDiv" class="hidden">
-          <div class="form-group">
-            <label class="form-label">Cartão:</label>
-            <select id="cartaoDespesa" class="form-control">
-              <option value="">Selecione o Cartão</option>
-              <!-- Preenchido dinamicamente -->
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Número de Parcelas:</label>
-            <input type="number" id="numeroParcelas" class="form-control" placeholder="Número de parcelas" min="1" max="24" value="1">
-          </div>
-        </div>
-        <div id="recorrenteDiv" class="hidden">
-          <div class="form-group">
-            <label class="form-label">Dia do Mês para Desconto:</label>
-            <input type="number" id="diaRecorrencia" class="form-control" placeholder="Dia do mês" min="1" max="31" required>
-            <small class="form-text">Se o dia já passou no mês atual, a primeira cobrança será no próximo mês</small>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Quantidade de Meses:</label>
-            <input type="number" id="mesesRecorrencia" class="form-control" placeholder="Deixe em branco para indefinido" min="1" max="120">
-            <small class="form-text">Deixe em branco para repetir indefinidamente</small>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button id="btnCadastrarDespesa" class="btn btn-primary" onclick="cadastrarDespesa()">Cadastrar</button>
-        <button id="btnEditarDespesa" class="btn btn-primary" onclick="atualizarDespesa()" style="display: none;">Atualizar</button>
-        <button class="btn btn-outline" onclick="fecharModal('cadastroDespesaModal')">Cancelar</button>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Modal: Pagar Despesa -->
-  <div id="pagarDespesaModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title">Pagar Despesa</h2>
-        <button class="close" onclick="fecharModal('pagarDespesaModal')">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label class="form-label">Despesa:</label>
-          <select id="despesaSelect" class="form-control" onchange="verificarParcelas()">
-            <option value="">Selecione a Despesa</option>
-            <!-- Preenchido dinamicamente -->
-          </select>
-        </div>
-        <div id="parcelasDiv" class="hidden">
-          <div class="form-group">
-            <label class="form-label">Parcela:</label>
-            <select id="parcelaSelect" class="form-control">
-              <option value="">Selecione a Parcela</option>
-              <!-- Preenchido dinamicamente -->
-            </select>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Data de Pagamento:</label>
-          <input type="date" id="dataPagamento" class="form-control" required>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-primary" onclick="pagarDespesa()">Pagar</button>
-        <button class="btn btn-outline" onclick="fecharModal('pagarDespesaModal')">Cancelar</button>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Modal: Calendário -->
-  <div id="calendarModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title" id="calendarTitulo">Calendário de Despesas</h2>
-        <button class="close" onclick="fecharModal('calendarModal')">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="calendar-header">
-          <h3 id="calendarMonthYear" class="calendar-title">Março 2025</h3>
-          <div class="calendar-nav">
-            <button class="calendar-nav-btn" onclick="prevMonth()">
-              <i class="fas fa-chevron-left"></i>
-            </button>
-            <button class="calendar-nav-btn" onclick="nextMonth()">
-              <i class="fas fa-chevron-right"></i>
-            </button>
-          </div>
-        </div>
-        <div id="calendarContainer"></div>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Modal: Cadastro de Renda -->
-  <div id="cadastroModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title">Cadastrar Renda</h2>
-        <button class="close" onclick="fecharModal('cadastroModal')">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label class="form-label">Nome:</label>
-          <input type="text" id="nome" class="form-control" placeholder="Nome da fonte de renda" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Saldo Inicial (R$):</label>
-          <input type="number" id="saldoInicial" class="form-control" placeholder="Saldo inicial" step="0.01" required pattern="[0-9]*" inputmode="decimal">
-        </div>
-        <div id="pagamentosContainer">
-          <h3 class="mb-2">Pagamentos Recorrentes</h3>
-          <div class="pagamento-item">
-            <div class="form-group">
-              <label class="form-label">Dia do Mês:</label>
-              <input type="number" class="form-control pagamento-dia" placeholder="Dia" min="1" max="31" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Valor (R$):</label>
-              <input type="number" class="form-control pagamento-valor" placeholder="Valor" step="0.01" required pattern="[0-9]*" inputmode="decimal">
-            </div>
-            <button type="button" class="remover-pagamento">
-              <i class="fas fa-trash"></i>
-            </button>
-          </div>
-        </div>
-        <button class="btn btn-outline btn-block" id="adicionarPagamento">
-          <i class="fas fa-plus"></i>
-          <span>Adicionar Pagamento</span>
-        </button>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-primary" onclick="salvarRenda()">Salvar</button>
-        <button class="btn btn-outline" onclick="fecharModal('cadastroModal')">Cancelar</button>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Modal: Gerenciar Categorias -->
-  <div id="categoriasModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title">Gerenciar Categorias</h2>
-        <button class="close" onclick="fecharModal('categoriasModal')">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div id="formAdicionarCategoria" class="form-group">
-          <label class="form-label">Nova Categoria:</label>
-          <div class="d-flex gap-2">
-            <input type="text" id="novaCategoria" class="form-control" placeholder="Nome da categoria">
-            <button class="btn btn-primary" onclick="adicionarCategoria()">
-              <i class="fas fa-plus"></i>
-            </button>
-          </div>
-        </div>
-        <div id="formEditarCategoria" class="form-group" style="display: none;">
-          <label class="form-label">Editar Categoria:</label>
-          <div class="d-flex gap-2">
-            <input type="text" id="editarCategoriaNome" class="form-control" placeholder="Nome da categoria">
-            <input type="hidden" id="editarCategoriaId">
-            <button class="btn btn-success" onclick="salvarEdicaoCategoria()">
-              <i class="fas fa-save"></i>
-            </button>
-            <button class="btn btn-outline" onclick="cancelarEdicaoCategoria()">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-        </div>
-        <div id="categoriasLista"></div>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Modal: Gerenciar Cartões -->
-  <div id="cartaoModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title">Gerenciar Cartões</h2>
-        <button class="close" onclick="fecharModal('cartaoModal')">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label class="form-label">Nome do Cartão:</label>
-          <input type="text" id="nomeCartao" class="form-control" placeholder="Nome do cartão">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Limite (R$):</label>
-          <input type="number" id="limiteCartao" class="form-control" placeholder="Limite" step="0.01" pattern="[0-9]*" inputmode="decimal">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Dia de Fechamento:</label>
-          <input type="number" id="fechamentoCartao" class="form-control" placeholder="Dia" min="1" max="31">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Dia de Vencimento:</label>
-          <input type="number" id="vencimentoCartao" class="form-control" placeholder="Dia" min="1" max="31">
-        </div>
-        <button class="btn btn-primary btn-block" onclick="salvarCartao()">
-          <i class="fas fa-save"></i>
-          <span>Salvar Cartão</span>
-        </button>
-        <div id="cartoesLista" class="mt-3"></div>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Modal: Configurar Limites -->
-  <div id="novo_limitesModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title">Configurar Limites de Categorias</h2>
-        <button class="close" onclick="fecharModal('novo_limitesModal')">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p class="mb-3">Defina limites mensais para cada categoria de despesa:</p>
-        <div id="novo_limitesContainer"></div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-primary" onclick="novo_salvarLimites()">Salvar</button>
-        <button class="btn btn-outline" onclick="fecharModal('novo_limitesModal')">Cancelar</button>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Modal: Nova Meta -->
-  <div id="novametaModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title">Nova Meta Financeira</h2>
-        <button class="close" onclick="fecharModal('novametaModal')">&times;</button>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="metaId">
-        <div class="form-group">
-          <label class="form-label">Título:</label>
-          <input type="text" id="metaTitulo" class="form-control" placeholder="Título da meta" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Descrição:</label>
-          <textarea id="metaDescricao" class="form-control" placeholder="Descrição da meta"></textarea>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Valor da Meta (R$):</label>
-          <input type="number" id="metaValor" class="form-control" placeholder="Valor a ser atingido" step="0.01" required pattern="[0-9]*" inputmode="decimal">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Valor Atual (R$):</label>
-          <input type="number" id="metaValorAtual" class="form-control" placeholder="Valor já acumulado" step="0.01" pattern="[0-9]*" inputmode="decimal" value="0">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Data Alvo:</label>
-          <input type="date" id="metaDataAlvo" class="form-control" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Categoria:</label>
-          <select id="metaCategoria" class="form-control">
-            <option value="viagem">Viagem</option>
-            <option value="educacao">Educação</option>
-            <option value="imovel">Imóvel</option>
-            <option value="veiculo">Veículo</option>
-            <option value="aposentadoria">Aposentadoria</option>
-            <option value="emergencia">Reserva de Emergência</option>
-            <option value="outros">Outros</option>
-          </select>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-primary" onclick="salvarMetaFormulario()">Salvar</button>
-        <button class="btn btn-outline" onclick="fecharModal('novametaModal')">Cancelar</button>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Modal: Atualizar Progresso da Meta -->
-  <div id="atualizarMetaModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title">Atualizar Progresso</h2>
-        <button class="close" onclick="fecharModal('atualizarMetaModal')">&times;</button>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="atualizarMetaId">
-        <h3 id="atualizarMetaTitulo" class="mb-3"></h3>
-        <div class="form-group">
-          <label class="form-label">Valor Total da Meta:</label>
-          <div id="atualizarMetaValorTotal" class="form-control-static"></div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Valor Atual (R$):</label>
-          <input type="number" id="atualizarMetaValorAtual" class="form-control" placeholder="Valor acumulado" step="0.01" required pattern="[0-9]*" inputmode="decimal">
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-primary" onclick="atualizarMetaFormulario()">Atualizar</button>
-        <button class="btn btn-outline" onclick="fecharModal('atualizarMetaModal')">Cancelar</button>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Modal: Receber Pagamento -->
-  <div id="receberPagamentoModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title">Marcar Pagamento Recebido</h2>
-        <button class="close" onclick="fecharModal('receberPagamentoModal')">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label class="form-label">Renda:</label>
-          <select id="rendaSelect" class="form-control" onchange="carregarPagamentosRenda()">
-            <option value="">Selecione a Renda</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Pagamento:</label>
-          <select id="pagamentoSelect" class="form-control">
-            <option value="">Selecione o Pagamento</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Valor Recebido (R$):</label>
-          <input type="number" id="valorRecebido" class="form-control" placeholder="Valor" step="0.01" required pattern="[0-9]*" inputmode="decimal">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Data de Recebimento:</label>
-          <input type="date" id="dataRecebimento" class="form-control" required>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-primary" onclick="confirmarRecebimentoPagamento()">
-          <i class="fas fa-check"></i>
-          <span>Confirmar Recebimento</span>
-        </button>
-        <button class="btn btn-outline" onclick="fecharModal('receberPagamentoModal')">Cancelar</button>
-      </div>
-    </div>
-  </div>
+                
+                <div class="filters-content">
+                    <div class="filter-group">
+                        <label class="filter-label">Buscar Cliente ou Nº Pedido</label>
+                        <input 
+                            type="text" 
+                            id="filterSearch" 
+                            class="filter-input"
+                            placeholder="Digite o nome do cliente ou número do pedido"
+                        >
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Tipo de Projeto</label>
+                        <select id="filterTipoProjeto" class="filter-input">
+                            <option value="">Todos</option>
+                            <option value="PVC">PVC</option>
+                            <option value="Alumínio">Alumínio</option>
+                            <option value="Brise">Brise</option>
+                            <option value="ACM">ACM</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Serviço Terceirizado</label>
+                        <select id="filterTerceirizado" class="filter-input">
+                            <option value="">Todos</option>
+                            <option value="true">Sim</option>
+                            <option value="false">Não</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Lista de Material</label>
+                        <input 
+                            type="text" 
+                            id="filterListaMaterial" 
+                            class="filter-input"
+                            placeholder="Ex: Perfil, Ferragens, Aço..."
+                        >
+                        <div id="materialsAutocomplete" class="autocomplete-dropdown hidden"></div>
+                    </div>
+                    
+                    <div class="filter-actions">
+                        <button id="btnLimparFiltros" class="btn btn-secondary">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            Limpar Filtros
+                        </button>
+                    </div>
+                </div>
+            </section>
 
-  <!-- Modal: Seleção de Data Mobile -->
-  <div id="mobileDataModal" class="modal">
-    <div class="modal-content mobile-modal">
-      <div class="modal-header">
-        <h2 class="modal-title">Selecionar Período</h2>
-        <button class="close" onclick="fecharModal('mobileDataModal')">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="mobile-date-selector">
-          <div class="form-group">
-            <label class="form-label">Mês:</label>
-            <select id="mobileMonth" class="form-control">
-              <option value="0">Janeiro</option>
-              <option value="1">Fevereiro</option>
-              <option value="2">Março</option>
-              <option value="3">Abril</option>
-              <option value="4">Maio</option>
-              <option value="5">Junho</option>
-              <option value="6">Julho</option>
-              <option value="7">Agosto</option>
-              <option value="8">Setembro</option>
-              <option value="9">Outubro</option>
-              <option value="10">Novembro</option>
-              <option value="11">Dezembro</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Ano:</label>
-            <select id="mobileYear" class="form-control">
-              <option value="2020">2020</option>
-              <option value="2021">2021</option>
-              <option value="2022">2022</option>
-              <option value="2023">2023</option>
-              <option value="2024">2024</option>
-              <option value="2025">2025</option>
-              <option value="2026">2026</option>
-              <option value="2027">2027</option>
-              <option value="2028">2028</option>
-              <option value="2029">2029</option>
-              <option value="2030">2030</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-primary" onclick="atualizarDashboardMobile()">
-          <i class="fas fa-sync-alt"></i>
-          <span>Atualizar</span>
-        </button>
-        <button class="btn btn-outline" onclick="fecharModal('mobileDataModal')">Cancelar</button>
-      </div>
-    </div>
-  </div>
 
-  <!-- Modal: Ações de Deslize para Direita (Editar/Excluir) -->
-  <div id="swipeRightModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title">Ações da Despesa</h2>
-        <button class="close" onclick="fecharModal('swipeRightModal')">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="swipe-action-container">
-          <div class="despesa-info-modal">
-            <h4 id="swipeDespesaNome"></h4>
-            <p id="swipeDespesaDetalhes"></p>
-          </div>
-          <div class="action-buttons-modal">
-            <button class="btn btn-primary btn-block" onclick="editarDespesaSwipe()">
-              <i class="fas fa-edit"></i>
-              <span>Editar Despesa</span>
-            </button>
-            <button class="btn btn-danger btn-block" onclick="excluirDespesaSwipe()">
-              <i class="fas fa-trash"></i>
-              <span>Excluir Despesa</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Modal: Ações de Deslize para Esquerda (Pagar) -->
-  <div id="swipeLeftModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title">Pagar Despesa</h2>
-        <button class="close" onclick="fecharModal('swipeLeftModal')">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="swipe-action-container">
-          <div class="despesa-info-modal">
-            <h4 id="swipePayDespesaNome"></h4>
-            <p id="swipePayDespesaDetalhes"></p>
-          </div>
-          <div id="swipePayOptions" class="pay-options-container">
-            <!-- Conteúdo será preenchido dinamicamente -->
-          </div>
-          <div class="action-buttons-modal">
-            <button class="btn btn-success btn-block" onclick="confirmarPagamentoDespesa()">
-              <i class="fas fa-check"></i>
-              <span>Confirmar Pagamento</span>
-            </button>
-          </div>
-        </div>
-      </div>
+            <!-- Tabela de Pedidos -->
+            <section class="table-section">
+                <div class="table-header">
+                    <div class="table-info">
+                        <span id="totalPedidos" class="total-count">0 pedidos encontrados</span>
+                    </div>
+                    <div class="table-actions">
+                        <button id="btnRefresh" class="btn-icon" title="Atualizar lista">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <!-- Estado de loading -->
+                    <div id="tableLoading" class="table-loading">
+                        <div class="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
+                        <p class="mt-2 text-gray-600">Carregando pedidos...</p>
+                    </div>
+                    
+                    <!-- Estado vazio -->
+                    <div id="tableEmpty" class="table-empty hidden">
+                        <svg class="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <h3 class="text-lg font-medium text-gray-600 mb-2">Nenhum pedido encontrado</h3>
+                        <p class="text-sm text-gray-500 mb-4">Clique em "Novo Pedido" para cadastrar o primeiro</p>
+                        <button id="btnNovoPedidoEmpty" class="btn btn-primary">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Criar Primeiro Pedido
+                        </button>
+                    </div>
+                    
+                    <!-- Tabela de dados -->
+                    <div id="tableData" class="hidden">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th class="sortable" data-field="clienteNome">
+                                        Cliente
+                                        <svg class="sort-icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
+                                        </svg>
+                                    </th>
+                                    <th class="sortable" data-field="numeroPedido">
+                                        Nº Pedido
+                                        <svg class="sort-icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
+                                        </svg>
+                                    </th>
+                                    <th class="sortable" data-field="tipoProjeto">
+                                        Tipo de Projeto
+                                        <svg class="sort-icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
+                                        </svg>
+                                    </th>
+                                    <th>Listas de Materiais</th>
+                                    <th class="sortable" data-field="dataCriacao">
+                                        Data de Cadastro
+                                        <svg class="sort-icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
+                                        </svg>
+                                    </th>
+                                    <th class="sortable" data-field="statusGeral">
+                                        Status
+                                        <svg class="sort-icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
+                                        </svg>
+                                    </th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <!-- Dados serão inseridos dinamicamente aqui -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Paginação -->
+                <div id="pagination" class="pagination hidden">
+                    <div class="pagination-info">
+                        <span id="paginationText">Mostrando 1-10 de 25 pedidos</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <button id="btnPrevPage" class="pagination-btn" disabled>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            Anterior
+                        </button>
+                        <div id="pageNumbers" class="page-numbers">
+                            <!-- Números das páginas serão inseridos aqui -->
+                        </div>
+                        <button id="btnNextPage" class="pagination-btn">
+                            Próximo
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
     </div>
-  </div>
-  
-  <!-- Scripts -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-  <script src="js/script.js"></script>
-  <script src="js/inteligencia_financeira.js"></script>
-  
-  <script>
-    // Inicialização
-    document.addEventListener('DOMContentLoaded', function() {
-      // Configurar data atual para campos de data
-      const hoje = new Date();
-      const dataFormatada = hoje.toISOString().split('T')[0];
-      
-      const dataCompraInput = document.getElementById('dataCompra');
-      if (dataCompraInput) dataCompraInput.value = dataFormatada;
-      
-      const dataPagamentoInput = document.getElementById('dataPagamento');
-      if (dataPagamentoInput) dataPagamentoInput.value = dataFormatada;
-      
-      // Configurar mês atual no dashboard
-      const dashboardMonth = document.getElementById('dashboardMonth');
-      if (dashboardMonth) dashboardMonth.value = hoje.getMonth();
-      
-      const dashboardYear = document.getElementById('dashboardYear');
-      if (dashboardYear) dashboardYear.value = hoje.getFullYear();
-      
-      // Inicializar DateRangePicker
-      initDateRangePicker();
-      
-      // Verificar autenticação
-      firebase.auth().onAuthStateChanged(function(user) {
-        if (user) {
-          currentUser = user;
-          carregarDadosUsuario();
-        } else {
-          // Para fins de teste, não redirecionamos para a página de login
-          console.log("Usuário não autenticado, mostrando valores zerados");
-          // Não redirecionar: window.location.href = 'login.html';
-          
-          // Simular login para teste
-          currentUser = {uid: 'teste123', email: 'teste@example.com', displayName: 'Usuário Teste'};
-          // Mostrar a seção de configurações diretamente para teste
-          setTimeout(() => {
-            showSection('configuracoesSection');
-            showConfigTab('configCategoriasTab');
-          }, 500);
-        }
-      });
-      
-      // Adicionar função para mostrar abas de relatório
-      window.showRelatorioTab = function(tabId) {
-        // Esconder todas as abas
-        const tabPanes = document.querySelectorAll('.relatorio-tab-pane');
-        tabPanes.forEach(pane => pane.classList.remove('active'));
+
+    <!-- Modal de Cadastro/Edição de Pedido -->
+    <div id="modalPedido" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle" class="modal-title">Novo Pedido</h2>
+                <button id="btnFecharModal" class="modal-close">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- O conteúdo do formulário será inserido aqui dinamicamente -->
+                <div id="modalFormContainer">
+                    <!-- Formulário será carregado dinamicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Loading overlay (hidden by default) -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 max-w-sm mx-4">
+            <div class="flex items-center space-x-3">
+                <div class="animate-spin h-6 w-6 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                <span class="text-gray-700">Carregando sistema...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer discreto -->
+    <footer class="footer-discrete">
+       
+    </footer>
+
+    <!-- Scripts -->
+    <script src="./js/firebase-config.js"></script>
+    <script src="./js/file-processor.js"></script>
+    <script src="./js/form-handler.js"></script>
+    <script src="./js/ui-manager.js"></script>
+    <script src="./js/dashboard-manager.js"></script>
+    <script src="./js/main.js"></script>
+
+    <!-- Script de inicialização -->
+    <script>
+        // Mostrar loading inicial
+        document.getElementById('loadingOverlay').classList.remove('hidden');
         
-        // Mostrar a aba selecionada
-        document.getElementById(tabId).classList.add('active');
+        // Aguardar carregamento completo
+        window.addEventListener('load', () => {
+            // Aguardar um momento para garantir que tudo foi carregado
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                
+                // Inicializar dashboard
+                if (window.PedidosApp) {
+                    window.PedidosApp.initDashboard();
+                }
+                
+            }, 500);
+        });
         
-        // Atualizar botões de navegação
-        const tabButtons = document.querySelectorAll('.relatorio-tab-btn');
-        tabButtons.forEach(btn => btn.classList.remove('active'));
-        
-        // Encontrar e ativar o botão correspondente
-        const buttons = document.querySelectorAll('.relatorio-tab-btn');
-        for (let i = 0; i < buttons.length; i++) {
-          if (buttons[i].getAttribute('onclick') && buttons[i].getAttribute('onclick').includes(tabId)) {
-            buttons[i].classList.add('active');
-            break;
-          }
-        }
-        
-        // Inicializar componentes específicos da aba
-        if (tabId === 'relatorioTab') {
-          // Garantir que "Todo Período" está selecionado
-          setTimeout(() => {
-            const dataRangeInput = document.getElementById('dataRange');
-            if (dataRangeInput) {
-              // Sempre resetar para "Todo Período" quando abrir a aba de relatórios
-              dataRangeInput.value = 'Todo Período';
-              dataRangeInput.placeholder = 'Todo Período';
-              
-              // Definir período como todo período (sem filtro de data)
-              rangeStart = null;
-              rangeEnd = null;
-              
-              // Atualizar relatórios
-              atualizarRelatorios();
+        // Debug helper
+        window.debugPedidos = () => {
+            if (window.PedidosApp) {
+                console.log('Estado da aplicação:', window.PedidosApp.debug());
+                return window.PedidosApp.debug();
             }
-          }, 50);
-        } else if (tabId === 'previsaoTab') {
-          // Executar previsões com o período atual
-          novo_calcularPrevisoes();
-        } else if (tabId === 'categoriasTab') {
-          // Para categoria, usar o mesmo período já definido
-          let inicio, fim;
-          if (!rangeStart || !rangeEnd) {
-            inicio = new Date('2020-01-01');
-            fim = new Date('2030-12-31');
-          } else {
-            inicio = new Date(rangeStart);
-            fim = new Date(rangeEnd);
-          }
-          atualizarGraficoCategorias(inicio, fim);
-        }
-      };
-      
-      // Modificar a função showSection para inicializar as novas seções
-      const originalShowSection = window.showSection;
-      window.showSection = function(sectionId) {
-        originalShowSection(sectionId);
+            console.log('Aplicação não inicializada');
+            return null;
+        };
         
-        // Inicializar componentes específicos das novas seções
-        if (sectionId === 'inteligenciaFinanceiraSection') {
-          renderizarPainelInteligencia();
-        } else if (sectionId === 'metasFinanceirasSection') {
-          renderizarPainelMetas();
-        } else if (sectionId === 'relatorioIntegradoSection') {
-          // Inicializar a primeira aba com "Todo Período" padrão
-          showRelatorioTab('relatorioTab');
-          
-          // Definir "Todo Período" como padrão
-          setTimeout(() => {
-            const dataRangeInput = document.getElementById('dataRange');
-            if (dataRangeInput) {
-              dataRangeInput.value = 'Todo Período';
-              dataRangeInput.placeholder = 'Todo Período';
-              
-              // Definir período como todo período (sem filtro de data)
-              rangeStart = null;
-              rangeEnd = null;
-              
-              // Atualizar relatórios imediatamente
-              atualizarRelatorios();
-            }
-          }, 100);
+        // Detectar se é mobile e ajustar interface
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobile) {
+            document.body.classList.add('mobile-device');
         }
-      };
-    });
-  </script>
-  
-  <!-- Utilitários compartilhados -->
-  <script src="js/utils.js"></script>
-  
 
-  
-  <!-- Mobile Bottom Navigation -->
-  <div class="mobile-bottom-nav">
-    <div class="nav-item active" onclick="showSection('dashboardSection'); setActiveBottomNav(this);">
-      <i class="fa-solid fa-house"></i>
-      <span>Dashboard</span>
-    </div>
-    <div class="nav-item" onclick="showSection('despesasSection'); setActiveBottomNav(this);">
-      <i class="fa-solid fa-money-bill-wave"></i>
-      <span>Despesas</span>
-    </div>
-    <div class="nav-item" onclick="showSection('relatorioIntegradoSection'); setActiveBottomNav(this);">
-      <i class="fa-solid fa-chart-line"></i>
-      <span>Relatórios</span>
-    </div>
-    <div class="nav-item" onclick="showSection('inteligenciaFinanceiraSection'); setActiveBottomNav(this);">
-      <i class="fa-solid fa-brain"></i>
-      <span>Inteligência</span>
-    </div>
-    <div class="nav-item" onclick="showSection('metasFinanceirasSection'); setActiveBottomNav(this);">
-      <i class="fa-solid fa-bullseye"></i>
-      <span>Metas</span>
-    </div>
-  </div>
+        // Event listener para botão "Ver Código" (verificar se existe)
+        const btnViewCode = document.getElementById('btnViewCode');
+        if (btnViewCode) {
+            btnViewCode.addEventListener('click', () => {
+                window.open('./code-viewer.html', '_blank');
+            });
+        }
 
+        // Event listeners para dropdowns "Análise", "Separação" e "Compra"
+        const dropdowns = ['Analise', 'Separacao', 'Compra'];
+        
+        dropdowns.forEach(type => {
+            const btnDropdown = document.getElementById(`btn${type}`);
+            if (!btnDropdown) return; // Pular se o botão não existir
+            
+            const dropdownContainer = btnDropdown.closest('.dropdown-container');
+            if (!dropdownContainer) return; // Pular se o container não existir
+            
+            btnDropdown.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Fechar outros dropdowns
+                dropdowns.forEach(otherType => {
+                    if (otherType !== type) {
+                        const otherContainer = document.getElementById(`btn${otherType}`)?.closest('.dropdown-container');
+                        if (otherContainer) otherContainer.classList.remove('open');
+                    }
+                });
+                
+                // Alternar este dropdown
+                dropdownContainer.classList.toggle('open');
+            });
+        });
+        
+        // Fechar dropdowns ao clicar fora
+        document.addEventListener('click', (e) => {
+            const containers = document.querySelectorAll('.dropdown-container');
+            containers.forEach(container => {
+                if (!container.contains(e.target)) {
+                    container.classList.remove('open');
+                }
+            });
+        });
+
+        // Event listener para botão "Dashboard"
+        const btnDashboardCliente = document.getElementById('btnDashboardCliente');
+        if (btnDashboardCliente) {
+            btnDashboardCliente.addEventListener('click', () => {
+                window.location.href = './dashboard-cliente.html';
+            });
+        }
+
+        // Event listener para botão "Recebimento"
+        const btnRecebimento = document.getElementById('btnRecebimento');
+        if (btnRecebimento) {
+            btnRecebimento.addEventListener('click', () => {
+                window.location.href = './recebimento.html';
+            });
+        }
+
+        // Event listeners para "Compra Inicial" e "Compra Final"
+        const btnCompraInicial = document.getElementById('btnCompraInicial');
+        if (btnCompraInicial) {
+            btnCompraInicial.addEventListener('click', () => {
+                window.location.href = './gestao-compras.html';
+            });
+        }
+
+        const btnCompraFinal = document.getElementById('btnCompraFinal');
+        if (btnCompraFinal) {
+            btnCompraFinal.addEventListener('click', () => {
+                window.location.href = './compra-final.html';
+            });
+        }
+
+
+    </script>
 </body>
 </html>
