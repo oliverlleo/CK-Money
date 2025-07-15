@@ -1981,9 +1981,9 @@ body.login-page {
 
 /* Mobile User Dropdown */
 .mobile-user-dropdown {
-  position: absolute;
-  top: calc(100% + 0.5rem);
-  left: 0;
+  position: fixed;
+  top: 70px;
+  left: 1rem;
   background: var(--card-color);
   box-shadow: var(--shadow-lg);
   border-radius: var(--border-radius-md);
@@ -1991,18 +1991,17 @@ body.login-page {
   min-width: 280px;
   max-width: 320px;
   z-index: 300;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-10px);
-  transition: all var(--transition-speed);
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity var(--transition-speed);
   display: none;
 }
 
 .mobile-user-dropdown.active {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
-  display: block;
+  /* A transição acontece apenas através da opacidade agora */
 }
 
 .mobile-user-info {

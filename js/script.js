@@ -526,6 +526,29 @@ function showSection(sectionId) {
     novo_calcularPrevisoes();
   } else if (sectionId === 'alertasSection') {
     verificarLimitesCategorias();
+  } else if (sectionId === 'inteligenciaFinanceiraSection') {
+    // Carregar inteligência financeira
+    console.log("Carregando seção de inteligência financeira");
+    if (typeof renderizarPainelInteligencia === 'function') {
+      console.log("Função renderizarPainelInteligencia encontrada, chamando...");
+      renderizarPainelInteligencia();
+    } else {
+      console.error("Função renderizarPainelInteligencia não encontrada!");
+      const container = document.getElementById("inteligenciaFinanceiraContainer");
+      if (container) {
+        container.innerHTML = `
+          <div class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            <p>Erro: Módulo de inteligência financeira não carregado corretamente.</p>
+          </div>
+        `;
+      }
+    }
+  } else if (sectionId === 'metasFinanceirasSection') {
+    // Carregar metas financeiras
+    if (typeof renderizarPainelMetas === 'function') {
+      renderizarPainelMetas();
+    }
   } else if (sectionId === 'configuracoesSection') {
     // Carregar dados para as abas de configurações
     loadRendas();
@@ -3681,10 +3704,12 @@ function toggleMobileUserDropdown(event) {
     if (isActive) {
       // Fechar dropdown
       dropdown.classList.remove('active');
+      dropdown.style.display = 'none';
       document.removeEventListener('click', closeMobileDropdownOnClickOutside);
     } else {
       // Abrir dropdown
       dropdown.classList.add('active');
+      dropdown.style.display = 'block';
       setTimeout(() => {
         document.addEventListener('click', closeMobileDropdownOnClickOutside);
       }, 100);
@@ -3701,6 +3726,7 @@ function closeMobileDropdownOnClickOutside(event) {
   
   if (dropdown && !dropdown.contains(event.target) && !logo.contains(event.target)) {
     dropdown.classList.remove('active');
+    dropdown.style.display = 'none';
     document.removeEventListener('click', closeMobileDropdownOnClickOutside);
   }
 }

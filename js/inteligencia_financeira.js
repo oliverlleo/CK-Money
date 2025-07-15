@@ -13,9 +13,12 @@ function analisarSituacaoFinanceira() {
   return new Promise((resolve, reject) => {
     // Verificar se o usuário está autenticado
     if (!currentUser || !currentUser.uid) {
+      console.error("Usuário não autenticado na análise financeira");
       reject(new Error("Usuário não autenticado"));
       return;
     }
+    
+    console.log("Iniciando análise financeira para usuário:", currentUser.uid);
     
     // Obter ano atual
     const hoje = new Date();
@@ -38,12 +41,19 @@ function analisarSituacaoFinanceira() {
     };
     
     // Obter apenas as rendas do usuário atual
-    db.ref(`users/${currentUser.uid}/data/pessoas`).once("value")
+    console.log(`Buscando pessoas para o usuário: users/${currentUser.uid}/data/pessoas`);
+  db.ref(`users/${currentUser.uid}/data/pessoas`).once("value")
       .then(snapshot => {
+        console.log("Snapshot de pessoas:", snapshot.exists() ? "Dados encontrados" : "Nenhum dado");
+        if (snapshot.exists()) {
+          console.log("Número de registros de pessoas:", snapshot.numChildren());
+        }
+        
         // Processar rendas apenas do usuário atual
         if (snapshot.exists()) {
           snapshot.forEach(child => {
             const pessoa = child.val();
+            console.log("Processando pessoa:", pessoa);
           
           // Adicionar saldo inicial
           if (pessoa.saldoInicial) {
@@ -68,13 +78,20 @@ function analisarSituacaoFinanceira() {
         }
         
         // Obter apenas as despesas do usuário atual
+        console.log(`Buscando despesas para o usuário: users/${currentUser.uid}/data/despesas`);
         return db.ref(`users/${currentUser.uid}/data/despesas`).once("value");
       })
       .then(snapshot => {
+        console.log("Snapshot de despesas:", snapshot.exists() ? "Dados encontrados" : "Nenhum dado");
+        if (snapshot.exists()) {
+          console.log("Número de registros de despesas:", snapshot.numChildren());
+        }
+        
         // Processar despesas apenas do usuário atual
         if (snapshot.exists()) {
           snapshot.forEach(child => {
             const despesa = child.val();
+            console.log("Processando despesa:", despesa);
           
           // Processar despesas à vista
           if (despesa.formaPagamento === "avista" && despesa.dataCompra) {
@@ -120,6 +137,7 @@ function analisarSituacaoFinanceira() {
           dadosFinanceiros.saldo.mensal[i] = dadosFinanceiros.receitas.mensal[i] - dadosFinanceiros.despesas.mensal[i];
         }
         
+        console.log("Análise financeira concluída:", dadosFinanceiros);
         resolve(dadosFinanceiros);
       })
       .catch(error => {
@@ -210,9 +228,12 @@ function analisarGastosPorCategoria() {
   return new Promise((resolve, reject) => {
     // Verificar se o usuário está autenticado
     if (!currentUser || !currentUser.uid) {
+      console.error("Usuário não autenticado na análise de gastos por categoria");
       reject(new Error("Usuário não autenticado"));
       return;
     }
+    
+    console.log("Iniciando análise de gastos por categoria para usuário:", currentUser.uid);
     
     // Obter ano atual
     const hoje = new Date();
@@ -223,8 +244,14 @@ function analisarGastosPorCategoria() {
     const gastosPorCategoria = {};
     
     // Obter limites de categorias apenas do usuário atual
+    console.log(`Buscando limites de categorias para o usuário: users/${currentUser.uid}/data/limites_categorias`);
     db.ref(`users/${currentUser.uid}/data/limites_categorias`).once("value")
       .then(limSnapshot => {
+        console.log("Snapshot de limites:", limSnapshot.exists() ? "Dados encontrados" : "Nenhum dado");
+        if (limSnapshot.exists()) {
+          console.log("Número de limites encontrados:", limSnapshot.numChildren());
+        }
+        
         // Processar limites
         if (limSnapshot.exists()) {
           limSnapshot.forEach(child => {
@@ -381,13 +408,22 @@ function carregarMetas() {
   return new Promise((resolve, reject) => {
     // Verificar se o usuário está autenticado
     if (!currentUser || !currentUser.uid) {
+      console.error("Usuário não autenticado ao carregar metas");
       reject(new Error("Usuário não autenticado"));
       return;
     }
     
+    console.log("Iniciando carregamento de metas para usuário:", currentUser.uid);
+    
     // Buscar apenas as metas do usuário atual
+    console.log(`Buscando metas para o usuário: users/${currentUser.uid}/data/metas`);
     db.ref(`users/${currentUser.uid}/data/metas`).once("value")
       .then(snapshot => {
+        console.log("Snapshot de metas:", snapshot.exists() ? "Dados encontrados" : "Nenhum dado");
+        if (snapshot.exists()) {
+          console.log("Número de metas encontradas:", snapshot.numChildren());
+        }
+        
         const metas = [];
         
         if (snapshot.exists()) {
@@ -573,9 +609,26 @@ function calcularTempoRestanteMeta(meta, economiaMediaMensal) {
  * Renderiza o painel de inteligência financeira
  */
 function renderizarPainelInteligencia() {
+  console.log("Iniciando renderização do painel de inteligência financeira");
   const container = document.getElementById("inteligenciaFinanceiraContainer");
-  if (!container) return;
+  if (!container) {
+    console.error("Container de inteligência financeira não encontrado no DOM");
+    return;
+  }
   
+  // Verificar se usuário está autenticado
+  if (!currentUser || !currentUser.uid) {
+    console.error("Tentativa de renderizar painel sem usuário autenticado");
+    container.innerHTML = `
+      <div class="error-message">
+        <i class="fas fa-exclamation-circle"></i>
+        <p>Você precisa estar autenticado para acessar a inteligência financeira.</p>
+      </div>
+    `;
+    return;
+  }
+  
+  console.log("Usuário autenticado:", currentUser.uid);
   container.innerHTML = `
     <div class="loading-spinner">
       <i class="fas fa-spinner fa-spin"></i>
@@ -584,9 +637,18 @@ function renderizarPainelInteligencia() {
   `;
   
   // Analisar situação financeira
+  console.log("Chamando análise financeira");
   analisarSituacaoFinanceira()
     .then(dadosFinanceiros => {
+      console.log("Análise financeira concluída com sucesso:", dadosFinanceiros);
+      // Verificar se os dados são válidos
+      if (!dadosFinanceiros || typeof dadosFinanceiros !== 'object') {
+        console.error("Dados financeiros inválidos:", dadosFinanceiros);
+        throw new Error("Dados financeiros inválidos ou vazios");
+      }
+      
       // Gerar recomendações
+      console.log("Gerando recomendações baseadas nos dados financeiros");
       const recomendacoes = gerarRecomendacoes(dadosFinanceiros);
       
       // Renderizar painel
@@ -664,7 +726,8 @@ function renderizarPainelInteligencia() {
       container.innerHTML = `
         <div class="error-message">
           <i class="fas fa-exclamation-circle"></i>
-          <p>Erro ao analisar dados financeiros. Tente novamente mais tarde.</p>
+          <p>Erro ao analisar dados financeiros: ${error.message}</p>
+          <p>Verifique o console para mais detalhes.</p>
         </div>
       `;
     });
@@ -1227,8 +1290,15 @@ function atualizarMetaFormulario() {
 }
 
 // Exportar funções para uso global
+window.analisarSituacaoFinanceira = analisarSituacaoFinanceira;
+window.analisarGastosPorCategoria = analisarGastosPorCategoria;
+window.gerarRecomendacoes = gerarRecomendacoes;
 window.renderizarPainelInteligencia = renderizarPainelInteligencia;
 window.renderizarPainelMetas = renderizarPainelMetas;
+window.carregarMetas = carregarMetas;
+window.salvarMeta = salvarMeta;
+window.atualizarProgressoMeta = atualizarProgressoMeta;
+window.excluirMeta = excluirMeta;
 window.abrirModalEditarMeta = abrirModalEditarMeta;
 window.abrirModalAtualizarMeta = abrirModalAtualizarMeta;
 window.confirmarExclusaoMeta = confirmarExclusaoMeta;
