@@ -2934,8 +2934,14 @@ function novo_calcularPrevisoes() {
  * @param {Date} fim - Data de fim
  */
 function atualizarGraficoCategorias(inicio, fim) {
-  // Buscar apenas despesas do usuário atual no período
-  db.ref("despesas").orderByChild("userId").equalTo(currentUser ? currentUser.uid : "").once("value").then(snapshot => {
+  // Verificar se o usuário está autenticado
+  if (!currentUser || !currentUser.uid) {
+    console.error("Usuário não autenticado ao atualizar gráfico de categorias");
+    return;
+  }
+  
+  // Buscar apenas despesas do usuário atual no período usando o namespace correto
+  db.ref(`users/${currentUser.uid}/data/despesas`).once("value").then(snapshot => {
     let despesasPorCategoria = {};
     
     snapshot.forEach(child => {
@@ -2965,18 +2971,14 @@ function atualizarGraficoCategorias(inicio, fim) {
       }
     });
     
-    // Verificar se o usuário está autenticado
-    if (!currentUser || !currentUser.uid) {
-      console.error("Usuário não autenticado");
-      return;
-    }
-    
-    // Buscar apenas nomes das categorias do usuário atual
+    // Buscar apenas nomes das categorias do usuário atual usando o namespace correto
     db.ref(`users/${currentUser.uid}/data/categorias`).once("value").then(snapshot => {
       let categorias = {};
       
       snapshot.forEach(child => {
         categorias[child.key] = child.val().nome;
+        // Atualizar o mapa global de categorias para uso em outros lugares
+        window.novo_categoriasMap[child.key] = child.val().nome;
       });
       
       // Preparar dados para o gráfico
