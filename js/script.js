@@ -25,22 +25,40 @@ function getCategoriaName(categoriaId) {
   if (!categoriaId) return "Sem categoria";
   
   // Verificar no mapa de categorias
-  if (window.novo_categoriasMap[categoriaId]) {
+  if (window.novo_categoriasMap && window.novo_categoriasMap[categoriaId]) {
     return window.novo_categoriasMap[categoriaId];
   }
   
-  // Buscar no Firebase se não estiver no mapa
-  if (currentUser) {
-    db.ref(`users/${currentUser.uid}/data/categorias/${categoriaId}`).once("value").then(snapshot => {
-      if (snapshot.exists()) {
-        const categoria = snapshot.val();
-        window.novo_categoriasMap[categoriaId] = categoria.nome;
-        return categoria.nome;
-      }
-    });
-  }
-  
   return "Categoria não encontrada";
+}
+
+/**
+ * Carrega o mapa de categorias do usuário atual
+ */
+function carregarCategoriasMap() {
+  if (!currentUser || !currentUser.uid) return;
+  
+  db.ref(`users/${currentUser.uid}/data/categorias`).once("value").then(snapshot => {
+    const categorias = snapshot.val();
+    if (categorias) {
+      // Garantir que o mapa está inicializado
+      if (!window.novo_categoriasMap) {
+        window.novo_categoriasMap = {};
+      }
+      
+      // Carregar todas as categorias no mapa
+      Object.keys(categorias).forEach(categoriaId => {
+        window.novo_categoriasMap[categoriaId] = categorias[categoriaId].nome;
+      });
+      
+      console.log("Categorias carregadas:", window.novo_categoriasMap);
+      
+      // Atualizar a tabela de despesas após carregar categorias
+      filtrarTodasDespesas();
+    }
+  }).catch(error => {
+    console.error("Erro ao carregar categorias:", error);
+  });
 }
 
 // ===================== CONFIGURAÇÃO DO FIREBASE =====================
@@ -897,6 +915,11 @@ function atualizarDashboard() {
       let pessoa = child.val();
       saldo += parseFloat(pessoa.saldoInicial) || 0;
       
+      // Subtrair valores descontados (pagamentos realizados)
+      if (pessoa.valorDescontado) {
+        saldo -= parseFloat(pessoa.valorDescontado) || 0;
+      }
+      
       // Verificar se existe histórico de pagamentos recebidos para este mês/ano
       if (pessoa.pagamentosRecebidos) {
         const mesAtual = hoje.getMonth();
@@ -912,36 +935,14 @@ function atualizarDashboard() {
       }
     });
     
-    // Buscar apenas despesas do usuário atual que foram pagas
-    db.ref("despesas").orderByChild("userId").equalTo(currentUser.uid).once("value").then(snapshot2 => {
-      snapshot2.forEach(child => {
-        let despesa = child.val();
-        let despesaId = child.key;
-        
-        // Gerar novas recorrências se necessário para despesas infinitas
-        if (despesa.formaPagamento === "recorrente" && despesa.recorrenteInfinita) {
-          gerarNovasRecorrencias(despesaId, despesa);
-        }
-        if (despesa.pago) {
-          if (despesa.formaPagamento === "avista") {
-            saldo -= parseFloat(despesa.valor) || 0;
-          } else if (despesa.formaPagamento === "cartao" && despesa.parcelas) {
-            despesa.parcelas.forEach(parcela => {
-              if (parcela.pago) {
-                saldo -= parseFloat(parcela.valor) || 0;
-              }
-            });
-          }
-        }
-      });
-      
-      document.getElementById("saldoAtual").innerText = "R$ " + saldo.toFixed(2);
-      atualizarDespesasMes();
-      currentCalendarMonth = dashboardMonth;
-      currentCalendarYear = dashboardYear;
-      atualizarGrafico();
-      updateProximosVencimentos();
-    });
+    // O saldo já foi calculado corretamente com os descontos de valorDescontado
+    // Não precisamos mais subtrair as despesas pagas manualmente
+    document.getElementById("saldoAtual").innerText = "R$ " + saldo.toFixed(2);
+    atualizarDespesasMes();
+    currentCalendarMonth = dashboardMonth;
+    currentCalendarYear = dashboardYear;
+    atualizarGrafico();
+    updateProximosVencimentos();
   });
 }
 
@@ -1769,6 +1770,11 @@ function filtrarTodasDespesas() {
       }
       
       if (despesa.formaPagamento === "avista") {
+        // MODIFICAÇÃO: Pular despesas à vista que já foram pagas
+        if (despesa.pago) {
+          return; // Não mostrar despesas já pagas
+        }
+        
         const tr = document.createElement("tr");
         const dataCompra = new Date(despesa.dataCompra);
         
@@ -1796,6 +1802,11 @@ function filtrarTodasDespesas() {
         tbody.appendChild(tr);
       } else if (despesa.formaPagamento === "cartao" && despesa.parcelas) {
         despesa.parcelas.forEach((parcela, index) => {
+          // MODIFICAÇÃO: Pular parcelas que já foram pagas
+          if (parcela.pago) {
+            return; // Não mostrar parcelas já pagas
+          }
+          
           const tr = document.createElement("tr");
           const dataVencimento = new Date(parcela.vencimento);
           
@@ -1838,6 +1849,11 @@ function filtrarTodasDespesas() {
               valorTotal += parseFloat(recorrencia.valor);
             }
           });
+          
+          // MODIFICAÇÃO: Não mostrar despesas recorrentes concluídas (não-infinitas e sem pendentes)
+          if (recorrenciasPendentes === 0) {
+            return; // Não mostrar recorrentes não-infinitas sem pendentes
+          }
         }
         
         // Obtemos a próxima data de vencimento (a mais próxima que está pendente)
@@ -2264,7 +2280,8 @@ function handleSwipeEnd(endX) {
     }
   }
   
-  resetSwipe();
+  // NÃO resetar swipe aqui - precisa manter os dados para o modal
+  // resetSwipe();
 }
 
 function prepareSwipeRow(row) {
@@ -2290,6 +2307,8 @@ function prepareSwipeRow(row) {
     tipo: row.getAttribute('data-despesa-tipo'),
     parcelaIndex: row.getAttribute('data-parcela-index')
   };
+  
+  console.log('Dados capturados do swipe:', currentSwipeData);
 }
 
 function updateSwipeIndicators(deltaX) {
@@ -2327,12 +2346,30 @@ function resetSwipe() {
 }
 
 function triggerRightSwipeAction() {
+  // Verificar se temos dados válidos antes de abrir o modal
+  if (!currentSwipeData || !currentSwipeData.despesaId) {
+    console.error('Dados de swipe não encontrados', currentSwipeData);
+    exibirToast('Erro: não foi possível identificar a despesa', 'error');
+    return;
+  }
+  
+  console.log('Abrindo modal de ações para:', currentSwipeData);
+  
   // Abrir modal de editar/excluir
   loadSwipeRightModal();
   abrirModal('swipeRightModal');
 }
 
 function triggerLeftSwipeAction() {
+  // Verificar se temos dados válidos antes de abrir o modal
+  if (!currentSwipeData || !currentSwipeData.despesaId) {
+    console.error('Dados de swipe não encontrados', currentSwipeData);
+    exibirToast('Erro: não foi possível identificar a despesa', 'error');
+    return;
+  }
+  
+  console.log('Abrindo modal de pagamento para:', currentSwipeData);
+  
   // Abrir modal de pagar
   loadSwipeLeftModal();
   abrirModal('swipeLeftModal');
@@ -2390,9 +2427,12 @@ function loadSwipeLeftModal() {
       
       if (!despesa.pago) {
         optionsHtml = `
-          <div class="pay-option selected" data-payment-type="avista">
-            <div class="pay-option-title">Pagar Despesa Completa</div>
-            <div class="pay-option-details">R$ ${parseFloat(despesa.valor).toFixed(2)}</div>
+          <div class="pay-confirmation">
+            <h4>Confirmar Pagamento</h4>
+            <p>Despesa será paga com a data de hoje</p>
+            <div class="pay-details">
+              <strong>R$ ${parseFloat(despesa.valor).toFixed(2)}</strong>
+            </div>
           </div>
         `;
       } else {
@@ -2407,9 +2447,12 @@ function loadSwipeLeftModal() {
       
       if (!parcela.pago) {
         optionsHtml = `
-          <div class="pay-option selected" data-payment-type="cartao" data-parcela-index="${parcelaIndex}">
-            <div class="pay-option-title">Pagar Esta Parcela</div>
-            <div class="pay-option-details">Parcela ${parcelaIndex + 1} - R$ ${parseFloat(parcela.valor).toFixed(2)}</div>
+          <div class="pay-confirmation">
+            <h4>Confirmar Pagamento</h4>
+            <p>Parcela ${parcelaIndex + 1} será paga com a data de hoje</p>
+            <div class="pay-details">
+              <strong>R$ ${parseFloat(parcela.valor).toFixed(2)}</strong>
+            </div>
           </div>
         `;
       } else {
@@ -2419,26 +2462,28 @@ function loadSwipeLeftModal() {
       nome += ' - Recorrente';
       detalhes = `Valor: R$ ${parseFloat(despesa.valor).toFixed(2)}/mês`;
       
-      // Encontrar próximas recorrências não pagas
-      const recorrenciasNaoPagas = [];
+      // Encontrar primeira recorrência não paga
+      let proximaRecorrencia = null;
       if (despesa.recorrencias) {
-        despesa.recorrencias.forEach((recorrencia, index) => {
-          if (!recorrencia.pago) {
-            recorrenciasNaoPagas.push({...recorrencia, index});
+        for (let i = 0; i < despesa.recorrencias.length; i++) {
+          if (!despesa.recorrencias[i].pago) {
+            proximaRecorrencia = despesa.recorrencias[i];
+            break;
           }
-        });
+        }
       }
       
-      if (recorrenciasNaoPagas.length > 0) {
-        optionsHtml = recorrenciasNaoPagas.slice(0, 3).map(recorrencia => `
-          <div class="pay-option" data-payment-type="recorrente" data-recorrencia-index="${recorrencia.index}">
-            <div class="pay-option-title">${new Date(recorrencia.vencimento).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</div>
-            <div class="pay-option-details">Vencimento: ${recorrencia.vencimento} - R$ ${parseFloat(recorrencia.valor).toFixed(2)}</div>
+      if (proximaRecorrencia) {
+        optionsHtml = `
+          <div class="pay-confirmation">
+            <h4>Confirmar Pagamento</h4>
+            <p>Próxima recorrência será paga com a data de hoje</p>
+            <div class="pay-details">
+              <strong>R$ ${parseFloat(proximaRecorrencia.valor).toFixed(2)}</strong>
+              <br><small>Vencimento: ${proximaRecorrencia.vencimento}</small>
+            </div>
           </div>
-        `).join('');
-        
-        // Selecionar a primeira opção por padrão
-        optionsHtml = optionsHtml.replace('pay-option', 'pay-option selected');
+        `;
       } else {
         optionsHtml = '<p class="text-muted">Não há recorrências pendentes para pagar.</p>';
       }
@@ -2447,15 +2492,6 @@ function loadSwipeLeftModal() {
     nomeElement.textContent = nome;
     detalhesElement.textContent = detalhes;
     optionsContainer.innerHTML = optionsHtml;
-    
-    // Adicionar eventos de clique nas opções
-    const payOptions = optionsContainer.querySelectorAll('.pay-option');
-    payOptions.forEach(option => {
-      option.addEventListener('click', function() {
-        payOptions.forEach(opt => opt.classList.remove('selected'));
-        this.classList.add('selected');
-      });
-    });
   });
 }
 
@@ -2474,71 +2510,156 @@ function excluirDespesaSwipe() {
 }
 
 function confirmarPagamentoDespesa() {
-  const selectedOption = document.querySelector('#swipePayOptions .pay-option.selected');
-  if (!selectedOption) {
-    exibirToast('Selecione uma opção de pagamento', 'error');
+  // Se viemos do swipe, pagar diretamente sem necessidade de seleção
+  if (!currentSwipeData || !currentSwipeData.despesaId) {
+    exibirToast('Erro: despesa não identificada', 'error');
+    console.log('Dados do swipe:', currentSwipeData);
+    console.log('Estado atual do currentSwipeData:', JSON.stringify(currentSwipeData));
     return;
   }
   
-  const paymentType = selectedOption.getAttribute('data-payment-type');
   const despesaId = currentSwipeData.despesaId;
+  const paymentType = currentSwipeData.tipo;
   
   if (paymentType === 'avista') {
-    // Marcar despesa à vista como paga
-    db.ref("despesas").child(despesaId).update({
-      pago: true,
-      dataPagamento: new Date().toISOString().split('T')[0]
-    }).then(() => {
-      exibirToast('Despesa paga com sucesso!', 'success');
-      fecharModal('swipeLeftModal');
-      filtrarTodasDespesas(); // Recarregar tabela
+    // Obter valor da despesa para desconto
+    db.ref("despesas").child(despesaId).once("value").then(despesaSnapshot => {
+      const despesa = despesaSnapshot.val();
+      if (!despesa) {
+        exibirToast('Erro: despesa não encontrada', 'error');
+        return;
+      }
+
+      const valorDespesa = parseFloat(despesa.valor) || 0;
+
+      // Buscar pessoa com saldo suficiente
+      buscarPessoaComSaldo(valorDespesa, (pessoaEncontrada) => {
+        if (!pessoaEncontrada) {
+          exibirToast('Erro: saldo insuficiente em todas as rendas', 'error');
+          return;
+        }
+
+        // Descontar do saldo da pessoa
+        descontarDoSaldo(pessoaEncontrada.id, valorDespesa, (sucesso, mensagem) => {
+          if (sucesso) {
+            // Marcar despesa como paga
+            db.ref("despesas").child(despesaId).update({
+              pago: true,
+              dataPagamento: new Date().toISOString().split('T')[0],
+              pessoaPagamento: pessoaEncontrada.id // Registrar qual pessoa pagou
+            }).then(() => {
+              exibirToast(`Despesa paga com sucesso! Descontado de: ${pessoaEncontrada.nome}`, 'success');
+              fecharModal('swipeLeftModal');
+              resetSwipe(); // Limpar dados do swipe após sucesso
+              filtrarTodasDespesas(); // Recarregar tabela
+              atualizarDashboard(); // Atualizar dashboard após pagamento
+            });
+          } else {
+            exibirToast(`Erro ao processar pagamento: ${mensagem}`, 'error');
+          }
+        });
+      });
     });
   } else if (paymentType === 'cartao') {
     // Marcar parcela específica como paga
-    const parcelaIndex = parseInt(selectedOption.getAttribute('data-parcela-index'));
+    const parcelaIndex = currentSwipeData.parcelaIndex !== undefined ? 
+                        parseInt(currentSwipeData.parcelaIndex) : 0;
     
     db.ref("despesas").child(despesaId).once("value").then(snapshot => {
       const despesa = snapshot.val();
       if (despesa && despesa.parcelas && despesa.parcelas[parcelaIndex]) {
-        const parcelasAtualizadas = [...despesa.parcelas];
-        parcelasAtualizadas[parcelaIndex] = {
-          ...parcelasAtualizadas[parcelaIndex],
-          pago: true,
-          dataPagamento: new Date().toISOString().split('T')[0]
-        };
-        
-        db.ref("despesas").child(despesaId).update({
-          parcelas: parcelasAtualizadas
-        }).then(() => {
-          exibirToast('Parcela paga com sucesso!', 'success');
-          fecharModal('swipeLeftModal');
-          filtrarTodasDespesas(); // Recarregar tabela
+        const valorParcela = parseFloat(despesa.parcelas[parcelaIndex].valor) || 0;
+
+        // Buscar pessoa com saldo suficiente
+        buscarPessoaComSaldo(valorParcela, (pessoaEncontrada) => {
+          if (!pessoaEncontrada) {
+            exibirToast('Erro: saldo insuficiente em todas as rendas', 'error');
+            return;
+          }
+
+          // Descontar do saldo da pessoa
+          descontarDoSaldo(pessoaEncontrada.id, valorParcela, (sucesso, mensagem) => {
+            if (sucesso) {
+              const parcelasAtualizadas = [...despesa.parcelas];
+              parcelasAtualizadas[parcelaIndex] = {
+                ...parcelasAtualizadas[parcelaIndex],
+                pago: true,
+                dataPagamento: new Date().toISOString().split('T')[0],
+                pessoaPagamento: pessoaEncontrada.id // Registrar qual pessoa pagou
+              };
+              
+              db.ref("despesas").child(despesaId).update({
+                parcelas: parcelasAtualizadas
+              }).then(() => {
+                exibirToast(`Parcela paga com sucesso! Descontado de: ${pessoaEncontrada.nome}`, 'success');
+                fecharModal('swipeLeftModal');
+                resetSwipe(); // Limpar dados do swipe após sucesso
+                filtrarTodasDespesas(); // Recarregar tabela
+                atualizarDashboard(); // Atualizar dashboard após pagamento
+              });
+            } else {
+              exibirToast(`Erro ao processar pagamento: ${mensagem}`, 'error');
+            }
+          });
         });
       }
     });
   } else if (paymentType === 'recorrente') {
-    // Marcar recorrência específica como paga
-    const recorrenciaIndex = parseInt(selectedOption.getAttribute('data-recorrencia-index'));
-    
+    // Para recorrentes, pegar a primeira recorrência não paga ou usar índice específico se fornecido
     db.ref("despesas").child(despesaId).once("value").then(snapshot => {
       const despesa = snapshot.val();
-      if (despesa && despesa.recorrencias && despesa.recorrencias[recorrenciaIndex]) {
-        const recorrenciasAtualizadas = [...despesa.recorrencias];
-        recorrenciasAtualizadas[recorrenciaIndex] = {
-          ...recorrenciasAtualizadas[recorrenciaIndex],
-          pago: true,
-          dataPagamento: new Date().toISOString().split('T')[0]
-        };
+      if (despesa && despesa.recorrencias) {
+        // Encontrar primeira recorrência não paga
+        let recorrenciaIndex = -1;
+        for (let i = 0; i < despesa.recorrencias.length; i++) {
+          if (!despesa.recorrencias[i].pago) {
+            recorrenciaIndex = i;
+            break;
+          }
+        }
         
-        db.ref("despesas").child(despesaId).update({
-          recorrencias: recorrenciasAtualizadas
-        }).then(() => {
-          exibirToast('Recorrência paga com sucesso!', 'success');
-          fecharModal('swipeLeftModal');
-          filtrarTodasDespesas(); // Recarregar tabela
-        });
+        if (recorrenciaIndex !== -1) {
+          const valorRecorrencia = parseFloat(despesa.recorrencias[recorrenciaIndex].valor) || parseFloat(despesa.valor) || 0;
+
+          // Buscar pessoa com saldo suficiente
+          buscarPessoaComSaldo(valorRecorrencia, (pessoaEncontrada) => {
+            if (!pessoaEncontrada) {
+              exibirToast('Erro: saldo insuficiente em todas as rendas', 'error');
+              return;
+            }
+
+            // Descontar do saldo da pessoa
+            descontarDoSaldo(pessoaEncontrada.id, valorRecorrencia, (sucesso, mensagem) => {
+              if (sucesso) {
+                const recorrenciasAtualizadas = [...despesa.recorrencias];
+                recorrenciasAtualizadas[recorrenciaIndex] = {
+                  ...recorrenciasAtualizadas[recorrenciaIndex],
+                  pago: true,
+                  dataPagamento: new Date().toISOString().split('T')[0],
+                  pessoaPagamento: pessoaEncontrada.id // Registrar qual pessoa pagou
+                };
+                
+                db.ref("despesas").child(despesaId).update({
+                  recorrencias: recorrenciasAtualizadas
+                }).then(() => {
+                  exibirToast(`Recorrência paga com sucesso! Descontado de: ${pessoaEncontrada.nome}`, 'success');
+                  fecharModal('swipeLeftModal');
+                  resetSwipe(); // Limpar dados do swipe após sucesso
+                  filtrarTodasDespesas(); // Recarregar tabela
+                  atualizarDashboard(); // Atualizar dashboard após pagamento
+                });
+              } else {
+                exibirToast(`Erro ao processar pagamento: ${mensagem}`, 'error');
+              }
+            });
+          });
+        } else {
+          exibirToast('Não há recorrências pendentes para pagar', 'error');
+        }
       }
     });
+  } else {
+    exibirToast('Tipo de despesa não reconhecido', 'error');
   }
 }
 
@@ -4810,6 +4931,102 @@ function atualizarDespesa() {
 }
 
 /**
+ * Desconta um valor do saldo atual de uma pessoa/renda específica
+ */
+function descontarDoSaldo(pessoaId, valor, callback) {
+  if (!pessoaId || !valor || valor <= 0) {
+    if (callback) callback(false, 'Dados inválidos para desconto');
+    return;
+  }
+
+  db.ref("pessoas").child(pessoaId).once("value").then(snapshot => {
+    const pessoa = snapshot.val();
+    if (!pessoa) {
+      if (callback) callback(false, 'Pessoa não encontrada');
+      return;
+    }
+
+    // Calcular saldo atual da pessoa
+    let saldoAtual = parseFloat(pessoa.saldoInicial) || 0;
+    
+    // Somar pagamentos recebidos
+    if (pessoa.pagamentosRecebidos) {
+      Object.keys(pessoa.pagamentosRecebidos).forEach(monthYear => {
+        pessoa.pagamentosRecebidos[monthYear].forEach(pagamento => {
+          saldoAtual += parseFloat(pagamento.valor) || 0;
+        });
+      });
+    }
+
+    // Subtrair valores já descontados (se existir o campo)
+    if (pessoa.valorDescontado) {
+      saldoAtual -= parseFloat(pessoa.valorDescontado) || 0;
+    }
+
+    // Verificar se há saldo suficiente
+    if (saldoAtual < valor) {
+      if (callback) callback(false, `Saldo insuficiente. Disponível: R$ ${saldoAtual.toFixed(2)}`);
+      return;
+    }
+
+    // Atualizar valor descontado no Firebase
+    const novoValorDescontado = (parseFloat(pessoa.valorDescontado) || 0) + parseFloat(valor);
+    
+    db.ref("pessoas").child(pessoaId).update({
+      valorDescontado: novoValorDescontado
+    }).then(() => {
+      console.log(`Descontado R$ ${valor} do saldo da pessoa ${pessoa.nome}`);
+      if (callback) callback(true, 'Desconto realizado com sucesso');
+    }).catch(error => {
+      console.error('Erro ao descontar do saldo:', error);
+      if (callback) callback(false, 'Erro ao descontar do saldo');
+    });
+  }).catch(error => {
+    console.error('Erro ao buscar dados da pessoa:', error);
+    if (callback) callback(false, 'Erro ao buscar dados da pessoa');
+  });
+}
+
+/**
+ * Busca a primeira pessoa/renda com saldo suficiente para o desconto
+ */
+function buscarPessoaComSaldo(valorNecessario, callback) {
+  db.ref("pessoas").orderByChild("userId").equalTo(currentUser.uid).once("value").then(snapshot => {
+    let pessoaEncontrada = null;
+    
+    snapshot.forEach(child => {
+      if (pessoaEncontrada) return; // Já encontrou uma
+      
+      const pessoa = child.val();
+      const pessoaId = child.key;
+      
+      // Calcular saldo atual da pessoa
+      let saldoAtual = parseFloat(pessoa.saldoInicial) || 0;
+      
+      // Somar pagamentos recebidos
+      if (pessoa.pagamentosRecebidos) {
+        Object.keys(pessoa.pagamentosRecebidos).forEach(monthYear => {
+          pessoa.pagamentosRecebidos[monthYear].forEach(pagamento => {
+            saldoAtual += parseFloat(pagamento.valor) || 0;
+          });
+        });
+      }
+
+      // Subtrair valores já descontados
+      if (pessoa.valorDescontado) {
+        saldoAtual -= parseFloat(pessoa.valorDescontado) || 0;
+      }
+
+      if (saldoAtual >= valorNecessario) {
+        pessoaEncontrada = { id: pessoaId, nome: pessoa.nome, saldo: saldoAtual };
+      }
+    });
+
+    if (callback) callback(pessoaEncontrada);
+  });
+}
+
+/**
  * Salva uma renda (alias para cadastrarPessoa)
  * Esta função serve como um alias para manter compatibilidade com o botão no modal
  */
@@ -5085,12 +5302,20 @@ function cancelarEdicaoCategoria() {
  * @param {string} categoriaId - ID da categoria a ser excluída
  */
 function excluirCategoria(categoriaId) {
+  // Verificar se o usuário está autenticado
+  if (!currentUser || !currentUser.uid) {
+    exibirToast("Você precisa estar autenticado para excluir categorias", "danger");
+    return;
+  }
+  
   if (confirm("Tem certeza que deseja excluir esta categoria?")) {
-    db.ref("categorias").child(categoriaId).remove()
+    db.ref(`users/${currentUser.uid}/data/categorias`).child(categoriaId).remove()
       .then(() => {
         exibirToast("Categoria excluída com sucesso!", "success");
         loadCategorias();
         loadCategoriasFiltro();
+        // Atualizar mapa de categorias
+        carregarCategoriasMap();
       })
       .catch(err => {
         console.error("Erro ao excluir categoria:", err);
