@@ -3406,7 +3406,7 @@ body.login-page {
     border-radius: 3px !important;
   }
   
-  /* ESCONDER campos desnecessários */
+  /* ESCONDER campos desnecessários na versão mobile */
   #todasDespesasTable td:nth-child(4),
   #todasDespesasTable td:nth-child(5) {
     display: none !important;
@@ -3442,5 +3442,85 @@ body.login-page {
     overflow-x: hidden !important;
     box-sizing: border-box !important;
     word-break: break-word !important;
+  }
+}
+
+/* CSS apenas para desktop - exibir as colunas separadas corretamente */
+@media (min-width: 769px) {
+  /* Restaurar colunas separadas na versão desktop */
+  #todasDespesasTable td[data-label="Categoria"],
+  #todasDespesasTable td[data-label="Status"],
+  #todasDespesasTable td[data-label="Ações"] {
+    display: table-cell !important;
+  }
+  
+  /* Exibir cabeçalho da tabela na versão desktop */
+  #todasDespesasTable thead {
+    display: table-header-group !important;
+  }
+  
+  /* Altera o conteúdo da coluna "Detalhes" na versão desktop */
+  #todasDespesasTable td[data-label="Detalhes"] .categoria-info,
+  #todasDespesasTable td[data-label="Detalhes"] .status-info {
+    display: none;
+  }
+  
+  /* Remover comportamento de swipe na versão desktop */
+  #todasDespesasTable .swipeable-row {
+    cursor: default;
+  }
+  
+  /* Estilos dos botões de ação desktop */
+  .desktop-actions {
+    white-space: nowrap;
+  }
+  
+  .btn-action {
+    background: none;
+    border: none;
+    padding: 6px 8px;
+    margin: 0 2px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+  }
+  
+  .btn-action:hover {
+    transform: scale(1.1);
+  }
+  
+  .btn-pay {
+    color: #28a745;
+  }
+  
+  .btn-pay:hover {
+    background-color: #28a745;
+    color: white;
+  }
+  
+  .btn-edit {
+    color: #007bff;
+  }
+  
+  .btn-edit:hover {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .btn-delete {
+    color: #dc3545;
+  }
+  
+  .btn-delete:hover {
+    background-color: #dc3545;
+    color: white;
+  }
+}
+
+/* Ocultar coluna de ações na versão mobile */
+@media (max-width: 768px) {
+  #todasDespesasTable td[data-label="Ações"] {
+    display: none !important;
   }
 }

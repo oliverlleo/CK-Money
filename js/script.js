@@ -1778,20 +1778,39 @@ function filtrarTodasDespesas() {
         const tr = document.createElement("tr");
         const dataCompra = new Date(despesa.dataCompra);
         
+        // Formato para status
+        const statusBadge = despesa.pago ? 
+          (despesa.pagoAutomaticamente ? 
+            '<span class="badge bg-info">Pago Auto</span>' : 
+            '<span class="badge bg-success">Pago</span>') : 
+          '<span class="badge bg-warning">Pendente</span>';
+            
+        // Formato para status completo
+        const statusCompleto = despesa.pago ? 
+          (despesa.pagoAutomaticamente ? 
+            '<span class="badge bg-info">Pago Automaticamente</span>' : 
+            '<span class="badge bg-success">Pago</span>') : 
+          '<span class="badge bg-warning">Pendente</span>';
+        
         tr.innerHTML = `
           <td data-label="Descrição">${despesa.descricao}</td>
           <td data-label="Valor">R$ ${parseFloat(despesa.valor).toFixed(2)}</td>
-          <td data-label="Detalhes">${dataCompra.toLocaleDateString()} • ${getCategoriaName(despesa.categoria)} • ${despesa.pago ? 
-            (despesa.pagoAutomaticamente ? 
-              '<span class="badge bg-info">Pago Auto</span>' : 
-              '<span class="badge bg-success">Pago</span>') : 
-            '<span class="badge bg-warning">Pendente</span>'}</td>
-          <td data-label="Categoria" style="display: none;">${getCategoriaName(despesa.categoria)}</td>
-          <td data-label="Status" style="display: none;">${despesa.pago ? 
-            (despesa.pagoAutomaticamente ? 
-              '<span class="badge bg-info">Pago Automaticamente</span>' : 
-              '<span class="badge bg-success">Pago</span>') : 
-            '<span class="badge bg-warning">Pendente</span>'}</td>
+          <td data-label="Detalhes">${dataCompra.toLocaleDateString()} 
+            <span class="categoria-info">• ${getCategoriaName(despesa.categoria)}</span> 
+            <span class="status-info">• ${statusBadge}</span></td>
+          <td data-label="Categoria">${getCategoriaName(despesa.categoria)}</td>
+          <td data-label="Status">${statusCompleto}</td>
+          <td data-label="Ações" class="desktop-actions">
+            <button class="btn-action btn-pay" onclick="pagarDespesaDirectly('${key}', 'avista')" title="Pagar">
+              <i class="fas fa-check"></i>
+            </button>
+            <button class="btn-action btn-edit" onclick="editarDespesa('${key}')" title="Editar">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn-action btn-delete" onclick="confirmarExclusaoDespesa('${key}')" title="Excluir">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
         `;
         
         // Adicionar dados para swipe
@@ -1810,20 +1829,39 @@ function filtrarTodasDespesas() {
           const tr = document.createElement("tr");
           const dataVencimento = new Date(parcela.vencimento);
           
+          // Formato para status
+          const statusBadge = parcela.pago ? 
+            (parcela.pagoAutomaticamente ? 
+              '<span class="badge bg-info">Pago Auto</span>' : 
+              '<span class="badge bg-success">Pago</span>') : 
+            '<span class="badge bg-warning">Pendente</span>';
+              
+          // Formato para status completo
+          const statusCompleto = parcela.pago ? 
+            (parcela.pagoAutomaticamente ? 
+              '<span class="badge bg-info">Pago Automaticamente</span>' : 
+              '<span class="badge bg-success">Pago</span>') : 
+            '<span class="badge bg-warning">Pendente</span>';
+            
           tr.innerHTML = `
             <td data-label="Descrição">${despesa.descricao} - Parcela ${index+1}/${despesa.parcelas.length}</td>
             <td data-label="Valor">R$ ${parseFloat(parcela.valor).toFixed(2)}</td>
-            <td data-label="Detalhes">${dataVencimento.toLocaleDateString()} • ${getCategoriaName(despesa.categoria)} • ${parcela.pago ? 
-              (parcela.pagoAutomaticamente ? 
-                '<span class="badge bg-info">Pago Auto</span>' : 
-                '<span class="badge bg-success">Pago</span>') : 
-              '<span class="badge bg-warning">Pendente</span>'}</td>
-            <td data-label="Categoria" style="display: none;">${getCategoriaName(despesa.categoria)}</td>
-            <td data-label="Status" style="display: none;">${parcela.pago ? 
-              (parcela.pagoAutomaticamente ? 
-                '<span class="badge bg-info">Pago Automaticamente</span>' : 
-                '<span class="badge bg-success">Pago</span>') : 
-              '<span class="badge bg-warning">Pendente</span>'}</td>
+            <td data-label="Detalhes">${dataVencimento.toLocaleDateString()} 
+              <span class="categoria-info">• ${getCategoriaName(despesa.categoria)}</span> 
+              <span class="status-info">• ${statusBadge}</span></td>
+            <td data-label="Categoria">${getCategoriaName(despesa.categoria)}</td>
+            <td data-label="Status">${statusCompleto}</td>
+            <td data-label="Ações" class="desktop-actions">
+              <button class="btn-action btn-pay" onclick="pagarDespesaDirectly('${key}', 'cartao', ${index})" title="Pagar">
+                <i class="fas fa-check"></i>
+              </button>
+              <button class="btn-action btn-edit" onclick="editarDespesa('${key}')" title="Editar">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-action btn-delete" onclick="confirmarExclusaoDespesa('${key}')" title="Excluir">
+                <i class="fas fa-trash"></i>
+              </button>
+            </td>
           `;
           
           // Adicionar dados para swipe
@@ -1895,9 +1933,22 @@ function filtrarTodasDespesas() {
         tr.innerHTML = `
           <td data-label="Descrição">${despesa.descricao} - Recorrente</td>
           <td data-label="Valor">R$ ${parseFloat(despesa.valor).toFixed(2)}/mês</td>
-          <td data-label="Detalhes">${dataVencimentoStr} • ${getCategoriaName(despesa.categoria)} • ${statusText}</td>
-          <td data-label="Categoria" style="display: none;">${getCategoriaName(despesa.categoria)}</td>
-          <td data-label="Status" style="display: none;">${statusText}</td>
+          <td data-label="Detalhes">${dataVencimentoStr} 
+            <span class="categoria-info">• ${getCategoriaName(despesa.categoria)}</span> 
+            <span class="status-info">• ${statusText}</span></td>
+          <td data-label="Categoria">${getCategoriaName(despesa.categoria)}</td>
+          <td data-label="Status">${statusText}</td>
+          <td data-label="Ações" class="desktop-actions">
+            <button class="btn-action btn-pay" onclick="pagarDespesaDirectly('${key}', 'recorrente')" title="Pagar">
+              <i class="fas fa-check"></i>
+            </button>
+            <button class="btn-action btn-edit" onclick="editarDespesa('${key}')" title="Editar">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn-action btn-delete" onclick="confirmarExclusaoDespesa('${key}')" title="Excluir">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
         `;
         
         // Adicionar dados para swipe
@@ -1919,6 +1970,117 @@ function filtrarTodasDespesas() {
 function getCategoriaName(categoriaId) {
   if (!categoriaId) return "Sem categoria";
   return window.novo_categoriasMap[categoriaId] || "Categoria não encontrada";
+}
+
+/**
+ * Paga uma despesa diretamente pelos botões da tabela (versão desktop)
+ * @param {string} despesaId - ID da despesa
+ * @param {string} tipo - Tipo da despesa (avista, cartao, recorrente)
+ * @param {number} parcelaIndex - Índice da parcela (apenas para cartão)
+ */
+function pagarDespesaDirectly(despesaId, tipo, parcelaIndex = null) {
+  if (!despesaId) {
+    exibirToast("ID da despesa não encontrado.", "error");
+    return;
+  }
+  
+  db.ref("despesas").child(despesaId).once("value").then(snapshot => {
+    const despesa = snapshot.val();
+    
+    if (!despesa) {
+      exibirToast("Despesa não encontrada.", "error");
+      return;
+    }
+    
+    if (tipo === "avista") {
+      // Descontar do saldo antes de marcar como pago
+      descontarDoSaldo(despesa.valor).then(() => {
+        db.ref("despesas").child(despesaId).update({
+          pago: true
+        }).then(() => {
+          exibirToast("Despesa paga com sucesso!", "success");
+          atualizarDashboard();
+          filtrarTodasDespesas();
+        });
+      }).catch(error => {
+        console.error("Erro ao descontar saldo:", error);
+        exibirToast("Erro ao processar pagamento: " + error.message, "error");
+      });
+    } else if (tipo === "cartao" && parcelaIndex !== null) {
+      const parcela = despesa.parcelas[parcelaIndex];
+      if (parcela.pago) {
+        exibirToast("Esta parcela já foi paga.", "warning");
+        return;
+      }
+      
+      // Descontar do saldo antes de marcar como pago
+      descontarDoSaldo(parcela.valor).then(() => {
+        const parcelasAtualizadas = [...despesa.parcelas];
+        parcelasAtualizadas[parcelaIndex].pago = true;
+        
+        db.ref("despesas").child(despesaId).update({
+          parcelas: parcelasAtualizadas
+        }).then(() => {
+          exibirToast(`Parcela ${parcelaIndex + 1} paga com sucesso!`, "success");
+          atualizarDashboard();
+          filtrarTodasDespesas();
+        });
+      }).catch(error => {
+        console.error("Erro ao descontar saldo:", error);
+        exibirToast("Erro ao processar pagamento: " + error.message, "error");
+      });
+    } else if (tipo === "recorrente") {
+      // Para recorrente, pagar a próxima parcela pendente
+      const recorrenciasPendentes = despesa.recorrencias.filter(r => !r.pago);
+      if (recorrenciasPendentes.length === 0) {
+        exibirToast("Não há recorrências pendentes.", "warning");
+        return;
+      }
+      
+      // Pegar a primeira recorrência pendente
+      const proximaRecorrencia = recorrenciasPendentes[0];
+      const indexRecorrencia = despesa.recorrencias.findIndex(r => 
+        r.vencimento === proximaRecorrencia.vencimento && !r.pago
+      );
+      
+      // Descontar do saldo antes de marcar como pago
+      descontarDoSaldo(proximaRecorrencia.valor).then(() => {
+        const recorrenciasAtualizadas = [...despesa.recorrencias];
+        recorrenciasAtualizadas[indexRecorrencia].pago = true;
+        
+        db.ref("despesas").child(despesaId).update({
+          recorrencias: recorrenciasAtualizadas
+        }).then(() => {
+          exibirToast("Recorrência paga com sucesso!", "success");
+          atualizarDashboard();
+          filtrarTodasDespesas();
+        });
+      }).catch(error => {
+        console.error("Erro ao descontar saldo:", error);
+        exibirToast("Erro ao processar pagamento: " + error.message, "error");
+      });
+    }
+  }).catch(error => {
+    console.error("Erro ao buscar despesa:", error);
+    exibirToast("Erro ao buscar despesa.", "error");
+  });
+}
+
+/**
+ * Confirma exclusão de despesa
+ * @param {string} despesaId - ID da despesa
+ */
+function confirmarExclusaoDespesa(despesaId) {
+  if (confirm("Tem certeza que deseja excluir esta despesa? Esta ação não pode ser desfeita.")) {
+    db.ref("despesas").child(despesaId).remove().then(() => {
+      exibirToast("Despesa excluída com sucesso!", "success");
+      atualizarDashboard();
+      filtrarTodasDespesas();
+    }).catch(error => {
+      console.error("Erro ao excluir despesa:", error);
+      exibirToast("Erro ao excluir despesa.", "error");
+    });
+  }
 }
 
 /**
@@ -2198,6 +2360,9 @@ function initSwipeEvents() {
 }
 
 function handleTouchStart(e) {
+  // Verificar se é mobile (não é desktop)
+  if (window.innerWidth > 768) return;
+  
   if (!e.target.closest('.swipeable-row')) return;
   
   const touch = e.touches[0];
@@ -2209,6 +2374,9 @@ function handleTouchStart(e) {
 }
 
 function handleMouseDown(e) {
+  // Verificar se é mobile (não é desktop)
+  if (window.innerWidth > 768) return;
+  
   if (!e.target.closest('.swipeable-row')) return;
   
   swipeStartX = e.clientX;
@@ -2219,6 +2387,9 @@ function handleMouseDown(e) {
 }
 
 function handleTouchMove(e) {
+  // Verificar se é mobile (não é desktop)
+  if (window.innerWidth > 768) return;
+  
   if (!currentSwipeRow) return;
   
   const touch = e.touches[0];
@@ -2227,6 +2398,9 @@ function handleTouchMove(e) {
 }
 
 function handleMouseMove(e) {
+  // Verificar se é mobile (não é desktop)
+  if (window.innerWidth > 768) return;
+  
   if (!currentSwipeRow) return;
   
   handleSwipeMove(e.clientX, e.clientY);
@@ -2254,6 +2428,9 @@ function handleSwipeMove(currentX, currentY) {
 }
 
 function handleTouchEnd(e) {
+  // Verificar se é mobile (não é desktop)
+  if (window.innerWidth > 768) return;
+  
   if (!currentSwipeRow) return;
   
   const touch = e.changedTouches[0];
@@ -2261,6 +2438,9 @@ function handleTouchEnd(e) {
 }
 
 function handleMouseUp(e) {
+  // Verificar se é mobile (não é desktop)
+  if (window.innerWidth > 768) return;
+  
   if (!currentSwipeRow) return;
   
   handleSwipeEnd(e.clientX);
