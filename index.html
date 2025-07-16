@@ -1212,7 +1212,8 @@
         currentUser = null;
         
         // Redirecionar para a página de login CORRETA
-        window.location.href = '/login.html';
+        // Usar um caminho relativo para maior compatibilidade com o hosting
+        window.location.href = 'login.html';
       }).catch((error) => {
         console.error('Erro ao fazer logout:', error);
         // Usar a função de toast do seu app
@@ -1227,3 +1228,30 @@
 
 </body>
 </html>
+```
+
+
+```json
+{
+  "name": "Gestão Financeira Pessoal",
+  "short_name": "Contas",
+  "description": "Sistema de Gerenciamento de Contas Pessoais para controle financeiro.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f9fa",
+  "theme_color": "#4361ee",
+  "icons": [
+    {
+      "src": "icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
