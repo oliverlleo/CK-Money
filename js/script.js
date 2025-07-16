@@ -890,6 +890,12 @@ function preencherDashboardAno() {
  * Atualiza o dashboard com os dados atuais
  */
 function atualizarDashboard() {
+  // Definir flag para evitar que carregarPainelDespesasMes execute duas vezes
+  window.atualizandoDashboard = true;
+  
+  // Limpar flag de carregamento de despesas se estiver definida
+  window.carregandoDespesasmes = false;
+  
   const dashboardMonth = parseInt(document.getElementById("dashboardMonth").value);
   const dashboardYear = parseInt(document.getElementById("dashboardYear").value);
   let saldo = 0;
@@ -943,6 +949,12 @@ function atualizarDashboard() {
     currentCalendarYear = dashboardYear;
     atualizarGrafico();
     updateProximosVencimentos();
+    
+    // Carregar o painel de despesas do mês após atualizar os outros elementos
+    setTimeout(() => {
+      window.atualizandoDashboard = false;
+      carregarPainelDespesasMes();
+    }, 100);
   });
 }
 
@@ -1044,6 +1056,15 @@ function atualizarDespesasMes() {
  * Carrega o painel de despesas do mês
  */
 function carregarPainelDespesasMes() {
+  // Verificar se já há um carregamento em andamento para evitar duplicação
+  if (window.carregandoDespesasmes) {
+    console.log("Carregamento de despesas já em andamento, ignorando chamada duplicada");
+    return;
+  }
+  
+  // Definir flag para evitar múltiplos carregamentos simultâneos
+  window.carregandoDespesasmes = true;
+  
   const dashboardMonth = parseInt(document.getElementById("dashboardMonth").value);
   const dashboardYear = parseInt(document.getElementById("dashboardYear").value);
   const listaContainer = document.getElementById("listaDespesasMes");
@@ -1053,17 +1074,20 @@ function carregarPainelDespesasMes() {
   db.ref("despesas").orderByChild("userId").equalTo(currentUser ? currentUser.uid : "").once("value").then(snapshot => {
     snapshot.forEach(child => {
       let despesa = child.val();
-      if (despesa.pago) return;
       
       if (despesa.formaPagamento === "avista" && despesa.dataCompra) {
         let dt = new Date(despesa.dataCompra);
         if (dt.getMonth() === dashboardMonth && dt.getFullYear() === dashboardYear) {
           let divDespesa = document.createElement("div");
-          divDespesa.className = "despesa-item";
+          divDespesa.className = despesa.pago ? "despesa-item despesa-paga" : "despesa-item";
+          
+          const statusIndicator = despesa.pago ? '<span class="status-pago"><i class="fas fa-check-circle"></i> Pago</span>' : '';
+          
           divDespesa.innerHTML = `
             <div class="despesa-info">
               <div class="despesa-titulo">${despesa.descricao}</div>
               <div class="despesa-detalhe">À Vista - ${dt.toLocaleDateString()}</div>
+              ${statusIndicator}
             </div>
             <div class="despesa-valor">R$ ${parseFloat(despesa.valor).toFixed(2)}</div>
           `;
@@ -1075,11 +1099,15 @@ function carregarPainelDespesasMes() {
           let dt = new Date(parcela.vencimento);
           if (dt.getMonth() === dashboardMonth && dt.getFullYear() === dashboardYear) {
             let divDespesa = document.createElement("div");
-            divDespesa.className = "despesa-item";
+            divDespesa.className = parcela.pago ? "despesa-item despesa-paga" : "despesa-item";
+            
+            const statusIndicator = parcela.pago ? '<span class="status-pago"><i class="fas fa-check-circle"></i> Pago</span>' : '';
+            
             divDespesa.innerHTML = `
               <div class="despesa-info">
                 <div class="despesa-titulo">${despesa.descricao}</div>
                 <div class="despesa-detalhe">Parcela ${index+1}/${totalParcelas}\n${dt.toLocaleDateString()}</div>
+                ${statusIndicator}
               </div>
               <div class="despesa-valor">R$ ${parseFloat(parcela.valor).toFixed(2)}</div>
             `;
@@ -1091,12 +1119,16 @@ function carregarPainelDespesasMes() {
           let dt = new Date(recorrencia.vencimento);
           if (dt.getMonth() === dashboardMonth && dt.getFullYear() === dashboardYear) {
             let divDespesa = document.createElement("div");
-            divDespesa.className = "despesa-item";
+            divDespesa.className = recorrencia.pago ? "despesa-item despesa-paga" : "despesa-item";
             const mesAno = dt.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+            
+            const statusIndicator = recorrencia.pago ? '<span class="status-pago"><i class="fas fa-check-circle"></i> Pago</span>' : '';
+            
             divDespesa.innerHTML = `
               <div class="despesa-info">
                 <div class="despesa-titulo">${despesa.descricao}</div>
                 <div class="despesa-detalhe">Recorrente ${mesAno}\n${dt.toLocaleDateString()}</div>
+                ${statusIndicator}
               </div>
               <div class="despesa-valor">R$ ${parseFloat(recorrencia.valor).toFixed(2)}</div>
             `;
@@ -1108,6 +1140,13 @@ function carregarPainelDespesasMes() {
     
     // Verificar despesas vencidas
     novo_verificarDespesasVencidas();
+    
+    // Resetar flag após carregar despesas
+    window.carregandoDespesasmes = false;
+  }).catch(error => {
+    console.error("Erro ao carregar painel de despesas:", error);
+    // Resetar flag em caso de erro também
+    window.carregandoDespesasmes = false;
   });
 }
 
@@ -1219,8 +1258,7 @@ function atualizarGrafico() {
       window.despesasChart = new ApexCharts(document.getElementById("graficoDespesas"), options);
       window.despesasChart.render();
       
-      // Carregar painel de despesas do mês
-      carregarPainelDespesasMes();
+      // Painel de despesas do mês será carregado pela função atualizarGrafico
     });
   });
 }
