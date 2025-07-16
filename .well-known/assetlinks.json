@@ -1,10 +1,8 @@
-[
-  {
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "br.com.carteirafacil.app",
-      "sha256_cert_fingerprints": ["FA:C3:48:7A:91:33:1F:B8:6B:85:D3:23:4A:8A:26:5D:F3:E3:4A:E4:80:AF"]
-    }
-  }
-]
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "dev.pages.carteirafacil.twa",
+        "sha256_cert_fingerprints": ["95:81:2C:3A:2D:AA:5E:13:08:85:6D:48:0A:33:90:D5:69:75:E8:FC:11:65:84:24:46:23:5B:16:CB:E5:1F:9F"]
+      }
+    }]
