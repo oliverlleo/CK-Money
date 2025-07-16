@@ -3,11 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <!-- Tags para PWA -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#4361ee">
-  
   <title>Login - Sistema de Gerenciamento de Contas Pessoais</title>
   
   <!-- Meta tags para evitar cache -->
@@ -181,7 +176,7 @@
     auth.onAuthStateChanged(user => {
       if (user) {
         // Usuário já está logado, redirecionar para a página principal
-        window.location.href = '/';
+        window.location.href = 'index.html';
       }
     });
     
@@ -224,7 +219,7 @@
           // Login bem-sucedido
           exibirToast('Login realizado com sucesso!', 'success');
           setTimeout(() => {
-            window.location.href = '/';
+            window.location.href = 'index.html';
           }, 1000);
         })
         .catch((error) => {
@@ -276,7 +271,7 @@
               
               exibirToast('Login com Google realizado com sucesso!', 'success');
               setTimeout(() => {
-                window.location.href = '/';
+                window.location.href = 'index.html';
               }, 1000);
             })
             .catch((error) => {
@@ -284,7 +279,7 @@
               // Mesmo com erro, continuar com o login
               exibirToast('Login com Google realizado com sucesso!', 'success');
               setTimeout(() => {
-                window.location.href = '/';
+                window.location.href = 'index.html';
               }, 1000);
             });
         };
@@ -418,7 +413,7 @@
             fecharModal('registerModal');
             
             setTimeout(() => {
-              window.location.href = '/';
+              window.location.href = 'index.html';
             }, 1000);
           });
         })
@@ -488,21 +483,6 @@
     document.addEventListener('DOMContentLoaded', () => {
       loadSavedTheme();
     });
-  </script>
-  
-  <!-- Registro do Service Worker -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then(registration => {
-            console.log('Service Worker registrado com sucesso:', registration);
-          })
-          .catch(error => {
-            console.log('Falha ao registrar o Service Worker:', error);
-          });
-      });
-    }
   </script>
   
   <!-- Scripts responsivos incluídos no script.js -->

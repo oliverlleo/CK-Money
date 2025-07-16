@@ -575,6 +575,12 @@ function showSection(sectionId) {
   } else if (sectionId === 'despesasSection') {
     // Carregar despesas quando esta seção for mostrada
     filtrarTodasDespesas();
+  } else if (sectionId === 'relatorioIntegradoSection') {
+    // Carregar relatórios quando esta seção for mostrada
+    // Aguardar um momento para garantir que a seção está visível
+    setTimeout(() => {
+      atualizarRelatorios();
+    }, 100);
   }
 }
 
@@ -728,9 +734,15 @@ window.abrirModal = function(id) {
   if (id === "novo_limitesModal") novo_carregarLimites();
   if (id === "receberPagamentoModal") {
     carregarRendasParaRecebimento();
-    // Definir data atual
+    // Definir data atual para ambos os campos de data
     const hoje = new Date();
-    document.getElementById("dataRecebimento").value = hoje.toISOString().split('T')[0];
+    const dataAtual = hoje.toISOString().split('T')[0];
+    document.getElementById("dataRecebimento").value = dataAtual;
+    document.getElementById("novaEntradaData").value = dataAtual;
+    
+    // Garantir que o seletor esteja na opção padrão
+    document.getElementById("tipoOperacao").value = "pagamento_existente";
+    alternarTipoOperacao(); // Chamar para configurar a interface corretamente
   }
 };
 
@@ -954,6 +966,7 @@ function atualizarDashboard() {
     setTimeout(() => {
       window.atualizandoDashboard = false;
       carregarPainelDespesasMes();
+      carregarPainelReceitasMes(); // Carregar também o painel de receitas
     }, 100);
   });
 }
@@ -1147,6 +1160,130 @@ function carregarPainelDespesasMes() {
     console.error("Erro ao carregar painel de despesas:", error);
     // Resetar flag em caso de erro também
     window.carregandoDespesasmes = false;
+  });
+}
+
+/**
+ * Seleciona aba via seletor discreto mobile
+ */
+function selecionarAbaFinanceira(element) {
+  // Remove active de todas as opções
+  document.querySelectorAll('.mobile-opcao').forEach(opt => opt.classList.remove('active'));
+  
+  // Adiciona active ao elemento clicado
+  element.classList.add('active');
+  
+  // Obtém o valor e chama a função original
+  const tipo = element.getAttribute('data-value');
+  alternarAbaFinanceira(tipo);
+}
+
+/**
+ * Alterna entre as abas de despesas e receitas no mobile
+ * (Nova funcionalidade para navegação entre painéis)
+ */
+function alternarAbaFinanceira(tipo) {
+  // Atualizar painéis visíveis
+  document.querySelectorAll('.painel-financeiro').forEach(painel => {
+    painel.classList.remove('active');
+  });
+  
+  if (tipo === 'despesas') {
+    document.getElementById('painelDespesas').classList.add('active');
+  } else if (tipo === 'receitas') {
+    document.getElementById('painelReceitas').classList.add('active');
+  }
+}
+
+/**
+ * Carrega o painel de receitas do mês
+ * (Nova funcionalidade que mostra todas as entradas de renda do mês)
+ */
+function carregarPainelReceitasMes() {
+  // Verificar se já há um carregamento em andamento
+  if (window.carregandoReceitasmes) {
+    console.log("Carregamento de receitas já em andamento, ignorando chamada duplicada");
+    return;
+  }
+  
+  // Definir flag para evitar múltiplos carregamentos simultâneos
+  window.carregandoReceitasmes = true;
+  
+  const dashboardMonth = parseInt(document.getElementById("dashboardMonth").value);
+  const dashboardYear = parseInt(document.getElementById("dashboardYear").value);
+  const listaContainer = document.getElementById("listaReceitasMes");
+  listaContainer.innerHTML = "";
+  
+  let receitasDoMes = [];
+  
+  // Buscar pessoas (fontes de renda) do usuário atual
+  db.ref("pessoas").orderByChild("userId").equalTo(currentUser ? currentUser.uid : "").once("value").then(snapshot => {
+    snapshot.forEach(child => {
+      const pessoa = child.val();
+      
+      // 1. Verificar entradas avulsas criadas no mês selecionado
+      if (pessoa.isEntradaAvulsa && pessoa.dataEntrada) {
+        const dataEntrada = new Date(pessoa.dataEntrada);
+        if (dataEntrada.getMonth() === dashboardMonth && dataEntrada.getFullYear() === dashboardYear) {
+          receitasDoMes.push({
+            descricao: pessoa.nome,
+            valor: pessoa.saldoInicial,
+            data: dataEntrada,
+            tipo: 'entrada_avulsa'
+          });
+        }
+      }
+      
+      // 2. Verificar pagamentos recebidos de rendas existentes
+      if (pessoa.pagamentosRecebidos) {
+        const chaveMonthYear = `${dashboardYear}-${dashboardMonth}`;
+        if (pessoa.pagamentosRecebidos[chaveMonthYear]) {
+          pessoa.pagamentosRecebidos[chaveMonthYear].forEach(pagamento => {
+            const dataRecebimento = new Date(pagamento.dataRecebimento);
+            receitasDoMes.push({
+              descricao: `${pessoa.nome} - Pagamento`,
+              valor: pagamento.valor,
+              data: dataRecebimento,
+              tipo: 'pagamento_renda'
+            });
+          });
+        }
+      }
+    });
+    
+    // Ordenar receitas por data (mais recente primeiro)
+    receitasDoMes.sort((a, b) => b.data - a.data);
+    
+    // Exibir receitas na lista
+    if (receitasDoMes.length === 0) {
+      listaContainer.innerHTML = '<div class="text-center text-muted p-3">Nenhuma receita registrada neste mês</div>';
+    } else {
+      receitasDoMes.forEach(receita => {
+        const divReceita = document.createElement("div");
+        divReceita.className = "receita-item";
+        
+        const tipoIcone = receita.tipo === 'entrada_avulsa' ? 
+          '<i class="fas fa-plus-circle"></i>' : 
+          '<i class="fas fa-handshake"></i>';
+        
+        divReceita.innerHTML = `
+          <div class="receita-info">
+            <div class="receita-descricao">${receita.descricao}</div>
+            <div class="receita-detalhe">${tipoIcone} ${receita.data.toLocaleDateString()}</div>
+          </div>
+          <div class="receita-valor">+R$ ${parseFloat(receita.valor).toFixed(2)}</div>
+        `;
+        
+        listaContainer.appendChild(divReceita);
+      });
+    }
+    
+    // Resetar flag após carregar receitas
+    window.carregandoReceitasmes = false;
+  }).catch(error => {
+    console.error("Erro ao carregar painel de receitas:", error);
+    // Resetar flag em caso de erro também
+    window.carregandoReceitasmes = false;
   });
 }
 
@@ -1563,6 +1700,8 @@ function processarPagamentosAutomaticos() {
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0); // Zero as horas para comparação apenas de data
   
+  let pagamentosProcessados = false; // Flag para controlar recarregamento da tabela
+  
   // Buscar apenas despesas do usuário atual
   db.ref("despesas").orderByChild("userId").equalTo(currentUser.uid).once("value").then(snapshot => {
     snapshot.forEach(child => {
@@ -1577,14 +1716,34 @@ function processarPagamentosAutomaticos() {
         dataVencimento.setHours(0, 0, 0, 0);
         
         if (dataVencimento <= hoje) {
-          // Marcar como pago automaticamente
-          db.ref("despesas").child(despesaId).update({
-            pago: true,
-            pagoAutomaticamente: true,
-            dataPagamentoAutomatico: hoje.toISOString().split('T')[0]
+          // Buscar pessoa com saldo suficiente para o pagamento automático
+          buscarPessoaComSaldo(despesa.valor, (pessoaEncontrada) => {
+            if (pessoaEncontrada) {
+              // Descontar do saldo antes de marcar como pago
+              descontarDoSaldo(pessoaEncontrada.id, despesa.valor, (sucesso, mensagem) => {
+                if (sucesso) {
+                  // Marcar como pago automaticamente
+                  db.ref("despesas").child(despesaId).update({
+                    pago: true,
+                    pagoAutomaticamente: true,
+                    dataPagamentoAutomatico: hoje.toISOString().split('T')[0]
+                  });
+                  console.log(`Despesa ${despesa.descricao} paga automaticamente`);
+                  exibirToast(`Despesa "${despesa.descricao}" foi paga automaticamente!`, "info");
+                  
+                  // Marcar que houve pagamento processado e recarregar tabela
+                  pagamentosProcessados = true;
+                  atualizarTabelaAposAutomaticos();
+                } else {
+                  console.error(`Erro ao processar pagamento automático: ${mensagem}`);
+                  exibirToast(`Erro no pagamento automático de "${despesa.descricao}": ${mensagem}`, "danger");
+                }
+              });
+            } else {
+              console.warn(`Saldo insuficiente para pagamento automático de: ${despesa.descricao}`);
+              exibirToast(`Saldo insuficiente para pagamento automático de "${despesa.descricao}"`, "warning");
+            }
           });
-          console.log(`Despesa ${despesa.descricao} paga automaticamente`);
-          exibirToast(`Despesa "${despesa.descricao}" foi paga automaticamente!`, "info");
         }
       } else if (despesa.formaPagamento === "cartao" && despesa.parcelas) {
         let houveAtualizacao = false;
@@ -1594,25 +1753,52 @@ function processarPagamentosAutomaticos() {
             dataVencimento.setHours(0, 0, 0, 0);
             
             if (dataVencimento <= hoje) {
-              houveAtualizacao = true;
-              return {
-                ...parcela,
-                pago: true,
-                pagoAutomaticamente: true,
-                dataPagamentoAutomatico: hoje.toISOString().split('T')[0]
-              };
+              // Buscar pessoa com saldo suficiente para o pagamento automático da parcela
+              buscarPessoaComSaldo(parcela.valor, (pessoaEncontrada) => {
+                if (pessoaEncontrada) {
+                  // Descontar do saldo antes de marcar como pago
+                  descontarDoSaldo(pessoaEncontrada.id, parcela.valor, (sucesso, mensagem) => {
+                    if (sucesso) {
+                      houveAtualizacao = true;
+                      // Atualizar a parcela específica
+                      const parcelasAtualizadas = despesa.parcelas.map((p, idx) => {
+                        if (idx === despesa.parcelas.indexOf(parcela)) {
+                          return {
+                            ...p,
+                            pago: true,
+                            pagoAutomaticamente: true,
+                            dataPagamentoAutomatico: hoje.toISOString().split('T')[0]
+                          };
+                        }
+                        return p;
+                      });
+                      
+                      db.ref("despesas").child(despesaId).update({
+                        parcelas: parcelasAtualizadas
+                      });
+                      console.log(`Parcela de ${despesa.descricao} paga automaticamente`);
+                      exibirToast(`Parcela de "${despesa.descricao}" foi paga automaticamente!`, "info");
+                      
+                      // Marcar que houve pagamento processado e recarregar tabela
+                      pagamentosProcessados = true;
+                      atualizarTabelaAposAutomaticos();
+                    } else {
+                      console.error(`Erro ao processar pagamento automático da parcela: ${mensagem}`);
+                      exibirToast(`Erro no pagamento automático de parcela de "${despesa.descricao}": ${mensagem}`, "danger");
+                    }
+                  });
+                } else {
+                  console.warn(`Saldo insuficiente para pagamento automático de parcela: ${despesa.descricao}`);
+                  exibirToast(`Saldo insuficiente para pagamento automático de parcela de "${despesa.descricao}"`, "warning");
+                }
+              });
+              return parcela; // Retornar parcela original, será atualizada no callback
             }
           }
           return parcela;
         });
         
-        if (houveAtualizacao) {
-          db.ref("despesas").child(despesaId).update({
-            parcelas: parcelasAtualizadas
-          });
-          console.log(`Parcelas de ${despesa.descricao} pagas automaticamente`);
-          exibirToast(`Parcelas de "${despesa.descricao}" foram pagas automaticamente!`, "info");
-        }
+        // Remover o código duplicado de atualização, agora é feito no callback individual
       } else if (despesa.formaPagamento === "recorrente" && despesa.recorrencias) {
         let houveAtualizacao = false;
         const recorrenciasAtualizadas = despesa.recorrencias.map(recorrencia => {
@@ -1621,28 +1807,71 @@ function processarPagamentosAutomaticos() {
             dataVencimento.setHours(0, 0, 0, 0);
             
             if (dataVencimento <= hoje) {
-              houveAtualizacao = true;
-              return {
-                ...recorrencia,
-                pago: true,
-                pagoAutomaticamente: true,
-                dataPagamentoAutomatico: hoje.toISOString().split('T')[0]
-              };
+              // Buscar pessoa com saldo suficiente para o pagamento automático da recorrência
+              buscarPessoaComSaldo(recorrencia.valor, (pessoaEncontrada) => {
+                if (pessoaEncontrada) {
+                  // Descontar do saldo antes de marcar como pago
+                  descontarDoSaldo(pessoaEncontrada.id, recorrencia.valor, (sucesso, mensagem) => {
+                    if (sucesso) {
+                      houveAtualizacao = true;
+                      // Atualizar a recorrência específica
+                      const recorrenciasAtualizadas = despesa.recorrencias.map((r, idx) => {
+                        if (idx === despesa.recorrencias.indexOf(recorrencia)) {
+                          return {
+                            ...r,
+                            pago: true,
+                            pagoAutomaticamente: true,
+                            dataPagamentoAutomatico: hoje.toISOString().split('T')[0]
+                          };
+                        }
+                        return r;
+                      });
+                      
+                      db.ref("despesas").child(despesaId).update({
+                        recorrencias: recorrenciasAtualizadas
+                      });
+                      console.log(`Recorrência de ${despesa.descricao} paga automaticamente`);
+                      exibirToast(`Recorrência de "${despesa.descricao}" foi paga automaticamente!`, "info");
+                      
+                      // Marcar que houve pagamento processado e recarregar tabela
+                      pagamentosProcessados = true;
+                      atualizarTabelaAposAutomaticos();
+                    } else {
+                      console.error(`Erro ao processar pagamento automático da recorrência: ${mensagem}`);
+                      exibirToast(`Erro no pagamento automático de recorrência de "${despesa.descricao}": ${mensagem}`, "danger");
+                    }
+                  });
+                } else {
+                  console.warn(`Saldo insuficiente para pagamento automático de recorrência: ${despesa.descricao}`);
+                  exibirToast(`Saldo insuficiente para pagamento automático de recorrência de "${despesa.descricao}"`, "warning");
+                }
+              });
+              return recorrencia; // Retornar recorrência original, será atualizada no callback
             }
           }
           return recorrencia;
         });
         
-        if (houveAtualizacao) {
-          db.ref("despesas").child(despesaId).update({
-            recorrencias: recorrenciasAtualizadas
-          });
-          console.log(`Recorrências de ${despesa.descricao} pagas automaticamente`);
-          exibirToast(`Recorrências de "${despesa.descricao}" foram pagas automaticamente!`, "info");
-        }
+        // Remover o código duplicado de atualização, agora é feito no callback individual
       }
     });
   });
+}
+
+/**
+ * Atualiza a tabela de despesas após pagamentos automáticos
+ * (Nova função adicionada para recarregar a tabela quando despesas são pagas automaticamente)
+ */
+function atualizarTabelaAposAutomaticos() {
+  // Verificar se estamos na seção de despesas e recarregar
+  const despesasSection = document.getElementById('despesasSection');
+  if (despesasSection && !despesasSection.classList.contains('d-none')) {
+    // Adicionar um pequeno delay para garantir que o Firebase foi atualizado
+    setTimeout(() => {
+      filtrarTodasDespesas();
+      console.log('Tabela de despesas recarregada após pagamentos automáticos');
+    }, 500);
+  }
 }
 
 /**
@@ -3060,7 +3289,17 @@ function atualizarRelatorios() {
  */
 function atualizarRelatorioMensal(inicio, fim) {
   const container = document.getElementById("relatorioMensalContainer");
+  
+  // Limpar completamente o container para evitar duplicações
   container.innerHTML = "";
+  
+  // Verificar se já existe uma requisição em andamento para evitar múltiplas execuções
+  if (container.dataset.loading === 'true') {
+    return;
+  }
+  
+  // Marcar como carregando
+  container.dataset.loading = 'true';
   
   // Buscar apenas despesas do usuário atual no período
   db.ref("despesas").orderByChild("userId").equalTo(currentUser ? currentUser.uid : "").once("value").then(snapshot => {
@@ -3176,7 +3415,17 @@ function atualizarRelatorioMensal(inicio, fim) {
     });
     
     table.appendChild(tbody);
+    
+    // Limpar container novamente antes de adicionar a nova tabela
+    container.innerHTML = "";
     container.appendChild(table);
+    
+    // Marcar como não carregando após concluir
+    container.dataset.loading = 'false';
+  }).catch(error => {
+    console.error('Erro ao carregar relatório mensal:', error);
+    container.innerHTML = '<div class="alert alert-danger">Erro ao carregar relatório.</div>';
+    container.dataset.loading = 'false';
   });
 }
 
@@ -5355,6 +5604,123 @@ function carregarPagamentosRenda() {
   });
 }
 
+
+
+/**
+ * Seleciona tipo via seletor discreto inline
+ */
+function selecionarTipo(element) {
+  // Remove active de todas as opções
+  document.querySelectorAll('.tipo-opcao').forEach(opt => opt.classList.remove('active'));
+  
+  // Adiciona active ao elemento clicado
+  element.classList.add('active');
+  
+  // Atualiza valor hidden
+  const valor = element.getAttribute('data-value');
+  document.getElementById('tipoOperacao').value = valor;
+  
+  // Chama função de alternância
+  alternarTipoOperacao();
+}
+
+/**
+ * Função legada para compatibilidade com o select anterior
+ * Agora usa o seletor visual de botões
+ */
+function alternarTipoOperacao() {
+  const tipoOperacao = document.getElementById("tipoOperacao").value;
+  const secaoPagamentoExistente = document.getElementById("secaoPagamentoExistente");
+  const secaoNovaEntrada = document.getElementById("secaoNovaEntrada");
+  const botaoTexto = document.getElementById("botaoConfirmarTexto");
+  
+  if (tipoOperacao === "nova_entrada") {
+    secaoPagamentoExistente.style.display = "none";
+    secaoNovaEntrada.style.display = "block";
+    botaoTexto.textContent = "Confirmar Nova Entrada";
+  } else {
+    secaoPagamentoExistente.style.display = "block";
+    secaoNovaEntrada.style.display = "none";
+    botaoTexto.textContent = "Confirmar Recebimento";
+  }
+}
+
+/**
+ * Processa a operação de renda baseado no tipo selecionado
+ * (Nova funcionalidade unificada que chama a função apropriada)
+ */
+function processarOperacaoRenda() {
+  const tipoOperacao = document.getElementById("tipoOperacao").value;
+  
+  if (tipoOperacao === "nova_entrada") {
+    confirmarNovaEntradaRenda();
+  } else {
+    confirmarRecebimentoPagamento();
+  }
+}
+
+/**
+ * Confirma uma nova entrada de renda
+ * (Nova funcionalidade para adicionar renda diretamente ao saldo)
+ */
+function confirmarNovaEntradaRenda() {
+  const descricao = document.getElementById("novaEntradaDescricao").value.trim();
+  const valor = parseFloat(document.getElementById("novaEntradaValor").value);
+  const data = document.getElementById("novaEntradaData").value;
+  
+  // Validações
+  if (!descricao) {
+    exibirToast("Digite uma descrição para a entrada.", "warning");
+    return;
+  }
+  
+  if (isNaN(valor) || valor <= 0) {
+    exibirToast("Digite um valor válido.", "warning");
+    return;
+  }
+  
+  if (!data) {
+    exibirToast("Selecione a data da entrada.", "warning");
+    return;
+  }
+  
+  // Verificar se o usuário está autenticado
+  if (!currentUser || !currentUser.uid) {
+    exibirToast("Usuário não autenticado. Faça login novamente.", "danger");
+    return;
+  }
+  
+  // Criar uma nova entrada temporária na tabela pessoas para adicionar ao saldo
+  const novaEntrada = {
+    userId: currentUser.uid,
+    nome: `Entrada: ${descricao}`,
+    saldoInicial: valor,
+    valorDescontado: 0,
+    isEntradaAvulsa: true, // Marca como entrada avulsa para identificação
+    dataEntrada: data,
+    dataRegistro: new Date().toISOString()
+  };
+  
+  // Salvar no Firebase
+  db.ref("pessoas").push(novaEntrada).then(() => {
+    exibirToast(`Nova entrada de R$ ${valor.toFixed(2)} registrada com sucesso!`, "success");
+    fecharModal("receberPagamentoModal");
+    atualizarDashboard(); // Atualizar o saldo
+    
+    // Limpar campos da nova entrada
+    document.getElementById("novaEntradaDescricao").value = "";
+    document.getElementById("novaEntradaValor").value = "";
+    document.getElementById("novaEntradaData").value = "";
+    
+    // Resetar para opção padrão
+    document.getElementById("tipoOperacao").value = "pagamento_existente";
+    alternarTipoOperacao();
+  }).catch(error => {
+    console.error("Erro ao registrar nova entrada:", error);
+    exibirToast("Erro ao registrar nova entrada: " + error.message, "danger");
+  });
+}
+
 /**
  * Confirma o recebimento de um pagamento
  */
@@ -5441,10 +5807,14 @@ function confirmarRecebimentoPagamento() {
       fecharModal("receberPagamentoModal");
       atualizarDashboard(); // Atualizar o saldo
       
-      // Limpar campos
+      // Limpar campos da seção existente
       document.getElementById("rendaSelect").value = "";
       document.getElementById("pagamentoSelect").innerHTML = "<option value=''>Selecione o Pagamento</option>";
       document.getElementById("valorRecebido").value = "";
+      
+      // Resetar para opção padrão
+      document.getElementById("tipoOperacao").value = "pagamento_existente";
+      alternarTipoOperacao();
     }).catch(error => {
       console.error("Erro ao registrar pagamento:", error);
       exibirToast("Erro ao registrar pagamento: " + error.message, "danger");

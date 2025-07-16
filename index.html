@@ -3,15 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
-  
-  <!-- Tags para PWA -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#4361ee">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Gestão Financeira">
   <meta name="mobile-web-app-capable" content="yes">
-  
+  <meta name="theme-color" content="#4361ee">
   <title>Sistema de Gerenciamento de Contas Pessoais</title>
   
   <!-- Meta tags para evitar cache -->
@@ -30,6 +26,7 @@
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css?v=1.0.0" />
   
   <!-- ApexCharts para gráficos interativos -->
+  <script src="https://lib.youware.com/youware-lib-editor.1752562065.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script>
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   
   <!-- Toastify para notificações -->
@@ -101,8 +98,8 @@
       <button class="action-btn" onclick="showSection('alertasSection')" title="Alertas">
         <i class="fa-solid fa-bell"></i>
       </button>
-      <button class="action-btn" onclick="showSection('configuracoesSection')" title="Configurações">
-        <i class="fa-solid fa-cog"></i>
+      <button class="action-btn" onclick="showSection('configuracoesSection')" title="Gerenciar Carteira">
+        <i class="fa-solid fa-wallet"></i>
       </button>
     </div>
   </div>
@@ -134,8 +131,8 @@
           <span>Metas</span>
         </a>
         <a href="#" class="nav-link" onclick="showSection('configuracoesSection')">
-          <i class="fa-solid fa-cog"></i>
-          <span>Configurações</span>
+          <i class="fa-solid fa-wallet"></i>
+          <span>Gerenciar Carteira</span>
         </a>
         <a href="#" class="nav-link" onclick="exportData()">
           <i class="fa-solid fa-file-export"></i>
@@ -221,7 +218,7 @@
             <div class="dashboard-card-value" id="saldoAtual">R$ 0.00</div>
             <div class="dashboard-card-label">
               <span>Disponível para uso</span>
-              <button class="btn-icon" onclick="abrirModal('receberPagamentoModal')" title="Marcar Pagamento Recebido">
+              <button class="btn-icon" onclick="abrirModal('receberPagamentoModal')" title="Adicionar Saldo">
                 <i class="fas fa-plus-circle"></i>
               </button>
             </div>
@@ -269,9 +266,33 @@
             <div class="chart-panel" style="flex: 3;">
               <div id="graficoDespesas"></div>
             </div>
+            <!-- Container responsivo para Despesas e Receitas -->
             <div class="chart-panel" style="flex: 2;">
-              <h4 class="mb-2">Despesas do Mês</h4>
-              <div id="listaDespesasMes" class="despesas-lista"></div>
+              <!-- Container deslizável para mobile -->
+              <div class="despesas-receitas-container">
+                <!-- Navegação mobile - seletor discreto -->
+                <div class="mobile-nav-tabs">
+                  <div class="mobile-seletor-container">
+                    <span class="mobile-seletor">
+                      <span class="mobile-opcao active" data-value="despesas" onclick="selecionarAbaFinanceira(this)">Despesas</span>
+                      <span class="separador">|</span>
+                      <span class="mobile-opcao" data-value="receitas" onclick="selecionarAbaFinanceira(this)">Receitas</span>
+                    </span>
+                  </div>
+                </div>
+                
+                <!-- Painel de Despesas -->
+                <div id="painelDespesas" class="painel-financeiro active">
+                  <h4 class="mb-2 desktop-title">Despesas do Mês</h4>
+                  <div id="listaDespesasMes" class="despesas-lista"></div>
+                </div>
+                
+                <!-- Painel de Receitas -->
+                <div id="painelReceitas" class="painel-financeiro">
+                  <h4 class="mb-2 desktop-title">Receitas do Mês</h4>
+                  <div id="listaReceitasMes" class="receitas-lista"></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -435,9 +456,9 @@
         </div>
       </section>
       
-      <!-- Nova Seção de Configurações (Unificada) -->
+      <!-- Nova Seção de Gerenciar Carteira (Unificada) -->
       <section id="configuracoesSection" class="container" style="display: none;">
-        <h2 class="mb-3">Configurações</h2>
+        <h2 class="mb-3">Gerenciar Carteira</h2>
         
         <!-- Abas de navegação -->
         <div class="config-tabs">
@@ -869,35 +890,66 @@
   <div id="receberPagamentoModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="modal-title">Marcar Pagamento Recebido</h2>
+        <h2 class="modal-title">Adicionar Saldo</h2>
         <button class="close" onclick="fecharModal('receberPagamentoModal')">&times;</button>
       </div>
       <div class="modal-body">
+        <!-- Seletor discreto inline -->
         <div class="form-group">
-          <label class="form-label">Renda:</label>
-          <select id="rendaSelect" class="form-control" onchange="carregarPagamentosRenda()">
-            <option value="">Selecione a Renda</option>
-          </select>
+          <label class="form-label">
+            <span class="tipo-seletor">
+              <span class="tipo-opcao active" data-value="pagamento_existente" onclick="selecionarTipo(this)">Pagamento</span>
+              <span class="separador">|</span>
+              <span class="tipo-opcao" data-value="nova_entrada" onclick="selecionarTipo(this)">Nova Entrada</span>
+            </span>
+          </label>
+          <input type="hidden" id="tipoOperacao" value="pagamento_existente">
         </div>
-        <div class="form-group">
-          <label class="form-label">Pagamento:</label>
-          <select id="pagamentoSelect" class="form-control">
-            <option value="">Selecione o Pagamento</option>
-          </select>
+
+        <!-- Seção para Pagamento de Renda Existente -->
+        <div id="secaoPagamentoExistente">
+          <div class="form-group">
+            <label class="form-label">Renda:</label>
+            <select id="rendaSelect" class="form-control" onchange="carregarPagamentosRenda()">
+              <option value="">Selecione a Renda</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pagamento:</label>
+            <select id="pagamentoSelect" class="form-control">
+              <option value="">Selecione o Pagamento</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Valor Recebido (R$):</label>
+            <input type="number" id="valorRecebido" class="form-control" placeholder="Valor" step="0.01" required pattern="[0-9]*" inputmode="decimal">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Data de Recebimento:</label>
+            <input type="date" id="dataRecebimento" class="form-control" required>
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Valor Recebido (R$):</label>
-          <input type="number" id="valorRecebido" class="form-control" placeholder="Valor" step="0.01" required pattern="[0-9]*" inputmode="decimal">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Data de Recebimento:</label>
-          <input type="date" id="dataRecebimento" class="form-control" required>
+
+        <!-- Seção para Nova Entrada de Renda -->
+        <div id="secaoNovaEntrada" style="display: none;">
+          <div class="form-group">
+            <label class="form-label">Descrição:</label>
+            <input type="text" id="novaEntradaDescricao" class="form-control" placeholder="Ex: Freelance, Venda, etc." maxlength="100">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Valor Recebido (R$):</label>
+            <input type="number" id="novaEntradaValor" class="form-control" placeholder="Valor" step="0.01" required pattern="[0-9]*" inputmode="decimal">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Data do Recebimento:</label>
+            <input type="date" id="novaEntradaData" class="form-control" required>
+          </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-primary" onclick="confirmarRecebimentoPagamento()">
+        <button class="btn btn-primary" onclick="processarOperacaoRenda()">
           <i class="fas fa-check"></i>
-          <span>Confirmar Recebimento</span>
+          <span id="botaoConfirmarTexto">Confirmar Recebimento</span>
         </button>
         <button class="btn btn-outline" onclick="fecharModal('receberPagamentoModal')">Cancelar</button>
       </div>
@@ -1054,9 +1106,19 @@
           // Carregar mapa de categorias após autenticação
           carregarCategoriasMap();
         } else {
-          // CORREÇÃO: Redirecionar para a página de login correta
-          // A Cloudflare Pages usa /login em vez de /login.html
-          window.location.href = '/login';
+          // Para fins de teste, não redirecionamos para a página de login
+          console.log("Usuário não autenticado, mostrando valores zerados");
+          // Não redirecionar: window.location.href = 'login.html';
+          
+          // Simular login para teste
+          currentUser = {uid: 'teste123', email: 'teste@example.com', displayName: 'Usuário Teste'};
+          // Carregar mapa de categorias após simular login
+          carregarCategoriasMap();
+          // Mostrar a seção de configurações diretamente para teste
+          setTimeout(() => {
+            showSection('configuracoesSection');
+            showConfigTab('configCategoriasTab');
+          }, 500);
         }
       });
       
@@ -1154,20 +1216,7 @@
   <!-- Utilitários compartilhados -->
   <script src="js/utils.js"></script>
   
-  <!-- Registro do Service Worker -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then(registration => {
-            console.log('Service Worker registrado com sucesso:', registration);
-          })
-          .catch(error => {
-            console.log('Falha ao registrar o Service Worker:', error);
-          });
-      });
-    }
-  </script>
+
   
   <!-- Mobile Bottom Navigation -->
   <div class="mobile-bottom-nav">
@@ -1192,27 +1241,6 @@
       <span>Metas</span>
     </div>
   </div>
-
-  <!-- SCRIPT DE CORREÇÃO PARA LOGOUT -->
-  <script>
-    function logout() {
-      firebase.auth().signOut().then(() => {
-        // Limpar dados do usuário
-        currentUser = null;
-        
-        // CORREÇÃO: Redirecionar para a página de login correta na Cloudflare
-        window.location.href = '/login';
-      }).catch((error) => {
-        console.error('Erro ao fazer logout:', error);
-        // Usar a função de toast do seu app
-        if (typeof exibirToast === 'function') {
-            exibirToast('Erro ao fazer logout', 'danger');
-        } else {
-            alert('Erro ao fazer logout');
-        }
-      });
-    }
-  </script>
 
 </body>
 </html>
