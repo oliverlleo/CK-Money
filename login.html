@@ -181,7 +181,7 @@
     auth.onAuthStateChanged(user => {
       if (user) {
         // Usuário já está logado, redirecionar para a página principal
-        window.location.href = 'index.html';
+        window.location.href = '/';
       }
     });
     
@@ -224,7 +224,7 @@
           // Login bem-sucedido
           exibirToast('Login realizado com sucesso!', 'success');
           setTimeout(() => {
-            window.location.href = 'index.html';
+            window.location.href = '/';
           }, 1000);
         })
         .catch((error) => {
@@ -276,7 +276,7 @@
               
               exibirToast('Login com Google realizado com sucesso!', 'success');
               setTimeout(() => {
-                window.location.href = 'index.html';
+                window.location.href = '/';
               }, 1000);
             })
             .catch((error) => {
@@ -284,7 +284,7 @@
               // Mesmo com erro, continuar com o login
               exibirToast('Login com Google realizado com sucesso!', 'success');
               setTimeout(() => {
-                window.location.href = 'index.html';
+                window.location.href = '/';
               }, 1000);
             });
         };
@@ -418,7 +418,7 @@
             fecharModal('registerModal');
             
             setTimeout(() => {
-              window.location.href = 'index.html';
+              window.location.href = '/';
             }, 1000);
           });
         })
