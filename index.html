@@ -30,7 +30,6 @@
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css?v=1.0.0" />
   
   <!-- ApexCharts para gráficos interativos -->
-  <script src="https://lib.youware.com/youware-lib-editor.1752562065.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script>
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   
   <!-- Toastify para notificações -->
@@ -1055,19 +1054,9 @@
           // Carregar mapa de categorias após autenticação
           carregarCategoriasMap();
         } else {
-          // Para fins de teste, não redirecionamos para a página de login
-          console.log("Usuário não autenticado, mostrando valores zerados");
-          // Não redirecionar: window.location.href = 'login.html';
-          
-          // Simular login para teste
-          currentUser = {uid: 'teste123', email: 'teste@example.com', displayName: 'Usuário Teste'};
-          // Carregar mapa de categorias após simular login
-          carregarCategoriasMap();
-          // Mostrar a seção de configurações diretamente para teste
-          setTimeout(() => {
-            showSection('configuracoesSection');
-            showConfigTab('configCategoriasTab');
-          }, 500);
+          // CORREÇÃO: Redirecionar para a página de login correta
+          // A Cloudflare Pages usa /login em vez de /login.html
+          window.location.href = '/login';
         }
       });
       
@@ -1211,9 +1200,8 @@
         // Limpar dados do usuário
         currentUser = null;
         
-        // Redirecionar para a página de login CORRETA
-        // Usar um caminho relativo para maior compatibilidade com o hosting
-        window.location.href = 'login.html';
+        // CORREÇÃO: Redirecionar para a página de login correta na Cloudflare
+        window.location.href = '/login';
       }).catch((error) => {
         console.error('Erro ao fazer logout:', error);
         // Usar a função de toast do seu app
@@ -1228,30 +1216,3 @@
 
 </body>
 </html>
-```
-
-
-```json
-{
-  "name": "Gestão Financeira Pessoal",
-  "short_name": "Contas",
-  "description": "Sistema de Gerenciamento de Contas Pessoais para controle financeiro.",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#f8f9fa",
-  "theme_color": "#4361ee",
-  "icons": [
-    {
-      "src": "icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ]
-}
