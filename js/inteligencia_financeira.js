@@ -41,8 +41,8 @@ function analisarSituacaoFinanceira() {
     };
     
     // Obter apenas as rendas do usuário atual
-    console.log(`Buscando pessoas para o usuário: users/${currentUser.uid}/data/pessoas`);
-  db.ref(`users/${currentUser.uid}/data/pessoas`).once("value")
+    console.log(`Buscando pessoas para o usuário: ${currentUser.uid}`);
+    db.ref("pessoas").orderByChild("userId").equalTo(currentUser.uid).once("value")
       .then(snapshot => {
         console.log("Snapshot de pessoas:", snapshot.exists() ? "Dados encontrados" : "Nenhum dado");
         if (snapshot.exists()) {
@@ -78,8 +78,8 @@ function analisarSituacaoFinanceira() {
         }
         
         // Obter apenas as despesas do usuário atual
-        console.log(`Buscando despesas para o usuário: users/${currentUser.uid}/data/despesas`);
-        return db.ref(`users/${currentUser.uid}/data/despesas`).once("value");
+        console.log(`Buscando despesas para o usuário: ${currentUser.uid}`);
+        return db.ref("despesas").orderByChild("userId").equalTo(currentUser.uid).once("value");
       })
       .then(snapshot => {
         console.log("Snapshot de despesas:", snapshot.exists() ? "Dados encontrados" : "Nenhum dado");
@@ -244,7 +244,7 @@ function analisarGastosPorCategoria() {
     const gastosPorCategoria = {};
     
     // Obter limites de categorias apenas do usuário atual
-    console.log(`Buscando limites de categorias para o usuário: users/${currentUser.uid}/data/limites_categorias`);
+    console.log(`Buscando limites de categorias para o usuário: ${currentUser.uid}`);
     db.ref(`users/${currentUser.uid}/data/limites_categorias`).once("value")
       .then(limSnapshot => {
         console.log("Snapshot de limites:", limSnapshot.exists() ? "Dados encontrados" : "Nenhum dado");
@@ -294,7 +294,7 @@ function analisarGastosPorCategoria() {
         }
         
         // Obter despesas apenas do usuário atual
-        return db.ref(`users/${currentUser.uid}/data/despesas`).once("value");
+        return db.ref("despesas").orderByChild("userId").equalTo(currentUser.uid).once("value");
       })
       .then(snapshot => {
         // Processar despesas apenas do usuário atual
@@ -416,7 +416,7 @@ function carregarMetas() {
     console.log("Iniciando carregamento de metas para usuário:", currentUser.uid);
     
     // Buscar apenas as metas do usuário atual
-    console.log(`Buscando metas para o usuário: users/${currentUser.uid}/data/metas`);
+    console.log(`Buscando metas para o usuário: ${currentUser.uid}`);
     db.ref(`users/${currentUser.uid}/data/metas`).once("value")
       .then(snapshot => {
         console.log("Snapshot de metas:", snapshot.exists() ? "Dados encontrados" : "Nenhum dado");
@@ -512,7 +512,7 @@ function atualizarProgressoMeta(metaId, novoValor) {
       return;
     }
     
-    // Atualizar diretamente no espaço do usuário (já garante isolamento)
+    // Atualizar valor da meta (verificação de usuário já feita antes)
     db.ref(`users/${currentUser.uid}/data/metas/${metaId}/valorAtual`).set(parseFloat(novoValor))
       .then(() => {
         resolve({ success: true });
@@ -542,7 +542,7 @@ function excluirMeta(metaId) {
       return;
     }
     
-    // Excluir diretamente do espaço do usuário (já garante isolamento)
+    // Excluir meta (verificação de usuário já feita antes)
     db.ref(`users/${currentUser.uid}/data/metas/${metaId}`).remove()
       .then(() => {
         resolve({ success: true });
@@ -1137,7 +1137,7 @@ function renderizarPainelMetas() {
  * @param {string} metaId - ID da meta a ser editada
  */
 function abrirModalEditarMeta(metaId) {
-  // Carregar dados da meta do usuário atual
+  // Carregar dados da meta - buscar apenas metas do usuário atual
   db.ref(`users/${currentUser.uid}/data/metas/${metaId}`).once("value")
     .then(snapshot => {
       if (snapshot.exists()) {
@@ -1163,7 +1163,7 @@ function abrirModalEditarMeta(metaId) {
         }
         
         // Abrir modal
-        abrirModal("metaModal");
+        abrirModal("novametaModal");
       } else {
         exibirToast("Meta não encontrada", "danger");
       }
@@ -1179,7 +1179,7 @@ function abrirModalEditarMeta(metaId) {
  * @param {string} metaId - ID da meta a ser atualizada
  */
 function abrirModalAtualizarMeta(metaId) {
-  // Carregar dados da meta do usuário atual
+  // Carregar dados da meta - buscar apenas metas do usuário atual
   db.ref(`users/${currentUser.uid}/data/metas/${metaId}`).once("value")
     .then(snapshot => {
       if (snapshot.exists()) {
@@ -1254,7 +1254,7 @@ function salvarMetaFormulario() {
   salvarMeta(meta)
     .then(() => {
       exibirToast("Meta salva com sucesso!", "success");
-      fecharModal("metaModal");
+      fecharModal("novametaModal");
       renderizarPainelMetas();
     })
     .catch(error => {
