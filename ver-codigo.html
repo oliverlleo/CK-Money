@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Código-Fonte - Sistema de Gerenciamento Financeiro</title>
+  
+  <!-- Google Fonts: Roboto Mono para código -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Prism.js para syntax highlighting -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #1e1e1e;
+      color: #fff;
+      line-height: 1.6;
+    }
+
+    .header {
+      background: #2d2d2d;
+      padding: 1rem 2rem;
+      border-bottom: 1px solid #404040;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header h1 {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.5rem;
+    }
+
+    .header .subtitle {
+      color: #ccc;
+      font-size: 0.9rem;
+      margin-top: 0.25rem;
+    }
+
+    .controls {
+      background: #2d2d2d;
+      padding: 1rem 2rem;
+      border-bottom: 1px solid #404040;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: #007acc;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: #005a9e;
+    }
+
+    .btn-secondary {
+      background: #555;
+    }
+
+    .btn-secondary:hover {
+      background: #666;
+    }
+
+    .container {
+      display: flex;
+      height: calc(100vh - 120px);
+    }
+
+    .sidebar {
+      width: 300px;
+      background: #252526;
+      border-right: 1px solid #404040;
+      overflow-y: auto;
+    }
+
+    .file-tree {
+      padding: 1rem;
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+
+    .file-item:hover {
+      background: #2a2d2e;
+    }
+
+    .file-item.active {
+      background: #094771;
+      color: #fff;
+    }
+
+    .file-item i {
+      width: 16px;
+      text-align: center;
+    }
+
+    .content {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .file-header {
+      background: #2d2d2d;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #404040;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .code-container {
+      flex: 1;
+      overflow: auto;
+      background: #1e1e1e;
+    }
+
+    pre {
+      margin: 0;
+      padding: 1rem;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 200px;
+      color: #ccc;
+    }
+
+    .stats {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.8rem;
+      color: #ccc;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 250px;
+      }
+      
+      .controls {
+        padding: 0.5rem 1rem;
+      }
+      
+      .header {
+        padding: 0.75rem 1rem;
+      }
+      
+      .header h1 {
+        font-size: 1.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>
+      <i class="fas fa-code"></i>
+      Sistema de Gerenciamento Financeiro
+    </h1>
+    <div class="subtitle">Código-fonte open source</div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" onclick="downloadProject()">
+      <i class="fas fa-download"></i>
+      Download Projeto
+    </button>
+    <button class="btn btn-secondary" onclick="copyCurrentFile()">
+      <i class="fas fa-copy"></i>
+      Copiar Arquivo
+    </button>
+    <div class="stats">
+      <span id="fileCount">15 arquivos</span>
+      <span id="totalLines">~10600 linhas</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="sidebar">
+      <div class="file-tree" id="fileTree">
+        <!-- HTML Files -->
+        <div class="file-item" onclick="loadFile('index.html', 'html')">
+          <i class="fab fa-html5" style="color: #e34c26;"></i>
+          index.html
+        </div>
+        <div class="file-item" onclick="loadFile('login.html', 'html')">
+          <i class="fab fa-html5" style="color: #e34c26;"></i>
+          login.html
+        </div>
+        <div class="file-item" onclick="loadFile('ver-codigo.html', 'html')">
+          <i class="fab fa-html5" style="color: #e34c26;"></i>
+          ver-codigo.html
+        </div>
+
+        <!-- CSS Files -->
+        <div class="file-item" onclick="loadFile('css/styles.css', 'css')">
+          <i class="fab fa-css3-alt" style="color: #1572b6;"></i>
+          css/styles.css
+        </div>
+        <div class="file-item" onclick="loadFile('css/inteligencia_financeira.css', 'css')">
+          <i class="fab fa-css3-alt" style="color: #1572b6;"></i>
+          css/inteligencia_financeira.css
+        </div>
+        
+        <!-- JS Files -->
+        <div class="file-item" onclick="loadFile('js/script.js', 'javascript')">
+          <i class="fab fa-js-square" style="color: #f7df1e;"></i>
+          js/script.js
+        </div>
+        <div class="file-item" onclick="loadFile('js/inteligencia_financeira.js', 'javascript')">
+          <i class="fab fa-js-square" style="color: #f7df1e;"></i>
+          js/inteligencia_financeira.js
+        </div>
+        <div class="file-item" onclick="loadFile('js/utils.js', 'javascript')">
+          <i class="fab fa-js-square" style="color: #f7df1e;"></i>
+          js/utils.js
+        </div>
+        
+        <!-- Documentation -->
+        <div class="file-item" onclick="loadFile('YOUWARE.md', 'markdown')">
+          <i class="fab fa-markdown" style="color: #083fa1;"></i>
+          YOUWARE.md
+        </div>
+        
+        <!-- Configuration Files -->
+        <div class="file-item" onclick="loadFile('todo.json', 'json')">
+          <i class="fas fa-tasks" style="color: #28a745;"></i>
+          todo.json
+        </div>
+        
+        <!-- Image Assets -->
+        <div class="file-item" onclick="loadFile('nb7mcgjusr.png', 'image')">
+          <i class="fas fa-image" style="color: #6f42c1;"></i>
+          nb7mcgjusr.png
+        </div>
+        <div class="file-item" onclick="loadFile('lz9maphr5a.png', 'image')">
+          <i class="fas fa-image" style="color: #6f42c1;"></i>
+          lz9maphr5a.png
+        </div>
+        <div class="file-item" onclick="loadFile('d4gb3xwqn6.png', 'image')">
+          <i class="fas fa-image" style="color: #6f42c1;"></i>
+          d4gb3xwqn6.png
+        </div>
+        <div class="file-item" onclick="loadFile('d1xpth0k86.png', 'image')">
+          <i class="fas fa-image" style="color: #6f42c1;"></i>
+          d1xpth0k86.png
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="file-header" id="fileHeader">
+        <i class="fas fa-file"></i>
+        <span>Selecione um arquivo</span>
+      </div>
+      <div class="code-container" id="codeContainer">
+        <div class="loading">
+          <div style="text-align: center;">
+            <i class="fas fa-file-code" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+            <p>Selecione um arquivo na barra lateral para visualizar o código</p>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.7;">
+              Este é um sistema de gerenciamento financeiro open source
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prism.js -->
+  <script src="https://lib.youware.com/youware-lib-editor.1752562065.js" id="yourware-lib"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+
+  <script>
+    let currentFileContent = '';
+    let currentFileName = '';
+
+    // Função para carregar arquivos
+    async function loadFile(fileName, language) {
+      try {
+        // Atualizar UI
+        document.querySelectorAll('.file-item').forEach(item => item.classList.remove('active'));
+        event.target.closest('.file-item').classList.add('active');
+        
+        document.getElementById('fileHeader').innerHTML = `
+          <i class="fas fa-file"></i>
+          <span>${fileName}</span>
+        `;
+        
+        document.getElementById('codeContainer').innerHTML = `
+          <div class="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            Carregando arquivo...
+          </div>
+        `;
+
+        // Lidar com imagens
+        if (language === 'image') {
+          const codeContainer = document.getElementById('codeContainer');
+          codeContainer.innerHTML = `
+            <div style="padding: 1rem; text-align: center; background: #f8f9fa; color: #333; border-radius: 8px; margin: 1rem;">
+              <img src="${fileName}" alt="${fileName}" style="max-width: 100%; height: auto; max-height: 500px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+              <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">
+                📷 <strong>${fileName}</strong> - Asset do projeto
+              </p>
+              <p style="color: #888; font-size: 0.8rem;">
+                Imagem utilizada no sistema de gerenciamento financeiro
+              </p>
+            </div>
+          `;
+          currentFileContent = `[Binary Image Content: ${fileName}]`;
+          currentFileName = fileName;
+          return;
+        }
+
+        // Buscar conteúdo do arquivo para código
+        const response = await fetch(fileName);
+        
+        if (!response.ok) {
+          throw new Error('Arquivo não encontrado');
+        }
+        
+        const content = await response.text();
+        currentFileContent = content;
+        currentFileName = fileName;
+        
+        // Exibir código com syntax highlighting
+        const codeContainer = document.getElementById('codeContainer');
+        codeContainer.innerHTML = `
+          <pre><code class="language-${language}">${escapeHtml(content)}</code></pre>
+        `;
+        
+        // Aplicar syntax highlighting
+        Prism.highlightAll();
+        
+      } catch (error) {
+        console.error('Erro ao carregar arquivo:', error);
+        document.getElementById('codeContainer').innerHTML = `
+          <div class="loading">
+            <div style="text-align: center; color: #f72585;">
+              <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+              <p>Erro ao carregar o arquivo</p>
+              <p style="font-size: 0.9rem; opacity: 0.7;">${error.message}</p>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // Função para escapar HTML
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Função para copiar arquivo atual
+    function copyCurrentFile() {
+      if (!currentFileContent) {
+        alert('Nenhum arquivo selecionado');
+        return;
+      }
+      
+      navigator.clipboard.writeText(currentFileContent).then(() => {
+        alert(`Código de ${currentFileName} copiado para a área de transferência!`);
+      }).catch(err => {
+        console.error('Erro ao copiar:', err);
+        alert('Erro ao copiar o código');
+      });
+    }
+
+    // Função para download do projeto completo
+    async function downloadProject() {
+      try {
+        const files = [
+          // HTML Files
+          'index.html',
+          'login.html',
+          'ver-codigo.html',
+          
+          // CSS Files
+          'css/styles.css',
+          'css/inteligencia_financeira.css',
+          
+          // JavaScript Files
+          'js/script.js',
+          'js/inteligencia_financeira.js',
+          'js/utils.js',
+          
+          // Documentation
+          'YOUWARE.md',
+          'todo.json',
+          
+          // Images
+          'nb7mcgjusr.png',
+          'lz9maphr5a.png',
+          'd4gb3xwqn6.png',
+          'd1xpth0k86.png'
+        ];
+        
+        const zip = new JSZip();
+        
+        // Mostrar progresso
+        const originalText = document.querySelector('.btn').innerHTML;
+        document.querySelector('.btn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Preparando...';
+        
+        // Baixar todos os arquivos
+        for (const file of files) {
+          try {
+            const response = await fetch(file);
+            if (response.ok) {
+              // Para imagens, usar blob
+              if (file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg') || file.endsWith('.gif')) {
+                const blob = await response.blob();
+                zip.file(file, blob);
+              } else {
+                const content = await response.text();
+                zip.file(file, content);
+              }
+            }
+          } catch (err) {
+            console.warn(`Erro ao baixar ${file}:`, err);
+          }
+        }
+        
+        // Adicionar README atualizado
+        zip.file('README.md', `# Sistema de Gerenciamento Financeiro
+
+Sistema open source para gerenciamento financeiro pessoal desenvolvido em vanilla HTML, CSS e JavaScript.
+
+## 🚀 Funcionalidades
+
+- **Dashboard Completo**: Visão geral com gráficos e cartões informativos
+- **Gestão de Despesas**: Cadastro, edição e controle de gastos à vista e parcelados
+- **Relatórios Avançados**: Análises financeiras e previsões de tendências
+- **Inteligência Financeira**: Insights e recomendações personalizadas
+- **Metas Financeiras**: Definição e acompanhamento de objetivos
+- **Sistema de Alertas**: Notificações para vencimentos e limites
+- **Multi-usuário**: Sistema seguro com autenticação Firebase
+- **Categorização**: Sistema de categorias para organizar despesas
+
+## 💻 Tecnologias
+
+- **Frontend**: HTML5, CSS3, JavaScript ES6+
+- **Backend**: Firebase (Authentication, Realtime Database)
+- **Gráficos**: ApexCharts
+- **Notificações**: Toastify
+- **Datas**: DateRangePicker
+- **Ícones**: Font Awesome
+
+## 🛠️ Como executar
+
+### Pré-requisitos
+- Conta no Firebase
+- Servidor HTTP (pode usar Python ou Node.js)
+
+### Configuração
+
+1. **Configure o Firebase**:
+   - Crie um projeto no [Firebase Console](https://console.firebase.google.com)
+   - Ative Authentication (Email/Password)
+   - Ative Realtime Database
+   - Copie as credenciais para \`js/script.js\` e \`login.html\`
+
+2. **Execute o servidor**:
+   \`\`\`bash
+   # Python
+   python -m http.server 8000
+   
+   # ou Node.js
+   npx serve .
+   \`\`\`
+
+3. **Acesse o sistema**:
+   - Abra \`http://localhost:8000\` no navegador
+   - Faça login ou crie uma conta
+
+## 📁 Estrutura do Projeto
+
+\`\`\`
+/
+├── index.html                       # Página principal (SPA)
+├── login.html                       # Autenticação
+├── ver-codigo.html                  # Visualizador de código-fonte
+├── css/
+│   ├── styles.css                   # Estilos principais (mobile + desktop)
+│   └── inteligencia_financeira.css  # Estilos da IA financeira
+├── js/
+│   ├── script.js                    # Lógica principal + sistema de swipe
+│   ├── inteligencia_financeira.js   # Módulo de IA financeira
+│   └── utils.js                     # Utilitários
+├── YOUWARE.md                       # Documentação técnica
+├── todo.json                        # Estado atual das tarefas
+├── nb7mcgjusr.png                   # Asset do sistema
+├── lz9maphr5a.png                   # Asset do sistema
+├── d4gb3xwqn6.png                   # Asset do sistema
+└── d1xpth0k86.png                   # Asset do sistema
+\`\`\`
+
+## 🔒 Segurança
+
+- Todas as consultas incluem filtro por usuário (userId)
+- Autenticação obrigatória via Firebase
+- Dados isolados por usuário
+- Validação client-side antes de envio
+
+## 📊 Estatísticas do Projeto
+
+- **Arquivos**: 12 arquivos principais
+- **Linhas de código**: ~10.600 linhas
+- **Tecnologias**: 8 principais
+- **Funcionalidades**: 20+ módulos
+
+## 📱 Recursos Mobile e Desktop
+
+- Interface totalmente responsiva
+- Navegação otimizada para touch (mobile) e mouse (desktop)
+- Modais adaptados para todas as telas
+- **Sistema de Swipe (Mobile)**: Deslize para editar/excluir (direita) ou pagar (esquerda)
+- **Botões de Ação (Desktop)**: Botões de pagar, editar e excluir na tabela
+- Suporte a gestos touch avançados no mobile
+
+## 🎨 Design
+
+- Sistema de cores personalizável
+- Tema claro/escuro
+- Animações CSS suaves
+- Interface intuitiva
+- **Interações por Gestos**: Sistema completo de swipe para ações rápidas
+
+## 📖 Documentação
+
+Para informações técnicas detalhadas, consulte \`YOUWARE.md\`.
+
+## 🌟 Open Source
+
+Este projeto é totalmente open source. Sinta-se à vontade para:
+- Fazer fork
+- Contribuir com melhorias
+- Reportar bugs
+- Sugerir funcionalidades
+
+## 📞 Suporte
+
+Para dúvidas e suporte, entre em contato através do GitHub Issues.
+`);
+        
+        // Gerar e baixar ZIP
+        document.querySelector('.btn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando ZIP...';
+        
+        const content = await zip.generateAsync({ type: 'blob' });
+        
+        // Download
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(content);
+        link.download = 'sistema-financeiro.zip';
+        link.click();
+        
+        // Restaurar botão
+        document.querySelector('.btn').innerHTML = originalText;
+        
+        alert('Download iniciado! O arquivo ZIP contém todo o projeto.');
+        
+      } catch (error) {
+        console.error('Erro no download:', error);
+        alert('Erro ao preparar o download');
+        document.querySelector('.btn').innerHTML = originalText;
+      }
+    }
+  </script>
+  
+  <!-- JSZip para criar arquivo ZIP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</body>
+</html>
