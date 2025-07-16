@@ -1204,5 +1204,26 @@
     </div>
   </div>
 
+  <!-- SCRIPT DE CORREÇÃO PARA LOGOUT -->
+  <script>
+    function logout() {
+      firebase.auth().signOut().then(() => {
+        // Limpar dados do usuário
+        currentUser = null;
+        
+        // Redirecionar para a página de login CORRETA
+        window.location.href = '/login.html';
+      }).catch((error) => {
+        console.error('Erro ao fazer logout:', error);
+        // Usar a função de toast do seu app
+        if (typeof exibirToast === 'function') {
+            exibirToast('Erro ao fazer logout', 'danger');
+        } else {
+            alert('Erro ao fazer logout');
+        }
+      });
+    }
+  </script>
+
 </body>
 </html>
