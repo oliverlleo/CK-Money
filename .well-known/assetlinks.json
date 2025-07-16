@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "br.com.carteirafacil.app",
+      "sha256_cert_fingerprints": ["FA:C3:48:7A:91:33:1F:B8:6B:85:D3:23:4A:8A:26:5D:F3:E3:4A:E4:80:AF"]
+    }
+  }
+]
