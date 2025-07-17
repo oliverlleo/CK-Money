@@ -3448,6 +3448,10 @@ body.login-page {
   background: var(--bg-color);
   margin-bottom: 0.75rem;
   transition: transform var(--transition-speed);
+  overflow-x: hidden; /* Impedir scroll horizontal */
+  width: 100%; /* Garantir que ocupe toda largura disponível */
+  max-width: 100%; /* Limitar largura máxima */
+  box-sizing: border-box; /* Incluir padding e border na largura */
 }
 
 .renda-item:hover,
@@ -3461,6 +3465,10 @@ body.login-page {
 .categoria-info,
 .cartao-info {
   flex: 1;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .renda-titulo,
@@ -3484,6 +3492,207 @@ body.login-page {
   padding: 0.5rem;
   background: rgba(67, 97, 238, 0.05);
   border-radius: var(--border-radius-sm);
+}
+
+/* =================== MODAL IMPROVEMENTS FOR MOBILE =================== */
+
+@media (max-width: 768px) {
+  /* Melhorar o tamanho e comportamento dos modais em mobile */
+  .modal-content {
+    width: 95% !important;
+    max-width: 95% !important;
+    margin: 0 auto !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+  }
+  
+  /* Garantir que o conteúdo do modal não cause scroll horizontal */
+  .modal-body {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0.75rem !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+  
+  /* Modais com slide-up (específicos para mobile) */
+  .modal-content.slide-up-mobile {
+    max-width: 100% !important;
+    width: 100% !important;
+    border-radius: 1rem 1rem 0 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+/* =================== MOBILE OPTIMIZATION FOR RENDA & CATEGORIA SECTIONS =================== */
+  /* Melhorias específicas para a seção de rendas no mobile */
+  .renda-item {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 0.75rem !important;
+    margin-bottom: 0.5rem !important;
+    position: relative !important;
+  }
+  
+  /* Melhorias específicas para a seção de categorias no mobile */
+  .categoria-item {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 0.75rem 0.75rem 0.5rem 0.75rem !important;
+    margin-bottom: 0.5rem !important;
+    position: relative !important;
+  }
+  
+  .categoria-info {
+    width: 100% !important;
+    margin-bottom: 0.75rem !important;
+    padding-right: 48px !important; /* Espaço para os botões posicionados absolutamente */
+  }
+  
+  .categoria-titulo {
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    color: var(--primary-color) !important;
+  }
+  
+  .categoria-acoes {
+    position: absolute !important;
+    top: 0.75rem !important;
+    right: 0.75rem !important;
+    display: flex !important;
+    flex-direction: row !important; /* Alterado de column para row */
+    gap: 0.35rem !important;
+  }
+  
+  /* Modificar botões nos modais para serem mais compactos em mobile */
+  .categoria-item .btn-icon {
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.75rem !important;
+  }
+  
+  .categoria-item .btn-icon.btn-primary {
+    background: rgba(67, 97, 238, 0.1) !important;
+    color: #4361ee !important;
+    border: 1px solid rgba(67, 97, 238, 0.2) !important;
+  }
+  
+  .categoria-item .btn-icon.btn-danger {
+    background: rgba(220, 53, 69, 0.1) !important;
+    color: #dc3545 !important;
+    border: 1px solid rgba(220, 53, 69, 0.2) !important;
+  }
+  
+  .categoria-item .btn-icon.btn-primary:hover {
+    background: #4361ee !important;
+    color: white !important;
+  }
+  
+  .categoria-item .btn-icon.btn-danger:hover {
+    background: #dc3545 !important;
+    color: white !important;
+  }
+  
+  /* Melhorar o formulário de adicionar/editar categoria no mobile */
+  .modal-body .form-group {
+    max-width: 100% !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+  }
+  
+  .modal-body .d-flex {
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+  }
+  
+  .modal-body .form-control {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  
+  .renda-info {
+    width: 100% !important;
+    margin-bottom: 0.75rem !important;
+  }
+  
+  .renda-titulo {
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.5rem !important;
+    color: var(--primary-color) !important;
+  }
+  
+  .renda-detalhe {
+    font-size: 0.85rem !important;
+    margin-bottom: 0.5rem !important;
+    padding: 0.25rem 0.5rem !important;
+    background: rgba(40, 167, 69, 0.1) !important;
+    border-radius: 4px !important;
+    border-left: 3px solid #28a745 !important;
+  }
+  
+  .renda-pagamentos {
+    font-size: 0.8rem !important;
+    line-height: 1.4 !important;
+    padding: 0.5rem !important;
+    background: rgba(67, 97, 238, 0.08) !important;
+    border-radius: 6px !important;
+    border-left: 3px solid var(--primary-color) !important;
+    margin-top: 0.5rem !important;
+    word-wrap: break-word !important;
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
+    max-width: 100% !important;
+  }
+  
+  /* Botão de delete posicionado no canto superior direito */
+  .renda-item .btn-icon {
+    position: absolute !important;
+    top: 0.5rem !important;
+    right: 0.5rem !important;
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    font-size: 0.75rem !important;
+    background: rgba(220, 53, 69, 0.1) !important;
+    color: #dc3545 !important;
+    border: 1px solid rgba(220, 53, 69, 0.2) !important;
+  }
+  
+  .renda-item .btn-icon:hover {
+    background: #dc3545 !important;
+    color: white !important;
+  }
+  
+  /* Formatação melhor para os valores monetários */
+  .renda-detalhe strong,
+  .renda-pagamentos strong {
+    color: var(--text-color) !important;
+    font-weight: 600 !important;
+  }
+  
+  /* Separação visual entre diferentes pagamentos */
+  .renda-pagamentos {
+    position: relative !important;
+  }
+  
+  .renda-pagamentos::before {
+    content: "📋" !important;
+    position: absolute !important;
+    top: 0.5rem !important;
+    left: 0.5rem !important;
+    font-size: 0.9rem !important;
+  }
+  
+  .renda-pagamentos {
+    padding-left: 2rem !important;
+  }
 }
 
 /* =================== MOBILE TABLE REAL DEVICE FIX =================== */
@@ -3522,6 +3731,113 @@ body.login-page {
     margin: 0 !important;
     padding: 0 !important;
     box-sizing: border-box !important;
+  }
+
+  /* CARTÕES MOBILE - Layout de cartão para informações completas */
+  #cartoesListaPrincipal .table-container {
+    display: none !important; /* Esconder tabela original */
+  }
+
+  /* Container específivo para versão mobile dos cartões */
+  .cartoes-mobile-container {
+    display: block !important;
+    width: 100% !important;
+    margin: 1rem 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Estilo para cada cartão individual */
+  .cartao-mobile {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 0 1rem 0 !important;
+    padding: 1rem !important;
+    background: var(--card-color) !important;
+    border: 1px solid var(--border-color) !important;
+    border-left: 4px solid var(--primary) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+    position: relative !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Header do cartão com nome e bandeira */
+  .cartao-mobile-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 0.75rem !important;
+    padding-bottom: 0.5rem !important;
+    border-bottom: 1px solid var(--border-color) !important;
+  }
+
+  .cartao-mobile-nome {
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    color: var(--text-primary) !important;
+    margin: 0 !important;
+  }
+
+  .cartao-mobile-bandeira {
+    font-size: 0.8rem !important;
+    padding: 0.25rem 0.5rem !important;
+    background: var(--primary-light) !important;
+    color: var(--primary) !important;
+    border-radius: 20px !important;
+    font-weight: 500 !important;
+  }
+
+  /* Informações do cartão */
+  .cartao-mobile-info {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+
+  .cartao-mobile-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 0.25rem 0 !important;
+  }
+
+  .cartao-mobile-label {
+    font-size: 0.85rem !important;
+    color: var(--text-muted) !important;
+    font-weight: 500 !important;
+    margin: 0 !important;
+  }
+
+  .cartao-mobile-valor {
+    font-size: 0.9rem !important;
+    color: var(--text-primary) !important;
+    font-weight: 600 !important;
+    text-align: right !important;
+  }
+
+  /* Destaque para limite */
+  .cartao-mobile-row.limite .cartao-mobile-valor {
+    color: var(--success) !important;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+  }
+
+  /* Destaque para datas importantes */
+  .cartao-mobile-row.data-importante .cartao-mobile-valor {
+    color: var(--warning) !important;
+    font-weight: 600 !important;
+  }
+
+  /* Responsividade - desktop deve manter tabela original */
+  @media (min-width: 769px) {
+    /* Na versão desktop, esconder cartões mobile e mostrar tabela */
+    .cartoes-mobile-container {
+      display: none !important;
+    }
+    
+    #cartoesListaPrincipal .table-container {
+      display: block !important;
+    }
   }
   
   /* Tabela mobile - COMPLETAMENTE reformulada para mobile real */

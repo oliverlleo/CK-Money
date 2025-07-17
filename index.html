@@ -1111,13 +1111,17 @@
           // Não redirecionar: window.location.href = 'login.html';
           
           // Simular login para teste
-          currentUser = {uid: 'teste123', email: 'teste@example.com', displayName: 'Usuário Teste'};
+          currentUser = {uid: 'demo-user', email: 'demo@example.com', displayName: 'Demo User'};
           // Carregar mapa de categorias após simular login
           carregarCategoriasMap();
-          // Mostrar a seção de configurações diretamente para teste
+          
+          // Simular autenticação para demonstração visual
           setTimeout(() => {
+            document.querySelector('.login-container').style.display = 'none';
+            document.querySelector('.app-container').style.display = 'flex';
             showSection('configuracoesSection');
-            showConfigTab('configCategoriasTab');
+            showConfigTab('rendaTab');
+            loadRendas(); // Carregar dados de exemplo
           }, 500);
         }
       });

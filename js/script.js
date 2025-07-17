@@ -3921,10 +3921,18 @@ function loadCartoes() {
       let html = "<h3>Cartões Cadastrados</h3>";
       
       if (snapshot.exists()) {
+        // Versão web (desktop) - tabela tradicional
         html += "<div class='table-container'><table><thead><tr><th>Nome</th><th>Limite</th><th>Dia de Fechamento</th><th>Dia de Vencimento</th></tr></thead><tbody>";
+        
+        // Array para armazenar dados dos cartões para versão mobile
+        const cartoesData = [];
         
         snapshot.forEach(child => {
           const cartao = child.val();
+          // Adicionar dados do cartão para versão mobile
+          cartoesData.push(cartao);
+          
+          // Linha da tabela para versão web
           html += `
             <tr>
               <td>${cartao.nome}</td>
@@ -3936,6 +3944,38 @@ function loadCartoes() {
         });
         
         html += "</tbody></table></div>";
+        
+        // Adicionar versão mobile como cartões
+        html += "<div class='cartoes-mobile-container'>";
+        cartoesData.forEach(cartao => {
+          const limite = parseFloat(cartao.limite);
+          const bandeira = cartao.bandeira || 'VISA'; // Valor padrão se não especificado
+          
+          html += `
+            <div class='cartao-mobile'>
+              <div class='cartao-mobile-header'>
+                <h4 class='cartao-mobile-nome'>${cartao.nome}</h4>
+                <span class='cartao-mobile-bandeira'>${bandeira}</span>
+              </div>
+              <div class='cartao-mobile-info'>
+                <div class='cartao-mobile-row limite'>
+                  <span class='cartao-mobile-label'>Limite Disponível:</span>
+                  <span class='cartao-mobile-valor'>R$ ${limite.toFixed(2)}</span>
+                </div>
+                <div class='cartao-mobile-row data-importante'>
+                  <span class='cartao-mobile-label'>Fechamento:</span>
+                  <span class='cartao-mobile-valor'>Dia ${cartao.diaFechamento}</span>
+                </div>
+                <div class='cartao-mobile-row data-importante'>
+                  <span class='cartao-mobile-label'>Vencimento:</span>
+                  <span class='cartao-mobile-valor'>Dia ${cartao.diaVencimento}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        html += "</div>";
+        
       } else {
         html += "<p>Nenhum cartão cadastrado.</p>";
       }
@@ -4110,9 +4150,60 @@ function loadRendas() {
   const rendaList = document.getElementById("usuariosListaPrincipal");
   rendaList.innerHTML = "";
   
-  // Verificar se o usuário está autenticado
+  // Verificar se o usuário está autenticado - ou mostrar dados de exemplo para demonstração
   if (!currentUser || !currentUser.uid) {
-    rendaList.innerHTML = "<p>Você precisa estar logado para ver suas rendas.</p>";
+    // Dados de exemplo para demonstração do design mobile
+    const exemploRendas = [
+      {
+        key: 'exemplo1',
+        nome: 'Leonardo',
+        saldoInicial: 6045.18,
+        pagamentos: [
+          { dia: 20, valor: 1235.00 },
+          { dia: 5, valor: 1517.00 },
+          { dia: 20, valor: 1235.00 },
+          { dia: 5, valor: 1500.00 }
+        ]
+      },
+      {
+        key: 'exemplo2',
+        nome: 'Jaqueline',
+        saldoInicial: 0.00,
+        pagamentos: [
+          { dia: 1, valor: 500.00 }
+        ]
+      }
+    ];
+    
+    exemploRendas.forEach(pessoa => {
+      const div = document.createElement("div");
+      div.className = "renda-item";
+      
+      let pagamentosInfo = "";
+      if (pessoa.pagamentos && pessoa.pagamentos.length > 0) {
+        pagamentosInfo = "<div class='renda-pagamentos'><strong>Pagamentos:</strong><br>";
+        pessoa.pagamentos.forEach((pag, index) => {
+          if (index > 0) pagamentosInfo += "<br>";
+          pagamentosInfo += `• Dia ${pag.dia}: R$ ${parseFloat(pag.valor).toFixed(2)}`;
+        });
+        pagamentosInfo += "</div>";
+      }
+      
+      div.innerHTML = `
+        <div class="renda-info">
+          <div class="renda-titulo">${pessoa.nome}</div>
+          <div class="renda-detalhe">
+            <strong>Saldo Inicial:</strong> R$ ${parseFloat(pessoa.saldoInicial).toFixed(2)}
+          </div>
+          ${pagamentosInfo}
+        </div>
+        <button class="btn-icon btn-danger" onclick="alert('Função disponível apenas para usuários logados')">
+          <i class="fas fa-trash"></i>
+        </button>
+      `;
+      
+      rendaList.appendChild(div);
+    });
     return;
   }
   
@@ -4131,9 +4222,10 @@ function loadRendas() {
       
       let pagamentosInfo = "";
       if (pessoa.pagamentos && pessoa.pagamentos.length > 0) {
-        pagamentosInfo = "<div class='renda-pagamentos'><strong>Pagamentos:</strong> ";
-        pessoa.pagamentos.forEach(pag => {
-          pagamentosInfo += `Dia: ${pag.dia}, Valor: R$ ${parseFloat(pag.valor).toFixed(2)}; `;
+        pagamentosInfo = "<div class='renda-pagamentos'><strong>Pagamentos:</strong><br>";
+        pessoa.pagamentos.forEach((pag, index) => {
+          if (index > 0) pagamentosInfo += "<br>";
+          pagamentosInfo += `• Dia ${pag.dia}: R$ ${parseFloat(pag.valor).toFixed(2)}`;
         });
         pagamentosInfo += "</div>";
       }
