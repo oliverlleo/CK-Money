@@ -5,12 +5,15 @@ Sistema open source para gerenciamento financeiro pessoal desenvolvido em vanill
 ## 🚀 Funcionalidades
 
 - **Dashboard Completo**: Visão geral com gráficos e cartões informativos
-- **Gestão de Despesas**: Cadastro, edição e controle de gastos à vista e parcelados
-- **Relatórios Avançados**: Análises financeiras e previsões de tendências
-- **Inteligência Financeira**: Insights e recomendações personalizadas
+- **Gestão de Despesas**: Cadastro, edição e controle de gastos à vista, parcelados e recorrentes
+- **Relatórios Avançados**: Análises financeiras, previsões de tendências e análise por categoria
+- **Inteligência Financeira**: Insights e recomendações personalizadas com IA
 - **Metas Financeiras**: Definição e acompanhamento de objetivos
 - **Sistema de Alertas**: Notificações para vencimentos e limites
 - **Multi-usuário**: Sistema seguro com autenticação Firebase
+- **Categorização**: Sistema de categorias para organizar despesas
+- **PWA Support**: Funciona offline com Service Worker
+- **Sistema de Swipe**: Gestos touch para ações rápidas no mobile
 
 ## 💻 Tecnologias
 
@@ -33,7 +36,7 @@ Sistema open source para gerenciamento financeiro pessoal desenvolvido em vanill
    - Crie um projeto no [Firebase Console](https://console.firebase.google.com)
    - Ative Authentication (Email/Password)
    - Ative Realtime Database
-   - Copie as credenciais para `js/script.js`
+   - Copie as credenciais para `js/script.js` e `login.html`
 
 2. **Execute o servidor**:
    ```bash
@@ -52,19 +55,28 @@ Sistema open source para gerenciamento financeiro pessoal desenvolvido em vanill
 
 ```
 /
-├── index.html                    # Página principal (SPA)
-├── login.html                    # Autenticação
-
-├── ver-codigo.html              # Visualizador de código-fonte
+├── index.html                       # Página principal (SPA)
+├── login.html                       # Autenticação
+├── ver-codigo.html                  # Visualizador de código-fonte
+├── manifest.json                    # Configuração PWA
+├── sw.js                           # Service Worker para offline
+├── README.md                        # Documentação principal
+├── YOUWARE.md                       # Documentação técnica
 ├── css/
-│   ├── styles.css               # Estilos principais
-│   └── inteligencia_financeira.css # Estilos da IA financeira
+│   ├── styles.css                   # Estilos principais (mobile + desktop)
+│   └── inteligencia_financeira.css  # Estilos da IA financeira
 ├── js/
-│   ├── script.js                # Lógica principal
-│   ├── inteligencia_financeira.js # Módulo de IA
-│   └── utils.js                 # Utilitários
-├── YOUWARE.md                   # Documentação técnica
-└── todo.md                      # Lista de tarefas
+│   ├── script.js                    # Lógica principal + sistema de swipe
+│   ├── inteligencia_financeira.js   # Módulo de IA financeira
+│   └── utils.js                     # Utilitários
+├── icon-192x192.png                 # Ícone PWA (pequeno)
+├── icon-512x512.png                 # Ícone PWA (grande)
+├── screenshot-mobile-1.png          # Screenshot mobile para store
+├── screenshot-mobile-2.png          # Screenshot mobile para store
+├── 3v3hr6hq4s.png                   # Asset do sistema
+├── rfj60irn8h.png                   # Asset do sistema
+├── lonke15mw0.png                   # Asset do sistema
+└── z79xq0rbzx.png                   # Asset do sistema
 ```
 
 ## 🔒 Segurança
@@ -73,6 +85,30 @@ Sistema open source para gerenciamento financeiro pessoal desenvolvido em vanill
 - Autenticação obrigatória via Firebase
 - Dados isolados por usuário
 - Validação client-side antes de envio
+
+## 📊 Estatísticas do Projeto
+
+- **Arquivos**: 17 arquivos principais
+- **Linhas de código**: ~11.200 linhas
+- **Tecnologias**: 8 principais
+- **Funcionalidades**: 25+ módulos
+
+## 📱 Recursos Mobile e Desktop
+
+- Interface totalmente responsiva
+- Navegação otimizada para touch (mobile) e mouse (desktop)
+- Modais adaptados para todas as telas
+- **Sistema de Swipe (Mobile)**: Deslize para editar/excluir (direita) ou pagar (esquerda)
+- **Botões de Ação (Desktop)**: Botões de pagar, editar e excluir na tabela
+- Suporte a gestos touch avançados no mobile
+
+## 🎨 Design
+
+- Sistema de cores personalizável
+- Tema claro/escuro
+- Animações CSS suaves
+- Interface intuitiva
+- **Interações por Gestos**: Sistema completo de swipe para ações rápidas
 
 ## 📖 Documentação
 

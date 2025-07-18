@@ -539,6 +539,16 @@ function showSection(sectionId) {
     }
   }
   
+  // Se estiver acessando a seção de relatórios, inicializar a primeira aba
+  if (sectionId === 'relatorioIntegradoSection') {
+    setTimeout(() => {
+      showRelatorioTab('relatorioTab');
+      
+      // Inicializar o gráfico de categorias mesmo não estando visível
+      atualizarGraficoCategoriasComPeriodo();
+    }, 100);
+  }
+  
   // Inicializar componentes específicos da seção
   if (sectionId === 'previsaoSection') {
     novo_calcularPrevisoes();
@@ -3517,6 +3527,89 @@ function novo_calcularPrevisoes() {
 }
 
 /**
+ * Função para alternar entre as abas de relatórios
+ * @param {string} tabId - ID da aba a ser mostrada
+ */
+function showRelatorioTab(tabId) {
+  // Ocultar todas as abas
+  document.querySelectorAll('.relatorio-tab-pane').forEach(tab => {
+    tab.classList.remove('active');
+  });
+  
+  // Mostrar a aba selecionada
+  document.getElementById(tabId).classList.add('active');
+  
+  // Remover classe ativa de todos os botões
+  document.querySelectorAll('.relatorio-tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  // Adicionar classe ativa ao botão selecionado
+  const btns = document.querySelectorAll('.relatorio-tab-btn');
+  for (let i = 0; i < btns.length; i++) {
+    if (btns[i].getAttribute('onclick') && btns[i].getAttribute('onclick').includes(tabId)) {
+      btns[i].classList.add('active');
+      break;
+    }
+  }
+  
+  // Atualizar conteúdo com base na aba selecionada
+  if (tabId === 'categoriasTab') {
+    atualizarGraficoCategoriasComPeriodo();
+  }
+}
+
+/**
+ * Função para atualizar o gráfico de categorias com base no período selecionado
+ */
+function atualizarGraficoCategoriasComPeriodo() {
+  // Verificar se o usuário está autenticado
+  if (!currentUser || !currentUser.uid) {
+    console.error("Usuário não autenticado ao atualizar gráfico de categorias");
+    exibirToast("Você precisa estar autenticado para visualizar relatórios", "danger");
+    return;
+  }
+
+  // Usar o período do seletor de data, ou período padrão
+  const periodoInput = document.getElementById('dataRange');
+  let inicio, fim;
+  
+  if (periodoInput && periodoInput.value !== 'Todo Período') {
+    // Extrair datas do período selecionado
+    const periodoPartes = periodoInput.value.split(' - ');
+    if (periodoPartes.length === 2) {
+      inicio = parseDateString(periodoPartes[0]);
+      fim = parseDateString(periodoPartes[1]);
+    } else {
+      // Usar mês atual como padrão
+      const hoje = new Date();
+      inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+      fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+    }
+  } else {
+    // Período "Todo Período" - últimos 12 meses
+    const hoje = new Date();
+    inicio = new Date(hoje.getFullYear() - 1, hoje.getMonth(), 1);
+    fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+  }
+  
+  console.log(`Período selecionado para análise: ${inicio.toDateString()} - ${fim.toDateString()}`);
+  
+  // Atualizar o gráfico com o período selecionado
+  atualizarGraficoCategorias(inicio, fim);
+}
+
+/**
+ * Converte string de data do formato DD/MM/YYYY para objeto Date
+ * @param {string} dateString - String de data no formato DD/MM/YYYY
+ * @returns {Date} - Objeto Date
+ */
+function parseDateString(dateString) {
+  const parts = dateString.split('/');
+  return new Date(parts[2], parts[1] - 1, parts[0]);
+}
+
+/**
  * Atualiza o gráfico de categorias
  * @param {Date} inicio - Data de início
  * @param {Date} fim - Data de fim
@@ -3528,8 +3621,10 @@ function atualizarGraficoCategorias(inicio, fim) {
     return;
   }
   
-  // Buscar apenas despesas do usuário atual no período usando o namespace correto
-  db.ref(`users/${currentUser.uid}/data/despesas`).once("value").then(snapshot => {
+  // Buscar apenas despesas do usuário atual no período
+  console.log(`Atualizando gráfico de categorias: ${inicio.toDateString()} - ${fim.toDateString()}`);
+  // Usar a referência de despesas correta (sem o namespace users/uid/data)
+  db.ref("despesas").orderByChild("userId").equalTo(currentUser.uid).once("value").then(snapshot => {
     let despesasPorCategoria = {};
     
     snapshot.forEach(child => {
@@ -3560,6 +3655,7 @@ function atualizarGraficoCategorias(inicio, fim) {
     });
     
     // Buscar apenas nomes das categorias do usuário atual usando o namespace correto
+    console.log("Buscando categorias do usuário para o gráfico");
     db.ref(`users/${currentUser.uid}/data/categorias`).once("value").then(snapshot => {
       let categorias = {};
       
@@ -3622,8 +3718,16 @@ function atualizarGraficoCategorias(inicio, fim) {
       }
       
       // Criar novo gráfico
-      window.categoriasChart = new ApexCharts(document.getElementById("graficoCategorias"), options);
-      window.categoriasChart.render();
+      const elementoGrafico = document.getElementById("graficoCategorias");
+      console.log("Elemento do gráfico encontrado:", elementoGrafico ? "Sim" : "Não");
+      
+      if (elementoGrafico) {
+        window.categoriasChart = new ApexCharts(elementoGrafico, options);
+        window.categoriasChart.render();
+        console.log("Gráfico de categorias renderizado com sucesso");
+      } else {
+        console.error("Elemento #graficoCategorias não encontrado!");
+      }
     });
   });
 }

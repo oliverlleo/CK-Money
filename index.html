@@ -26,7 +26,7 @@
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css?v=1.0.0" />
   
   <!-- ApexCharts para gráficos interativos -->
-  <script src="https://lib.youware.com/youware-lib-editor.1752562065.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script>
+  <script src="https://lib.youware.com/youware-lib-editor.1752562065.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1752562065.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script>
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   
   <!-- Toastify para notificações -->
@@ -50,6 +50,14 @@
         overflow: visible !important;
         white-space: nowrap !important;
         text-overflow: visible !important;
+      }
+      
+      /* Ocultar badges de status apenas na versão mobile */
+      #todasDespesasTable .badge,
+      #todasDespesasTable .badge.bg-info,
+      #todasDespesasTable .status-info .badge,
+      .badge.bg-info {
+        display: none !important;
       }
     }
   </style>
@@ -423,9 +431,17 @@
           <div id="categoriasTab" class="relatorio-tab-pane">
             <div class="relatorio-header">
               <h3 class="relatorio-title">Despesas por Categoria</h3>
+              <div class="relatorio-filters">
+                <div class="form-group mb-0">
+                  <button class="btn btn-primary" onclick="atualizarGraficoCategoriasComPeriodo()">
+                    <i class="fas fa-sync"></i>
+                    <span>Atualizar Análise</span>
+                  </button>
+                </div>
+              </div>
             </div>
             
-            <div id="graficoCategorias"></div>
+            <div id="graficoCategorias" style="min-height: 350px;"></div>
           </div>
         </div>
       </section>
@@ -566,10 +582,15 @@
         </div>
         <div class="form-group">
           <label class="form-label">Categoria:</label>
-          <select id="categoriaDespesa" class="form-control">
-            <option value="">Selecione a Categoria</option>
-            <!-- Preenchido dinamicamente -->
-          </select>
+          <div class="d-flex gap-2">
+            <select id="categoriaDespesa" class="form-control" style="width: calc(100% - 50px);">
+              <option value="">Selecione a Categoria</option>
+              <!-- Preenchido dinamicamente -->
+            </select>
+            <button type="button" class="btn btn-primary" onclick="abrirModal('categoriasModal')" title="Adicionar Nova Categoria" style="width: 40px; padding: 0.5rem;">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">Forma de Pagamento:</label>
@@ -590,10 +611,15 @@
         <div id="parcelamentoDiv" class="hidden">
           <div class="form-group">
             <label class="form-label">Cartão:</label>
-            <select id="cartaoDespesa" class="form-control">
-              <option value="">Selecione o Cartão</option>
-              <!-- Preenchido dinamicamente -->
-            </select>
+            <div class="d-flex gap-2">
+              <select id="cartaoDespesa" class="form-control" style="width: calc(100% - 50px);">
+                <option value="">Selecione o Cartão</option>
+                <!-- Preenchido dinamicamente -->
+              </select>
+              <button type="button" class="btn btn-primary" onclick="abrirModal('cartaoModal')" title="Adicionar Novo Cartão" style="width: 40px; padding: 0.5rem;">
+                <i class="fas fa-plus"></i>
+              </button>
+            </div>
           </div>
           <div class="form-group">
             <label class="form-label">Número de Parcelas:</label>
