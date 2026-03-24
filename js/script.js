@@ -553,7 +553,7 @@ function showSection(sectionId) {
   if (sectionId === 'previsaoSection') {
     novo_calcularPrevisoes();
   } else if (sectionId === 'alertasSection') {
-    verificarLimitesCategorias();
+    novo_verificarAlertas();
   } else if (sectionId === 'inteligenciaFinanceiraSection') {
     // Carregar inteligência financeira
     console.log("Carregando seção de inteligência financeira");
@@ -689,30 +689,41 @@ window.abrirModal = function(id) {
       document.getElementById("despesaIdEditar").value = "";
       
       // Limpar campos de parcelamento
-      const parcelamentoDespesaDiv = document.getElementById("parcelamentoDespesaDiv");
-      if (parcelamentoDespesaDiv) {
-        parcelamentoDespesaDiv.style.display = "none";
+      const parcelamentoDiv = document.getElementById("parcelamentoDiv");
+      if (parcelamentoDiv) {
+        parcelamentoDiv.classList.add("hidden");
       }
       
-      const parcelasDespesa = document.getElementById("parcelasDespesa");
-      if (parcelasDespesa) {
-        parcelasDespesa.value = "";
+      const numeroParcelas = document.getElementById("numeroParcelas");
+      if (numeroParcelas) {
+        numeroParcelas.value = "";
+      }
+
+      // Resetar campo de cartão
+      const cartaoDespesa = document.getElementById("cartaoDespesa");
+      if (cartaoDespesa) {
+        cartaoDespesa.value = "";
       }
       
       // Limpar campos de recorrência
-      const recorrenciaDespesaDiv = document.getElementById("recorrenciaDespesaDiv");
-      if (recorrenciaDespesaDiv) {
-        recorrenciaDespesaDiv.style.display = "none";
+      const recorrenteDiv = document.getElementById("recorrenteDiv");
+      if (recorrenteDiv) {
+        recorrenteDiv.classList.add("hidden");
+      }
+
+      const diaRecorrencia = document.getElementById("diaRecorrencia");
+      if (diaRecorrencia) {
+        diaRecorrencia.value = "";
       }
       
-      const diaVencimentoRecorrente = document.getElementById("diaVencimentoRecorrente");
-      if (diaVencimentoRecorrente) {
-        diaVencimentoRecorrente.value = "";
+      const mesesRecorrencia = document.getElementById("mesesRecorrencia");
+      if (mesesRecorrencia) {
+        mesesRecorrencia.value = "";
       }
       
-      const duracaoRecorrente = document.getElementById("duracaoRecorrente");
-      if (duracaoRecorrente) {
-        duracaoRecorrente.value = "";
+      // Garantir que a visualização esteja correta
+      if (typeof toggleParcelamento === 'function') {
+        toggleParcelamento();
       }
       
       // Resetar título e botões para cadastro
@@ -5341,7 +5352,13 @@ function salvarEdicaoCategoria() {
     return;
   }
   
-  db.ref(`categorias/${categoriaId}`).update({
+  // Verificar se o usuário está autenticado
+  if (!currentUser || !currentUser.uid) {
+    exibirToast("Você precisa estar autenticado para editar categorias", "danger");
+    return;
+  }
+
+  db.ref(`users/${currentUser.uid}/data/categorias/${categoriaId}`).update({
     nome: categoriaNome
   }).then(() => {
     exibirToast("Categoria atualizada com sucesso!", "success");
@@ -6022,66 +6039,6 @@ function confirmarRecebimentoPagamento() {
 }
 
 /**
- * Prepara o formulário para editar uma categoria
- * @param {string} categoriaId - ID da categoria a ser editada
- * @param {string} categoriaNome - Nome atual da categoria
- */
-function prepararEditarCategoria(categoriaId, categoriaNome) {
-  // Ocultar formulário de adição
-  document.getElementById('formAdicionarCategoria').style.display = 'none';
-  
-  // Mostrar formulário de edição
-  document.getElementById('formEditarCategoria').style.display = 'block';
-  
-  // Preencher campos
-  document.getElementById('editarCategoriaId').value = categoriaId;
-  document.getElementById('editarCategoriaNome').value = categoriaNome;
-  
-  // Focar no campo de nome
-  document.getElementById('editarCategoriaNome').focus();
-}
-
-/**
- * Salva a edição de uma categoria
- */
-function salvarEdicaoCategoria() {
-  const categoriaId = document.getElementById('editarCategoriaId').value;
-  const categoriaNome = document.getElementById('editarCategoriaNome').value;
-  
-  if (!categoriaNome) {
-    exibirToast("Digite o nome da categoria.", "warning");
-    return;
-  }
-  
-  db.ref(`categorias/${categoriaId}`).update({
-    nome: categoriaNome
-  }).then(() => {
-    exibirToast("Categoria atualizada com sucesso!", "success");
-    cancelarEdicaoCategoria();
-    loadCategorias();
-    loadCategoriasFiltro();
-  }).catch(err => {
-    console.error("Erro ao atualizar categoria:", err);
-    exibirToast("Erro ao atualizar categoria: " + err.message, "danger");
-  });
-}
-
-/**
- * Cancela a edição de uma categoria
- */
-function cancelarEdicaoCategoria() {
-  // Limpar campos
-  document.getElementById('editarCategoriaId').value = '';
-  document.getElementById('editarCategoriaNome').value = '';
-  
-  // Ocultar formulário de edição
-  document.getElementById('formEditarCategoria').style.display = 'none';
-  
-  // Mostrar formulário de adição
-  document.getElementById('formAdicionarCategoria').style.display = 'block';
-}
-
-/**
  * Exclui uma categoria
  * @param {string} categoriaId - ID da categoria a ser excluída
  */
@@ -6108,79 +6065,3 @@ function excluirCategoria(categoriaId) {
   }
 }
 
-/**
- * Renderiza o calendário de despesas
- */
-function renderCalendar() {
-  const calendarContainer = document.getElementById('calendarContainer');
-  if (!calendarContainer) return;
-  
-  const monthNames = [
-    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-  ];
-  
-  const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-  
-  // Atualizar título do calendário
-  const calendarTitle = document.getElementById('calendarMonthYear');
-  if (calendarTitle) {
-    calendarTitle.textContent = `${monthNames[currentCalendarMonth]} ${currentCalendarYear}`;
-  }
-  
-  // Criar grid do calendário
-  const firstDay = new Date(currentCalendarYear, currentCalendarMonth, 1);
-  const lastDay = new Date(currentCalendarYear, currentCalendarMonth + 1, 0);
-  const startDate = new Date(firstDay);
-  startDate.setDate(startDate.getDate() - firstDay.getDay());
-  
-  let calendarHTML = '<div class="calendar-grid">';
-  
-  // Headers dos dias da semana
-  dayNames.forEach(day => {
-    calendarHTML += `<div class="calendar-day-header">${day}</div>`;
-  });
-  
-  // Dias do calendário
-  const currentDate = new Date(startDate);
-  for (let i = 0; i < 42; i++) {
-    const isCurrentMonth = currentDate.getMonth() === currentCalendarMonth;
-    const isToday = currentDate.toDateString() === new Date().toDateString();
-    
-    calendarHTML += `
-      <div class="calendar-day ${isCurrentMonth ? 'current-month' : 'other-month'} ${isToday ? 'today' : ''}" 
-           data-date="${currentDate.toISOString().split('T')[0]}">
-        <span class="day-number">${currentDate.getDate()}</span>
-      </div>
-    `;
-    
-    currentDate.setDate(currentDate.getDate() + 1);
-  }
-  
-  calendarHTML += '</div>';
-  calendarContainer.innerHTML = calendarHTML;
-}
-
-/**
- * Navega para o mês anterior no calendário
- */
-function prevMonth() {
-  currentCalendarMonth--;
-  if (currentCalendarMonth < 0) {
-    currentCalendarMonth = 11;
-    currentCalendarYear--;
-  }
-  renderCalendar();
-}
-
-/**
- * Navega para o próximo mês no calendário
- */
-function nextMonth() {
-  currentCalendarMonth++;
-  if (currentCalendarMonth > 11) {
-    currentCalendarMonth = 0;
-    currentCalendarYear++;
-  }
-  renderCalendar();
-}
