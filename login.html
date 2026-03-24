@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - Sistema de Gerenciamento de Contas Pessoais</title>
   
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+
   <!-- Meta tags para evitar cache -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
@@ -485,6 +488,21 @@
     });
   </script>
   
+  <!-- Registro do Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(registration => {
+            console.log('ServiceWorker registrado com sucesso no escopo:', registration.scope);
+          })
+          .catch(error => {
+            console.error('Falha ao registrar o ServiceWorker:', error);
+          });
+      });
+    }
+  </script>
+
   <!-- Scripts responsivos incluídos no script.js -->
 </body>
 </html>
