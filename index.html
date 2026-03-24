@@ -10,6 +10,9 @@
   <meta name="theme-color" content="#4361ee">
   <title>Sistema de Gerenciamento de Contas Pessoais</title>
   
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+
   <!-- Meta tags para evitar cache -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
@@ -346,6 +349,11 @@
             <div class="d-flex gap-2">
               <div class="form-group mb-0">
                 <input type="text" id="filtroDescricao" class="form-control" placeholder="Filtrar por descrição">
+              </div>
+              <div class="form-group mb-0">
+                <select id="categoriaFiltro" class="form-control" onchange="filtrarTodasDespesas()">
+                  <option value="">Todas as Categorias</option>
+                </select>
               </div>
               <button class="btn btn-primary" onclick="filtrarTodasDespesas()">
                 <i class="fas fa-filter"></i>
@@ -1122,6 +1130,21 @@
   
 
   
+  <!-- Registro do Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(registration => {
+            console.log('ServiceWorker registrado com sucesso no escopo:', registration.scope);
+          })
+          .catch(error => {
+            console.error('Falha ao registrar o ServiceWorker:', error);
+          });
+      });
+    }
+  </script>
+
   <!-- Mobile Bottom Navigation -->
   <div class="mobile-bottom-nav">
     <div class="nav-item active" onclick="showSection('dashboardSection'); setActiveBottomNav(this);">
