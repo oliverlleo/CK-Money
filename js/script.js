@@ -181,11 +181,6 @@ function loadSavedTheme() {
   updateThemeIcons(savedTheme);
 }
 
-// Carregar tema ao inicializar a página
-document.addEventListener('DOMContentLoaded', () => {
-  loadSavedTheme();
-});
-
 // ===================== INICIALIZAÇÃO DO DATERANGEPICKER =====================
 
 /**
@@ -303,7 +298,7 @@ function atualizarDashboardMobile() {
 /**
  * Inicializa dispositivos móveis e otimizações mobile
  */
-document.addEventListener('DOMContentLoaded', function() {
+function initMobileAndOptimizations() {
   const sidebar = document.getElementById('sidebar');
   
   // Detectar se é dispositivo móvel
@@ -424,7 +419,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
-});
+}
 
 // ===================== FUNÇÕES DE GERENCIAMENTO DE PAGAMENTOS =====================
 
@@ -539,16 +534,6 @@ function showSection(sectionId) {
     }
   }
   
-  // Se estiver acessando a seção de relatórios, inicializar a primeira aba
-  if (sectionId === 'relatorioIntegradoSection') {
-    setTimeout(() => {
-      showRelatorioTab('relatorioTab');
-      
-      // Inicializar o gráfico de categorias mesmo não estando visível
-      atualizarGraficoCategoriasComPeriodo();
-    }, 100);
-  }
-  
   // Inicializar componentes específicos da seção
   if (sectionId === 'previsaoSection') {
     novo_calcularPrevisoes();
@@ -586,10 +571,26 @@ function showSection(sectionId) {
     // Carregar despesas quando esta seção for mostrada
     filtrarTodasDespesas();
   } else if (sectionId === 'relatorioIntegradoSection') {
-    // Carregar relatórios quando esta seção for mostrada
-    // Aguardar um momento para garantir que a seção está visível
+    // Se estiver acessando a seção de relatórios, inicializar a primeira aba com "Todo Período" padrão
+    showRelatorioTab('relatorioTab');
+
+    // Inicializar o gráfico de categorias mesmo não estando visível
+    atualizarGraficoCategoriasComPeriodo();
+
+    // Definir "Todo Período" como padrão
     setTimeout(() => {
-      atualizarRelatorios();
+      const dataRangeInput = document.getElementById('dataRange');
+      if (dataRangeInput) {
+        dataRangeInput.value = 'Todo Período';
+        dataRangeInput.placeholder = 'Todo Período';
+
+        // Definir período como todo período (sem filtro de data)
+        rangeStart = null;
+        rangeEnd = null;
+
+        // Atualizar relatórios imediatamente
+        atualizarRelatorios();
+      }
     }, 100);
   }
 }
@@ -2636,11 +2637,6 @@ let currentSwipeRow = null;
 let swipeThreshold = 50;
 let currentSwipeData = {};
 
-// Inicializar eventos de swipe quando a página carregar
-document.addEventListener('DOMContentLoaded', function() {
-  initSwipeEvents();
-});
-
 function initSwipeEvents() {
   const tableBody = document.getElementById('todasDespesasBody');
   if (!tableBody) return;
@@ -3497,30 +3493,57 @@ function atualizarRelatorioMensal(inicio, fim) {
  */
 function showRelatorioTab(tabId) {
   // Ocultar todas as abas
-  document.querySelectorAll('.relatorio-tab-pane').forEach(tab => {
-    tab.classList.remove('active');
-  });
+  const tabPanes = document.querySelectorAll('.relatorio-tab-pane');
+  tabPanes.forEach(pane => pane.classList.remove('active'));
   
   // Mostrar a aba selecionada
-  document.getElementById(tabId).classList.add('active');
+  const selectedTab = document.getElementById(tabId);
+  if (selectedTab) selectedTab.classList.add('active');
   
-  // Remover classe ativa de todos os botões
-  document.querySelectorAll('.relatorio-tab-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
+  // Atualizar botões de navegação
+  const tabButtons = document.querySelectorAll('.relatorio-tab-btn');
+  tabButtons.forEach(btn => btn.classList.remove('active'));
   
-  // Adicionar classe ativa ao botão selecionado
-  const btns = document.querySelectorAll('.relatorio-tab-btn');
-  for (let i = 0; i < btns.length; i++) {
-    if (btns[i].getAttribute('onclick') && btns[i].getAttribute('onclick').includes(tabId)) {
-      btns[i].classList.add('active');
+  // Encontrar e ativar o botão correspondente
+  for (let i = 0; i < tabButtons.length; i++) {
+    if (tabButtons[i].getAttribute('onclick') && tabButtons[i].getAttribute('onclick').includes(tabId)) {
+      tabButtons[i].classList.add('active');
       break;
     }
   }
   
-  // Atualizar conteúdo com base na aba selecionada
-  if (tabId === 'categoriasTab') {
-    atualizarGraficoCategoriasComPeriodo();
+  // Inicializar componentes específicos da aba
+  if (tabId === 'relatorioTab') {
+    // Garantir que "Todo Período" está selecionado
+    setTimeout(() => {
+      const dataRangeInput = document.getElementById('dataRange');
+      if (dataRangeInput) {
+        // Sempre resetar para "Todo Período" quando abrir a aba de relatórios
+        dataRangeInput.value = 'Todo Período';
+        dataRangeInput.placeholder = 'Todo Período';
+
+        // Definir período como todo período (sem filtro de data)
+        rangeStart = null;
+        rangeEnd = null;
+
+        // Atualizar relatórios
+        atualizarRelatorios();
+      }
+    }, 50);
+  } else if (tabId === 'previsaoTab') {
+    // Executar previsões com o período atual
+    novo_calcularPrevisoes();
+  } else if (tabId === 'categoriasTab') {
+    // Para categoria, usar o mesmo período já definido
+    let inicio, fim;
+    if (!rangeStart || !rangeEnd) {
+      inicio = new Date('2020-01-01');
+      fim = new Date('2030-12-31');
+    } else {
+      inicio = new Date(rangeStart);
+      fim = new Date(rangeEnd);
+    }
+    atualizarGraficoCategorias(inicio, fim);
   }
 }
 
@@ -5254,8 +5277,17 @@ if (typeof firebase !== 'undefined' && firebase.auth) {
   firebase.auth().onAuthStateChanged(handleAuthStateChanged);
 }
 
-// Inicializar DateRangePicker quando o documento estiver pronto
+// Inicializar o documento quando estiver pronto
 document.addEventListener('DOMContentLoaded', function() {
+  // Carregar tema
+  loadSavedTheme();
+
+  // Inicializar otimizações mobile
+  initMobileAndOptimizations();
+
+  // Inicializar eventos de swipe
+  initSwipeEvents();
+
   // Inicializar DateRangePicker
   initDateRangePicker();
   
@@ -5264,8 +5296,11 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Definir mês e ano atual no dashboard
   const hoje = new Date();
-  document.getElementById("dashboardMonth").value = hoje.getMonth();
-  document.getElementById("dashboardYear").value = hoje.getFullYear();
+  const dashboardMonthInput = document.getElementById("dashboardMonth");
+  if (dashboardMonthInput) dashboardMonthInput.value = hoje.getMonth();
+
+  const dashboardYearInput = document.getElementById("dashboardYear");
+  if (dashboardYearInput) dashboardYearInput.value = hoje.getFullYear();
   
   // Atualizar dashboard
   atualizarDashboard();
@@ -5276,6 +5311,11 @@ document.addEventListener('DOMContentLoaded', function() {
     dataCompraInput.valueAsDate = hoje;
   }
   
+  const dataPagamentoInput = document.getElementById("dataPagamento");
+  if (dataPagamentoInput) {
+    dataPagamentoInput.valueAsDate = hoje;
+  }
+
   // Filtrar despesas
   filtrarTodasDespesas();
 });
