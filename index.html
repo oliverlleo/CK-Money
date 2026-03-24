@@ -26,7 +26,7 @@
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css?v=1.0.0" />
   
   <!-- ApexCharts para gráficos interativos -->
-  <script src="https://lib.youware.com/youware-lib-editor.1752562065.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1752562065.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script><script src="https://lib.youware.com/youware-lib-editor.1751946057.js" id="yourware-lib"></script>
+  <script src="https://lib.youware.com/youware-lib-editor.1752562065.js" id="yourware-lib"></script>
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   
   <!-- Toastify para notificações -->
@@ -1092,15 +1092,16 @@
   </div>
   
   <!-- Scripts -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.1.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.1.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.1.0/firebase-database-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
   <script src="js/script.js"></script>
   <script src="js/inteligencia_financeira.js"></script>
   
+
   <script>
     // Inicialização
     document.addEventListener('DOMContentLoaded', function() {
@@ -1113,133 +1114,6 @@
       
       const dataPagamentoInput = document.getElementById('dataPagamento');
       if (dataPagamentoInput) dataPagamentoInput.value = dataFormatada;
-      
-      // Configurar mês atual no dashboard
-      const dashboardMonth = document.getElementById('dashboardMonth');
-      if (dashboardMonth) dashboardMonth.value = hoje.getMonth();
-      
-      const dashboardYear = document.getElementById('dashboardYear');
-      if (dashboardYear) dashboardYear.value = hoje.getFullYear();
-      
-      // Inicializar DateRangePicker
-      initDateRangePicker();
-      
-      // Verificar autenticação
-      firebase.auth().onAuthStateChanged(function(user) {
-        if (user) {
-          currentUser = user;
-          carregarDadosUsuario();
-          // Carregar mapa de categorias após autenticação
-          carregarCategoriasMap();
-        } else {
-          // Para fins de teste, não redirecionamos para a página de login
-          console.log("Usuário não autenticado, mostrando valores zerados");
-          // Não redirecionar: window.location.href = 'login.html';
-          
-          // Simular login para teste
-          currentUser = {uid: 'demo-user', email: 'demo@example.com', displayName: 'Demo User'};
-          // Carregar mapa de categorias após simular login
-          carregarCategoriasMap();
-          
-          // Simular autenticação para demonstração visual
-          setTimeout(() => {
-            document.querySelector('.login-container').style.display = 'none';
-            document.querySelector('.app-container').style.display = 'flex';
-            showSection('configuracoesSection');
-            showConfigTab('rendaTab');
-            loadRendas(); // Carregar dados de exemplo
-          }, 500);
-        }
-      });
-      
-      // Adicionar função para mostrar abas de relatório
-      window.showRelatorioTab = function(tabId) {
-        // Esconder todas as abas
-        const tabPanes = document.querySelectorAll('.relatorio-tab-pane');
-        tabPanes.forEach(pane => pane.classList.remove('active'));
-        
-        // Mostrar a aba selecionada
-        document.getElementById(tabId).classList.add('active');
-        
-        // Atualizar botões de navegação
-        const tabButtons = document.querySelectorAll('.relatorio-tab-btn');
-        tabButtons.forEach(btn => btn.classList.remove('active'));
-        
-        // Encontrar e ativar o botão correspondente
-        const buttons = document.querySelectorAll('.relatorio-tab-btn');
-        for (let i = 0; i < buttons.length; i++) {
-          if (buttons[i].getAttribute('onclick') && buttons[i].getAttribute('onclick').includes(tabId)) {
-            buttons[i].classList.add('active');
-            break;
-          }
-        }
-        
-        // Inicializar componentes específicos da aba
-        if (tabId === 'relatorioTab') {
-          // Garantir que "Todo Período" está selecionado
-          setTimeout(() => {
-            const dataRangeInput = document.getElementById('dataRange');
-            if (dataRangeInput) {
-              // Sempre resetar para "Todo Período" quando abrir a aba de relatórios
-              dataRangeInput.value = 'Todo Período';
-              dataRangeInput.placeholder = 'Todo Período';
-              
-              // Definir período como todo período (sem filtro de data)
-              rangeStart = null;
-              rangeEnd = null;
-              
-              // Atualizar relatórios
-              atualizarRelatorios();
-            }
-          }, 50);
-        } else if (tabId === 'previsaoTab') {
-          // Executar previsões com o período atual
-          novo_calcularPrevisoes();
-        } else if (tabId === 'categoriasTab') {
-          // Para categoria, usar o mesmo período já definido
-          let inicio, fim;
-          if (!rangeStart || !rangeEnd) {
-            inicio = new Date('2020-01-01');
-            fim = new Date('2030-12-31');
-          } else {
-            inicio = new Date(rangeStart);
-            fim = new Date(rangeEnd);
-          }
-          atualizarGraficoCategorias(inicio, fim);
-        }
-      };
-      
-      // Modificar a função showSection para inicializar as novas seções
-      const originalShowSection = window.showSection;
-      window.showSection = function(sectionId) {
-        originalShowSection(sectionId);
-        
-        // Inicializar componentes específicos das novas seções
-        if (sectionId === 'inteligenciaFinanceiraSection') {
-          renderizarPainelInteligencia();
-        } else if (sectionId === 'metasFinanceirasSection') {
-          renderizarPainelMetas();
-        } else if (sectionId === 'relatorioIntegradoSection') {
-          // Inicializar a primeira aba com "Todo Período" padrão
-          showRelatorioTab('relatorioTab');
-          
-          // Definir "Todo Período" como padrão
-          setTimeout(() => {
-            const dataRangeInput = document.getElementById('dataRange');
-            if (dataRangeInput) {
-              dataRangeInput.value = 'Todo Período';
-              dataRangeInput.placeholder = 'Todo Período';
-              
-              // Definir período como todo período (sem filtro de data)
-              rangeStart = null;
-              rangeEnd = null;
-              
-              // Atualizar relatórios imediatamente
-              atualizarRelatorios();
-            }
-          }, 100);
-        }
-      };
     });
   </script>
   
