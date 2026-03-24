@@ -872,6 +872,10 @@ function exportData() {
         despesa.parcelas.forEach((parcela, index) => {
           csv += `${despesa.descricao} - Parcela ${index+1},${parcela.valor},${parcela.vencimento},${despesa.formaPagamento}\n`;
         });
+      } else if (despesa.formaPagamento === "recorrente" && despesa.recorrencias) {
+        despesa.recorrencias.forEach((recorrencia, index) => {
+          csv += `${despesa.descricao} - Recorrência ${index+1},${recorrencia.valor},${recorrencia.vencimento},${despesa.formaPagamento}\n`;
+        });
       }
     });
     
@@ -2033,6 +2037,7 @@ function carregarParcelas() {
  */
 function filtrarTodasDespesas() {
   const filtroDescricao = document.getElementById("filtroDescricao").value.toLowerCase();
+  const categoriaFiltro = document.getElementById("categoriaFiltro") ? document.getElementById("categoriaFiltro").value : "";
   const tbody = document.getElementById("todasDespesasBody");
   tbody.innerHTML = "";
   
@@ -2046,6 +2051,10 @@ function filtrarTodasDespesas() {
         return;
       }
       
+      if (categoriaFiltro && despesa.categoria !== categoriaFiltro) {
+        return;
+      }
+
       if (despesa.formaPagamento === "avista") {
         // MODIFICAÇÃO: Pular despesas à vista que já foram pagas
         if (despesa.pago) {
@@ -3362,6 +3371,29 @@ function atualizarRelatorioMensal(inicio, fim) {
             }
           }
         });
+      } else if (despesa.formaPagamento === "recorrente" && despesa.recorrencias) {
+        despesa.recorrencias.forEach(recorrencia => {
+          const data = new Date(recorrencia.vencimento);
+          if (data >= inicio && data <= fim) {
+            const mesAno = `${data.getFullYear()}-${data.getMonth() + 1}`;
+            if (!despesasPorMes[mesAno]) {
+              despesasPorMes[mesAno] = {
+                total: 0,
+                pagas: 0,
+                pendentes: 0
+              };
+            }
+
+            const valor = parseFloat(recorrencia.valor) || 0;
+            despesasPorMes[mesAno].total += valor;
+
+            if (recorrencia.pago) {
+              despesasPorMes[mesAno].pagas += valor;
+            } else {
+              despesasPorMes[mesAno].pendentes += valor;
+            }
+          }
+        });
       }
     });
     
@@ -3447,84 +3479,6 @@ function atualizarRelatorioMensal(inicio, fim) {
 /**
  * Calcula previsões de gastos para os próximos meses
  */
-function novo_calcularPrevisoes() {
-  console.log('Calculando previsões com período:', rangeStart, 'até', rangeEnd);
-  
-  const graficoContainer = document.getElementById("novo_graficoPrevisao");
-  const tabelaContainer = document.getElementById("novo_tabelaPrevisao");
-  
-  if (!graficoContainer && !tabelaContainer) {
-    console.log('Containers de previsão não encontrados');
-    return;
-  }
-  
-  // Definir período para análise das previsões
-  let inicio, fim;
-  if (!rangeStart || !rangeEnd) {
-    // Todo período - usar últimos 6 meses para calcular previsões
-    inicio = new Date();
-    inicio.setMonth(inicio.getMonth() - 6);
-    fim = new Date();
-  } else {
-    inicio = new Date(rangeStart);
-    fim = new Date(rangeEnd);
-  }
-  
-  console.log('Período para cálculo de previsões:', inicio, 'até', fim);
-  
-  if (graficoContainer) {
-    graficoContainer.innerHTML = '<div class="alert alert-info"><i class="fas fa-calculator"></i> Calculando previsões baseadas no período selecionado...</div>';
-  }
-  
-  if (tabelaContainer) {
-    tabelaContainer.innerHTML = '<div class="alert alert-info">Gerando tabela de previsões...</div>';
-  }
-  
-  // Simular cálculos (aqui você pode implementar a lógica real de previsões)
-  setTimeout(() => {
-    if (graficoContainer) {
-      graficoContainer.innerHTML = `
-        <div class="alert alert-success">
-          <i class="fas fa-chart-line"></i> 
-          Previsões calculadas para o período: ${inicio.toLocaleDateString()} - ${fim.toLocaleDateString()}
-        </div>
-      `;
-    }
-    
-    if (tabelaContainer) {
-      tabelaContainer.innerHTML = `
-        <div class="table-responsive">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Período</th>
-                <th>Previsão de Gastos</th>
-                <th>Tendência</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Próximo mês</td>
-                <td>R$ 2.500,00</td>
-                <td><i class="fas fa-arrow-up text-danger"></i> +5%</td>
-              </tr>
-              <tr>
-                <td>Segundo mês</td>
-                <td>R$ 2.300,00</td>
-                <td><i class="fas fa-arrow-down text-success"></i> -8%</td>
-              </tr>
-              <tr>
-                <td>Terceiro mês</td>
-                <td>R$ 2.400,00</td>
-                <td><i class="fas fa-arrow-up text-warning"></i> +4%</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      `;
-    }
-  }, 1000);
-}
 
 /**
  * Função para alternar entre as abas de relatórios
@@ -3649,6 +3603,16 @@ function atualizarGraficoCategorias(inicio, fim) {
               despesasPorCategoria[categoriaId] = 0;
             }
             despesasPorCategoria[categoriaId] += parseFloat(parcela.valor) || 0;
+          }
+        });
+      } else if (despesa.formaPagamento === "recorrente" && despesa.recorrencias) {
+        despesa.recorrencias.forEach(recorrencia => {
+          const data = new Date(recorrencia.vencimento);
+          if (data >= inicio && data <= fim) {
+            if (!despesasPorCategoria[categoriaId]) {
+              despesasPorCategoria[categoriaId] = 0;
+            }
+            despesasPorCategoria[categoriaId] += parseFloat(recorrencia.valor) || 0;
           }
         });
       }
@@ -5027,30 +4991,53 @@ function novo_calcularPrevisoes() {
   graficoContainer.innerHTML = "";
   tabelaContainer.innerHTML = "";
   
-  // Obter despesas dos últimos 6 meses
-  const hoje = new Date();
-  const mesAtual = hoje.getMonth();
-  const anoAtual = hoje.getFullYear();
+  // Definir período para análise das previsões
+  let inicio, fim;
+  if (!rangeStart || !rangeEnd) {
+    // Todo período - usar últimos 6 meses para calcular previsões
+    inicio = new Date();
+    inicio.setMonth(inicio.getMonth() - 6);
+    fim = new Date();
+  } else {
+    inicio = new Date(rangeStart);
+    fim = new Date(rangeEnd);
+  }
   
-  // Criar array com os últimos 6 meses
+  // Criar array com os meses no período
   const meses = [];
-  for (let i = 5; i >= 0; i--) {
-    let mes = mesAtual - i;
-    let ano = anoAtual;
-    
-    if (mes < 0) {
-      mes += 12;
-      ano--;
-    }
-    
+  let atual = new Date(inicio);
+  atual.setDate(1); // Para evitar problemas de pulo de mês no dia 31
+
+  const fimData = new Date(fim);
+
+  // Iterar até o mês de fim
+  while (atual <= fimData || (atual.getMonth() === fimData.getMonth() && atual.getFullYear() === fimData.getFullYear())) {
     meses.push({
-      mes: mes,
-      ano: ano,
-      nome: new Date(ano, mes, 1).toLocaleString('pt-BR', { month: 'long' }),
+      mes: atual.getMonth(),
+      ano: atual.getFullYear(),
+      nome: new Date(atual.getFullYear(), atual.getMonth(), 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' }),
+      total: 0
+    });
+
+    atual.setMonth(atual.getMonth() + 1);
+  }
+
+  // Garantir pelo menos 2 meses para ter tendência
+  if (meses.length < 2) {
+    const dataExtra = new Date(inicio);
+    dataExtra.setMonth(dataExtra.getMonth() - 1);
+    meses.unshift({
+      mes: dataExtra.getMonth(),
+      ano: dataExtra.getFullYear(),
+      nome: new Date(dataExtra.getFullYear(), dataExtra.getMonth(), 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' }),
       total: 0
     });
   }
   
+  const hoje = new Date();
+  const mesAtual = fimData.getMonth();
+  const anoAtual = fimData.getFullYear();
+
   // Verificar se o usuário está autenticado
   if (!currentUser || !currentUser.uid) {
     console.error("Usuário não autenticado");
@@ -5086,10 +5073,24 @@ function novo_calcularPrevisoes() {
           const mes = data.getMonth();
           const ano = data.getFullYear();
           
-          // Verificar se a data está nos últimos 6 meses
+          // Verificar se a data está no período
           for (let i = 0; i < meses.length; i++) {
             if (meses[i].mes === mes && meses[i].ano === ano) {
               meses[i].total += parseFloat(parcela.valor) || 0;
+              break;
+            }
+          }
+        });
+      } else if (despesa.formaPagamento === "recorrente" && despesa.recorrencias) {
+        despesa.recorrencias.forEach(recorrencia => {
+          const data = new Date(recorrencia.vencimento);
+          const mes = data.getMonth();
+          const ano = data.getFullYear();
+
+          // Verificar se a data está no período
+          for (let i = 0; i < meses.length; i++) {
+            if (meses[i].mes === mes && meses[i].ano === ano) {
+              meses[i].total += parseFloat(recorrencia.valor) || 0;
               break;
             }
           }
