@@ -3149,8 +3149,8 @@ function carregarDadosUsuario() {
         // Criar estrutura inicial de dados
         criarDadosIniciais();
       } else {
-        // Carregar categorias primeiro
-        carregarCategoriasNoMapa();
+        // Carregar categorias primeiro e filtrar despesas
+        carregarCategoriasMap();
         
         // Carregar categorias
         loadCategorias();
