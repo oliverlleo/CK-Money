@@ -111,7 +111,7 @@ function toggleTheme() {
 // Função para atualizar ícones do tema
 function updateThemeIcons(theme) {
   const desktopIcon = document.getElementById('themeIcon');
-  const mobileIcon = document.getElementById('themeMobileIcon');
+  const mobileIcon = document.getElementById('themeMobileDropdownIcon');
   
   if (theme === 'dark') {
     // Modo escuro ativo - mostrar ícone da lua
