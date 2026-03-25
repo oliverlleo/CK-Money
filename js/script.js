@@ -2283,94 +2283,15 @@ function pagarDespesaDirectly(despesaId, tipo, parcelaIndex = null) {
   }
   
   // Utilizar o modal de pagamento (swipeLeftModal) já existente no sistema
-  window.currentSwipeData = {
+  currentSwipeData = {
     despesaId: despesaId,
     tipo: tipo,
     parcelaIndex: parcelaIndex
   };
 
-  // Como loadSwipeLeftModal é assíncrono (busca dados no Firebase),
-  // precisamos garantir que o modal só abra DEPOIS dos dados serem carregados.
-  if (!currentSwipeData.despesaId) return;
-
-  db.ref("despesas").child(currentSwipeData.despesaId).once("value").then(snapshot => {
-    const despesa = snapshot.val();
-    if (!despesa) return;
-
-    // Atualiza a UI do modal
-    const nomeElement = document.getElementById('swipePayDespesaNome');
-    const detalhesElement = document.getElementById('swipePayDespesaDetalhes');
-    const optionsContainer = document.getElementById('swipePayOptions');
-
-    let nome = despesa.descricao || despesa.nome || 'Despesa';
-    let detalhes = '';
-    let optionsHtml = '';
-
-    if (currentSwipeData.tipo === 'avista') {
-      detalhes = `Valor: R$ ${parseFloat(despesa.valor).toFixed(2)} • Data: ${new Date(despesa.dataCompra).toLocaleDateString()}`;
-
-      if (!despesa.pago) {
-        optionsHtml = `
-          <div class="pay-confirmation">
-            <h4>Confirmar Pagamento</h4>
-            <p>Despesa será paga com a data de hoje</p>
-            <div class="pay-details">
-              <strong>R$ ${parseFloat(despesa.valor).toFixed(2)}</strong>
-            </div>
-          </div>
-        `;
-      } else {
-        optionsHtml = '<p class="text-muted">Esta despesa já foi paga.</p>';
-      }
-    } else if (currentSwipeData.tipo === 'cartao' && currentSwipeData.parcelaIndex !== null) {
-      const parcelaIndex = parseInt(currentSwipeData.parcelaIndex);
-      if (despesa.parcelas && despesa.parcelas[parcelaIndex]) {
-        const parcela = despesa.parcelas[parcelaIndex];
-
-        nome += ` - Parcela ${parcelaIndex + 1}/${despesa.parcelas.length}`;
-        detalhes = `Valor: R$ ${parseFloat(parcela.valor).toFixed(2)} • Vencimento: ${parcela.vencimento.split('-').reverse().join('/')}`;
-
-        if (!parcela.pago) {
-          optionsHtml = `
-            <div class="pay-confirmation">
-              <h4>Confirmar Pagamento</h4>
-              <p>Parcela ${parcelaIndex + 1} será paga com a data de hoje</p>
-              <div class="pay-details">
-                <strong>R$ ${parseFloat(parcela.valor).toFixed(2)}</strong>
-              </div>
-            </div>
-          `;
-        } else {
-          optionsHtml = '<p class="text-muted">Esta parcela já foi paga.</p>';
-        }
-      }
-    } else if (currentSwipeData.tipo === 'recorrente') {
-      const recorrenciasPendentes = (despesa.recorrencias || []).filter(r => !r.pago);
-
-      if (recorrenciasPendentes.length > 0) {
-        const proximaRecorrencia = recorrenciasPendentes[0];
-        detalhes = `Valor: R$ ${parseFloat(proximaRecorrencia.valor || despesa.valor).toFixed(2)} • Frequência: ${despesa.frequenciaRecorrente || 'Mensal'}`;
-
-        optionsHtml = `
-          <div class="pay-confirmation">
-            <h4>Confirmar Pagamento</h4>
-            <p>Próxima recorrência será paga com a data de hoje</p>
-            <div class="pay-details">
-              <strong>R$ ${parseFloat(proximaRecorrencia.valor || despesa.valor).toFixed(2)}</strong>
-              <br><small>Vencimento: ${proximaRecorrencia.vencimento.split('-').reverse().join('/')}</small>
-            </div>
-          </div>
-        `;
-      } else {
-        optionsHtml = '<p class="text-muted">Não há recorrências pendentes para pagar.</p>';
-      }
-    }
-
-    if (nomeElement) nomeElement.textContent = nome;
-    if (detalhesElement) detalhesElement.textContent = detalhes;
-    if (optionsContainer) optionsContainer.innerHTML = optionsHtml;
-
-    // Só depois de atualizar a UI, abrimos o modal
+  // Como loadSwipeLeftModal agora retorna uma Promise e atualiza a DOM
+  // de forma centralizada, apenas chamamos ele e abrimos o modal no then()
+  loadSwipeLeftModal().then(() => {
     abrirModal('swipeLeftModal');
   });
 }
@@ -2646,7 +2567,7 @@ let swipeStartX = 0;
 let swipeStartY = 0;
 let currentSwipeRow = null;
 let swipeThreshold = 50;
-let currentSwipeData = {};
+var currentSwipeData = {};
 
 function initSwipeEvents() {
   const tableBody = document.getElementById('todasDespesasBody');
@@ -2890,10 +2811,10 @@ function loadSwipeRightModal() {
 }
 
 function loadSwipeLeftModal() {
-  if (!currentSwipeData.despesaId) return;
+  if (!currentSwipeData.despesaId) return Promise.resolve();
   
   // Buscar dados da despesa
-  db.ref("despesas").child(currentSwipeData.despesaId).once("value").then(snapshot => {
+  return db.ref("despesas").child(currentSwipeData.despesaId).once("value").then(snapshot => {
     const despesa = snapshot.val();
     if (!despesa) return;
     
