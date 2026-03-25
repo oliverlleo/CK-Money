@@ -2282,151 +2282,15 @@ function pagarDespesaDirectly(despesaId, tipo, parcelaIndex = null) {
     return;
   }
   
-  db.ref("despesas").child(despesaId).once("value").then(snapshot => {
-    const despesa = snapshot.val();
-    
-    if (!despesa) {
-      exibirToast("Despesa não encontrada.", "error");
-      return;
-    }
-    
-    if (tipo === "avista") {
-      const valorDespesa = parseFloat(despesa.valor) || 0;
+  // Utilizar o modal de pagamento (swipeLeftModal) já existente no sistema
+  window.currentSwipeData = {
+    despesaId: despesaId,
+    tipo: tipo,
+    parcelaIndex: parcelaIndex
+  };
 
-      const confirmacao = confirm(`Deseja realmente pagar a despesa "${despesa.nome}" no valor de R$ ${valorDespesa.toFixed(2).replace('.', ',')}?`);
-      if (!confirmacao) return;
-
-
-      buscarPessoaComSaldo(valorDespesa, (pessoaEncontrada) => {
-        if (!pessoaEncontrada) {
-          exibirToast("Erro: saldo insuficiente em todas as rendas", "error");
-          return;
-        }
-
-        descontarDoSaldo(pessoaEncontrada.id, valorDespesa, (sucesso, mensagem) => {
-          if (!sucesso) {
-            exibirToast(`Erro ao processar pagamento: ${mensagem}`, "error");
-            return;
-          }
-
-          db.ref("despesas").child(despesaId).update({
-            pago: true,
-            dataPagamento: new Date().toISOString().split("T")[0],
-            pessoaPagamento: pessoaEncontrada.id
-          }).then(() => {
-            exibirToast(`Despesa paga com sucesso! Descontado de: ${pessoaEncontrada.nome}`, "success");
-            atualizarDashboard();
-            filtrarTodasDespesas();
-          }).catch(error => {
-            console.error("Erro ao atualizar despesa:", error);
-            exibirToast("Erro ao salvar pagamento.", "error");
-          });
-        });
-      });
-    } else if (tipo === "cartao" && parcelaIndex !== null) {
-      const parcela = despesa.parcelas[parcelaIndex];
-      if (parcela.pago) {
-        exibirToast("Esta parcela já foi paga.", "warning");
-        return;
-      }
-      
-      const valorParcela = parseFloat(parcela.valor) || 0;
-
-      const confirmacao = confirm(`Deseja realmente pagar a parcela ${parcelaIndex + 1} da despesa "${despesa.nome}" no cartão, no valor de R$ ${valorParcela.toFixed(2).replace('.', ',')}?`);
-      if (!confirmacao) return;
-
-      buscarPessoaComSaldo(valorParcela, (pessoaEncontrada) => {
-        if (!pessoaEncontrada) {
-          exibirToast("Erro: saldo insuficiente em todas as rendas", "error");
-          return;
-        }
-
-        descontarDoSaldo(pessoaEncontrada.id, valorParcela, (sucesso, mensagem) => {
-          if (!sucesso) {
-            exibirToast(`Erro ao processar pagamento: ${mensagem}`, "error");
-            return;
-          }
-
-          const parcelasAtualizadas = [...despesa.parcelas];
-          parcelasAtualizadas[parcelaIndex] = {
-            ...parcelasAtualizadas[parcelaIndex],
-            pago: true,
-            dataPagamento: new Date().toISOString().split("T")[0],
-            pessoaPagamento: pessoaEncontrada.id
-          };
-
-          db.ref("despesas").child(despesaId).update({
-            parcelas: parcelasAtualizadas
-          }).then(() => {
-            exibirToast(`Parcela ${parcelaIndex + 1} paga com sucesso! Descontado de: ${pessoaEncontrada.nome}`, "success");
-            atualizarDashboard();
-            filtrarTodasDespesas();
-          }).catch(error => {
-            console.error("Erro ao atualizar parcela:", error);
-            exibirToast("Erro ao salvar pagamento da parcela.", "error");
-          });
-        });
-      });
-    } else if (tipo === "recorrente") {
-      const recorrenciasPendentes = (despesa.recorrencias || []).filter(r => !r.pago);
-
-      if (recorrenciasPendentes.length === 0) {
-        exibirToast("Não há recorrências pendentes.", "warning");
-        return;
-      }
-
-      const proximaRecorrencia = recorrenciasPendentes[0];
-      const valorRecorrencia = parseFloat(proximaRecorrencia.valor) || parseFloat(despesa.valor) || 0;
-
-      const indexRecorrencia = despesa.recorrencias.findIndex(r => 
-        r.vencimento === proximaRecorrencia.vencimento && !r.pago
-      );
-
-      if (indexRecorrencia === -1) {
-        exibirToast("Recorrência não encontrada.", "error");
-        return;
-      }
-
-      const confirmacao = confirm(`Deseja realmente pagar a próxima recorrência da despesa "${despesa.nome}" com vencimento em ${proximaRecorrencia.vencimento.split('-').reverse().join('/')}, no valor de R$ ${valorRecorrencia.toFixed(2).replace('.', ',')}?`);
-      if (!confirmacao) return;
-
-      buscarPessoaComSaldo(valorRecorrencia, (pessoaEncontrada) => {
-        if (!pessoaEncontrada) {
-          exibirToast("Erro: saldo insuficiente em todas as rendas", "error");
-          return;
-        }
-
-        descontarDoSaldo(pessoaEncontrada.id, valorRecorrencia, (sucesso, mensagem) => {
-          if (!sucesso) {
-            exibirToast(`Erro ao processar pagamento: ${mensagem}`, "error");
-            return;
-          }
-
-          const recorrenciasAtualizadas = [...despesa.recorrencias];
-          recorrenciasAtualizadas[indexRecorrencia] = {
-            ...recorrenciasAtualizadas[indexRecorrencia],
-            pago: true,
-            dataPagamento: new Date().toISOString().split("T")[0],
-            pessoaPagamento: pessoaEncontrada.id
-          };
-
-          db.ref("despesas").child(despesaId).update({
-            recorrencias: recorrenciasAtualizadas
-          }).then(() => {
-            exibirToast(`Recorrência paga com sucesso! Descontado de: ${pessoaEncontrada.nome}`, "success");
-            atualizarDashboard();
-            filtrarTodasDespesas();
-          }).catch(error => {
-            console.error("Erro ao atualizar recorrência:", error);
-            exibirToast("Erro ao salvar pagamento da recorrência.", "error");
-          });
-        });
-      });
-    }
-  }).catch(error => {
-    console.error("Erro ao buscar despesa:", error);
-    exibirToast("Erro ao buscar despesa.", "error");
-  });
+  loadSwipeLeftModal();
+  abrirModal('swipeLeftModal');
 }
 
 /**
