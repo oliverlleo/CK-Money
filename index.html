@@ -466,12 +466,18 @@
       
       <!-- Seção de Metas Financeiras -->
       <section id="metasFinanceirasSection" class="container" style="display: none;">
-        <h2 class="mb-3">
-          Metas Financeiras
-          <button id="botaoMetaMobile" onclick="abrirModal('novametaModal')">
-            <i class="fas fa-plus"></i>
-            Meta
-          </button>
+        <h2 class="mb-3 d-flex justify-between align-center">
+          <span>Metas Financeiras</span>
+          <div>
+            <button id="botaoNovaMetaDesktop" class="btn btn-primary" onclick="abrirModal('novametaModal')">
+              <i class="fas fa-plus"></i>
+              <span>Nova Meta</span>
+            </button>
+            <button id="botaoMetaMobile" onclick="abrirModal('novametaModal')">
+              <i class="fas fa-plus"></i>
+              Meta
+            </button>
+          </div>
         </h2>
         <p class="mb-3">Defina e acompanhe suas metas financeiras para alcançar seus objetivos.</p>
         

@@ -1034,14 +1034,7 @@ function renderizarPainelMetas() {
     })
     .then(({ metas, economiaMediaMensal }) => {
       // Renderizar painel
-      let html = `
-        <div class="d-flex gap-2 flex-wrap mb-3">
-          <button class="btn btn-primary" onclick="abrirModal('novametaModal')">
-            <i class="fas fa-plus"></i>
-            <span>Nova Meta</span>
-          </button>
-        </div>
-      `;
+      let html = '';
       
       if (metas.length === 0) {
         html += `
