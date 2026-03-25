@@ -808,9 +808,29 @@ function filtrarDespesas() {
         });
         
         if (temRecorrenciaNaoPaga) {
+          // Find the first unpaid recurrence to show its competence
+          let proximaRecorrencia = null;
+          for (let i = 0; i < despesa.recorrencias.length; i++) {
+            if (!despesa.recorrencias[i].pago) {
+              proximaRecorrencia = despesa.recorrencias[i];
+              break;
+            }
+          }
+
           const option = document.createElement("option");
           option.value = key;
-          option.text = `${despesa.descricao} - Recorrente`;
+
+          if (proximaRecorrencia) {
+            const dataRef = new Date(proximaRecorrencia.vencimento);
+            const competencia = dataRef.toLocaleDateString('pt-BR', {
+              month: 'long',
+              year: 'numeric'
+            });
+            option.text = `${despesa.descricao} - Recorrente (${competencia})`;
+          } else {
+            option.text = `${despesa.descricao} - Recorrente`;
+          }
+
           despesaSelect.appendChild(option);
         }
       }
@@ -2004,44 +2024,10 @@ function pagarDespesa() {
 
 /**
  * Carrega as parcelas de uma despesa
+ * Substituída por wrapper para verificarParcelas para evitar código divergente
  */
 function carregarParcelas() {
-  const despesaId = document.getElementById("despesaSelect").value;
-  const parcelaSelect = document.getElementById("parcelaSelect");
-  parcelaSelect.innerHTML = "";
-  
-  if (!despesaId) return;
-  
-  db.ref("despesas").child(despesaId).once("value").then(snapshot => {
-    const despesa = snapshot.val();
-    
-    if (despesa.formaPagamento === "avista") {
-      document.getElementById("parcelasDiv").classList.add("hidden");
-    } else if (despesa.formaPagamento === "cartao" && despesa.parcelas) {
-      document.getElementById("parcelasDiv").classList.remove("hidden");
-      
-      despesa.parcelas.forEach((parcela, index) => {
-        if (!parcela.pago) {
-          const option = document.createElement("option");
-          option.value = index;
-          option.text = `Parcela ${index+1} - Venc: ${parcela.vencimento} - R$ ${parseFloat(parcela.valor).toFixed(2)}`;
-          parcelaSelect.appendChild(option);
-        }
-      });
-    } else if (despesa.formaPagamento === "recorrente" && despesa.recorrencias) {
-      document.getElementById("parcelasDiv").classList.remove("hidden");
-      
-      despesa.recorrencias.forEach((recorrencia, index) => {
-        if (!recorrencia.pago) {
-          const option = document.createElement("option");
-          option.value = index;
-          const dataVenc = new Date(recorrencia.vencimento);
-          option.text = `${dataVenc.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })} - Venc: ${recorrencia.vencimento} - R$ ${parseFloat(recorrencia.valor).toFixed(2)}`;
-          parcelaSelect.appendChild(option);
-        }
-      });
-    }
-  });
+  verificarParcelas();
 }
 
 /**
@@ -5351,6 +5337,24 @@ function verificarParcelas() {
           const option = document.createElement("option");
           option.value = index;
           option.text = `Parcela ${index+1} - Venc: ${new Date(parcela.vencimento).toLocaleDateString()} - R$ ${parseFloat(parcela.valor).toFixed(2)}`;
+          parcelaSelect.appendChild(option);
+        }
+      });
+    } else if (despesa.formaPagamento === "recorrente" && despesa.recorrencias) {
+      // Mostrar o div de parcelas
+      parcelasDiv.classList.remove("hidden");
+
+      despesa.recorrencias.forEach((recorrencia, index) => {
+        if (!recorrencia.pago) {
+          const dataRef = new Date(recorrencia.vencimento);
+          const competencia = dataRef.toLocaleDateString('pt-BR', {
+            month: 'long',
+            year: 'numeric'
+          });
+
+          const option = document.createElement("option");
+          option.value = index;
+          option.text = `${competencia} - Venc: ${dataRef.toLocaleDateString()} - R$ ${parseFloat(recorrencia.valor).toFixed(2)}`;
           parcelaSelect.appendChild(option);
         }
       });
