@@ -5513,11 +5513,16 @@ function atualizarDespesa() {
         // Retornar aqui para aguardar o callback do Firebase
         return;
       } else {
-        // Manter parcelas existentes, atualizando valores se necessário
-        despesaAtualizada.parcelas = despesaOriginal.parcelas.map(parcela => ({
-          ...parcela,
-          valor: valor / numParcelas
-        }));
+        // Manter parcelas existentes, mas atualizar o valor apenas daquelas que ainda NÃO foram pagas
+        despesaAtualizada.parcelas = despesaOriginal.parcelas.map(parcela => {
+          if (!parcela.pago) {
+            return {
+              ...parcela,
+              valor: valor / numParcelas
+            };
+          }
+          return parcela; // Mantém o valor original se já foi pago
+        });
       }
     } else if (formaPagamento === "recorrente") {
       const diaRecorrencia = parseInt(document.getElementById("diaRecorrencia").value);
@@ -5563,8 +5568,16 @@ function atualizarDespesa() {
           });
         }
       } else {
-        // Manter recorrências existentes
-        despesaAtualizada.recorrencias = despesaOriginal.recorrencias;
+        // Manter recorrências existentes, mas atualizar o valor das parcelas futuras não pagas
+        despesaAtualizada.recorrencias = despesaOriginal.recorrencias.map(recorrencia => {
+          if (!recorrencia.pago) {
+            return {
+              ...recorrencia,
+              valor: valor
+            };
+          }
+          return recorrencia; // Mantém o valor original se já foi pago
+        });
       }
     }
     
