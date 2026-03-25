@@ -3329,6 +3329,22 @@ body.login-page {
 
 /* =================== MOBILE METAS FINANCEIRAS =================== */
 
+/* Botão Meta por padrão não deve ser exibido na versão desktop */
+#botaoMetaMobile {
+  display: none;
+  background: var(--primary);
+  color: white;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  border: none;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.5rem;
+}
+
 @media (max-width: 768px) {
   /* Header para metas financeiras com botão na mesma linha */
   #metasFinanceirasSection h2.mb-3 {
@@ -3349,27 +3365,9 @@ body.login-page {
     position: relative;
   }
   
-  /* Botão Meta para versão mobile */
-  #botaoMetaMobile {
-    display: none;
-    background: var(--primary);
-    color: white;
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    border-radius: var(--border-radius-md);
-    cursor: pointer;
-    border: none;
-    align-items: center;
-    justify-content: center;
-    margin-left: 0.5rem;
-  }
-  
   /* Exibir o botão Meta somente na versão mobile */
-  @media (max-width: 768px) {
-    #botaoMetaMobile {
-      display: inline-flex;
-    }
+  #botaoMetaMobile {
+    display: inline-flex;
   }
 }
 
