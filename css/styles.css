@@ -3345,6 +3345,20 @@ body.login-page {
   margin-left: 0.5rem;
 }
 
+/* Header para metas financeiras com botão na mesma linha no desktop */
+#metasFinanceirasSection h2.mb-3 {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  margin-bottom: 1rem !important;
+}
+
+/* Ocultar dinâmico original de Nova Meta em desktop para não duplicar */
+#metasFinanceirasSection .d-flex.gap-2.flex-wrap.mb-3 {
+  display: none !important;
+}
+
 @media (max-width: 768px) {
   /* Header para metas financeiras com botão na mesma linha */
   #metasFinanceirasSection h2.mb-3 {
@@ -3360,6 +3374,11 @@ body.login-page {
     display: none !important;
   }
   
+  /* Ocultar o botão desktop no mobile */
+  #botaoNovaMetaDesktop {
+    display: none !important;
+  }
+
   /* Estilizando o título h2 para ter o botão Meta */
   #metasFinanceirasSection h2.mb-3 {
     position: relative;
