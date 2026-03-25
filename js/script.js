@@ -2291,18 +2291,33 @@ function pagarDespesaDirectly(despesaId, tipo, parcelaIndex = null) {
     }
     
     if (tipo === "avista") {
-      // Descontar do saldo antes de marcar como pago
-      descontarDoSaldo(despesa.valor).then(() => {
-        db.ref("despesas").child(despesaId).update({
-          pago: true
-        }).then(() => {
-          exibirToast("Despesa paga com sucesso!", "success");
-          atualizarDashboard();
-          filtrarTodasDespesas();
+      const valorDespesa = parseFloat(despesa.valor) || 0;
+
+      buscarPessoaComSaldo(valorDespesa, (pessoaEncontrada) => {
+        if (!pessoaEncontrada) {
+          exibirToast("Erro: saldo insuficiente em todas as rendas", "error");
+          return;
+        }
+
+        descontarDoSaldo(pessoaEncontrada.id, valorDespesa, (sucesso, mensagem) => {
+          if (!sucesso) {
+            exibirToast(`Erro ao processar pagamento: ${mensagem}`, "error");
+            return;
+          }
+
+          db.ref("despesas").child(despesaId).update({
+            pago: true,
+            dataPagamento: new Date().toISOString().split("T")[0],
+            pessoaPagamento: pessoaEncontrada.id
+          }).then(() => {
+            exibirToast(`Despesa paga com sucesso! Descontado de: ${pessoaEncontrada.nome}`, "success");
+            atualizarDashboard();
+            filtrarTodasDespesas();
+          }).catch(error => {
+            console.error("Erro ao atualizar despesa:", error);
+            exibirToast("Erro ao salvar pagamento.", "error");
+          });
         });
-      }).catch(error => {
-        console.error("Erro ao descontar saldo:", error);
-        exibirToast("Erro ao processar pagamento: " + error.message, "error");
       });
     } else if (tipo === "cartao" && parcelaIndex !== null) {
       const parcela = despesa.parcelas[parcelaIndex];
@@ -2311,51 +2326,91 @@ function pagarDespesaDirectly(despesaId, tipo, parcelaIndex = null) {
         return;
       }
       
-      // Descontar do saldo antes de marcar como pago
-      descontarDoSaldo(parcela.valor).then(() => {
-        const parcelasAtualizadas = [...despesa.parcelas];
-        parcelasAtualizadas[parcelaIndex].pago = true;
-        
-        db.ref("despesas").child(despesaId).update({
-          parcelas: parcelasAtualizadas
-        }).then(() => {
-          exibirToast(`Parcela ${parcelaIndex + 1} paga com sucesso!`, "success");
-          atualizarDashboard();
-          filtrarTodasDespesas();
+      const valorParcela = parseFloat(parcela.valor) || 0;
+
+      buscarPessoaComSaldo(valorParcela, (pessoaEncontrada) => {
+        if (!pessoaEncontrada) {
+          exibirToast("Erro: saldo insuficiente em todas as rendas", "error");
+          return;
+        }
+
+        descontarDoSaldo(pessoaEncontrada.id, valorParcela, (sucesso, mensagem) => {
+          if (!sucesso) {
+            exibirToast(`Erro ao processar pagamento: ${mensagem}`, "error");
+            return;
+          }
+
+          const parcelasAtualizadas = [...despesa.parcelas];
+          parcelasAtualizadas[parcelaIndex] = {
+            ...parcelasAtualizadas[parcelaIndex],
+            pago: true,
+            dataPagamento: new Date().toISOString().split("T")[0],
+            pessoaPagamento: pessoaEncontrada.id
+          };
+
+          db.ref("despesas").child(despesaId).update({
+            parcelas: parcelasAtualizadas
+          }).then(() => {
+            exibirToast(`Parcela ${parcelaIndex + 1} paga com sucesso! Descontado de: ${pessoaEncontrada.nome}`, "success");
+            atualizarDashboard();
+            filtrarTodasDespesas();
+          }).catch(error => {
+            console.error("Erro ao atualizar parcela:", error);
+            exibirToast("Erro ao salvar pagamento da parcela.", "error");
+          });
         });
-      }).catch(error => {
-        console.error("Erro ao descontar saldo:", error);
-        exibirToast("Erro ao processar pagamento: " + error.message, "error");
       });
     } else if (tipo === "recorrente") {
-      // Para recorrente, pagar a próxima parcela pendente
-      const recorrenciasPendentes = despesa.recorrencias.filter(r => !r.pago);
+      const recorrenciasPendentes = (despesa.recorrencias || []).filter(r => !r.pago);
+
       if (recorrenciasPendentes.length === 0) {
         exibirToast("Não há recorrências pendentes.", "warning");
         return;
       }
-      
-      // Pegar a primeira recorrência pendente
+
       const proximaRecorrencia = recorrenciasPendentes[0];
+      const valorRecorrencia = parseFloat(proximaRecorrencia.valor) || parseFloat(despesa.valor) || 0;
+
       const indexRecorrencia = despesa.recorrencias.findIndex(r => 
         r.vencimento === proximaRecorrencia.vencimento && !r.pago
       );
-      
-      // Descontar do saldo antes de marcar como pago
-      descontarDoSaldo(proximaRecorrencia.valor).then(() => {
-        const recorrenciasAtualizadas = [...despesa.recorrencias];
-        recorrenciasAtualizadas[indexRecorrencia].pago = true;
-        
-        db.ref("despesas").child(despesaId).update({
-          recorrencias: recorrenciasAtualizadas
-        }).then(() => {
-          exibirToast("Recorrência paga com sucesso!", "success");
-          atualizarDashboard();
-          filtrarTodasDespesas();
+
+      if (indexRecorrencia === -1) {
+        exibirToast("Recorrência não encontrada.", "error");
+        return;
+      }
+
+      buscarPessoaComSaldo(valorRecorrencia, (pessoaEncontrada) => {
+        if (!pessoaEncontrada) {
+          exibirToast("Erro: saldo insuficiente em todas as rendas", "error");
+          return;
+        }
+
+        descontarDoSaldo(pessoaEncontrada.id, valorRecorrencia, (sucesso, mensagem) => {
+          if (!sucesso) {
+            exibirToast(`Erro ao processar pagamento: ${mensagem}`, "error");
+            return;
+          }
+
+          const recorrenciasAtualizadas = [...despesa.recorrencias];
+          recorrenciasAtualizadas[indexRecorrencia] = {
+            ...recorrenciasAtualizadas[indexRecorrencia],
+            pago: true,
+            dataPagamento: new Date().toISOString().split("T")[0],
+            pessoaPagamento: pessoaEncontrada.id
+          };
+
+          db.ref("despesas").child(despesaId).update({
+            recorrencias: recorrenciasAtualizadas
+          }).then(() => {
+            exibirToast(`Recorrência paga com sucesso! Descontado de: ${pessoaEncontrada.nome}`, "success");
+            atualizarDashboard();
+            filtrarTodasDespesas();
+          }).catch(error => {
+            console.error("Erro ao atualizar recorrência:", error);
+            exibirToast("Erro ao salvar pagamento da recorrência.", "error");
+          });
         });
-      }).catch(error => {
-        console.error("Erro ao descontar saldo:", error);
-        exibirToast("Erro ao processar pagamento: " + error.message, "error");
       });
     }
   }).catch(error => {
