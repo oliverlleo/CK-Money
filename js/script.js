@@ -2268,85 +2268,17 @@ function pagarDespesaDirectly(despesaId, tipo, parcelaIndex = null) {
     return;
   }
   
-  db.ref("despesas").child(despesaId).once("value").then(snapshot => {
-    const despesa = snapshot.val();
-    
-    if (!despesa) {
-      exibirToast("Despesa não encontrada.", "error");
-      return;
-    }
-    
-    if (tipo === "avista") {
-      // Descontar do saldo antes de marcar como pago
-      descontarDoSaldo(despesa.valor).then(() => {
-        db.ref("despesas").child(despesaId).update({
-          pago: true
-        }).then(() => {
-          exibirToast("Despesa paga com sucesso!", "success");
-          atualizarDashboard();
-          filtrarTodasDespesas();
-        });
-      }).catch(error => {
-        console.error("Erro ao descontar saldo:", error);
-        exibirToast("Erro ao processar pagamento: " + error.message, "error");
-      });
-    } else if (tipo === "cartao" && parcelaIndex !== null) {
-      const parcela = despesa.parcelas[parcelaIndex];
-      if (parcela.pago) {
-        exibirToast("Esta parcela já foi paga.", "warning");
-        return;
-      }
-      
-      // Descontar do saldo antes de marcar como pago
-      descontarDoSaldo(parcela.valor).then(() => {
-        const parcelasAtualizadas = [...despesa.parcelas];
-        parcelasAtualizadas[parcelaIndex].pago = true;
-        
-        db.ref("despesas").child(despesaId).update({
-          parcelas: parcelasAtualizadas
-        }).then(() => {
-          exibirToast(`Parcela ${parcelaIndex + 1} paga com sucesso!`, "success");
-          atualizarDashboard();
-          filtrarTodasDespesas();
-        });
-      }).catch(error => {
-        console.error("Erro ao descontar saldo:", error);
-        exibirToast("Erro ao processar pagamento: " + error.message, "error");
-      });
-    } else if (tipo === "recorrente") {
-      // Para recorrente, pagar a próxima parcela pendente
-      const recorrenciasPendentes = despesa.recorrencias.filter(r => !r.pago);
-      if (recorrenciasPendentes.length === 0) {
-        exibirToast("Não há recorrências pendentes.", "warning");
-        return;
-      }
-      
-      // Pegar a primeira recorrência pendente
-      const proximaRecorrencia = recorrenciasPendentes[0];
-      const indexRecorrencia = despesa.recorrencias.findIndex(r => 
-        r.vencimento === proximaRecorrencia.vencimento && !r.pago
-      );
-      
-      // Descontar do saldo antes de marcar como pago
-      descontarDoSaldo(proximaRecorrencia.valor).then(() => {
-        const recorrenciasAtualizadas = [...despesa.recorrencias];
-        recorrenciasAtualizadas[indexRecorrencia].pago = true;
-        
-        db.ref("despesas").child(despesaId).update({
-          recorrencias: recorrenciasAtualizadas
-        }).then(() => {
-          exibirToast("Recorrência paga com sucesso!", "success");
-          atualizarDashboard();
-          filtrarTodasDespesas();
-        });
-      }).catch(error => {
-        console.error("Erro ao descontar saldo:", error);
-        exibirToast("Erro ao processar pagamento: " + error.message, "error");
-      });
-    }
-  }).catch(error => {
-    console.error("Erro ao buscar despesa:", error);
-    exibirToast("Erro ao buscar despesa.", "error");
+  // Utilizar o modal de pagamento (swipeLeftModal) já existente no sistema
+  currentSwipeData = {
+    despesaId: despesaId,
+    tipo: tipo,
+    parcelaIndex: parcelaIndex
+  };
+
+  // Como loadSwipeLeftModal agora retorna uma Promise e atualiza a DOM
+  // de forma centralizada, apenas chamamos ele e abrimos o modal no then()
+  loadSwipeLeftModal().then(() => {
+    abrirModal('swipeLeftModal');
   });
 }
 
@@ -2621,7 +2553,7 @@ let swipeStartX = 0;
 let swipeStartY = 0;
 let currentSwipeRow = null;
 let swipeThreshold = 50;
-let currentSwipeData = {};
+var currentSwipeData = {};
 
 function initSwipeEvents() {
   const tableBody = document.getElementById('todasDespesasBody');
@@ -2865,10 +2797,10 @@ function loadSwipeRightModal() {
 }
 
 function loadSwipeLeftModal() {
-  if (!currentSwipeData.despesaId) return;
+  if (!currentSwipeData.despesaId) return Promise.resolve();
   
   // Buscar dados da despesa
-  db.ref("despesas").child(currentSwipeData.despesaId).once("value").then(snapshot => {
+  return db.ref("despesas").child(currentSwipeData.despesaId).once("value").then(snapshot => {
     const despesa = snapshot.val();
     if (!despesa) return;
     
