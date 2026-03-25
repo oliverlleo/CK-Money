@@ -2293,6 +2293,10 @@ function pagarDespesaDirectly(despesaId, tipo, parcelaIndex = null) {
     if (tipo === "avista") {
       const valorDespesa = parseFloat(despesa.valor) || 0;
 
+      const confirmacao = confirm(`Deseja realmente pagar a despesa "${despesa.nome}" no valor de R$ ${valorDespesa.toFixed(2).replace('.', ',')}?`);
+      if (!confirmacao) return;
+
+
       buscarPessoaComSaldo(valorDespesa, (pessoaEncontrada) => {
         if (!pessoaEncontrada) {
           exibirToast("Erro: saldo insuficiente em todas as rendas", "error");
@@ -2327,6 +2331,9 @@ function pagarDespesaDirectly(despesaId, tipo, parcelaIndex = null) {
       }
       
       const valorParcela = parseFloat(parcela.valor) || 0;
+
+      const confirmacao = confirm(`Deseja realmente pagar a parcela ${parcelaIndex + 1} da despesa "${despesa.nome}" no cartão, no valor de R$ ${valorParcela.toFixed(2).replace('.', ',')}?`);
+      if (!confirmacao) return;
 
       buscarPessoaComSaldo(valorParcela, (pessoaEncontrada) => {
         if (!pessoaEncontrada) {
@@ -2379,6 +2386,9 @@ function pagarDespesaDirectly(despesaId, tipo, parcelaIndex = null) {
         exibirToast("Recorrência não encontrada.", "error");
         return;
       }
+
+      const confirmacao = confirm(`Deseja realmente pagar a próxima recorrência da despesa "${despesa.nome}" com vencimento em ${proximaRecorrencia.vencimento.split('-').reverse().join('/')}, no valor de R$ ${valorRecorrencia.toFixed(2).replace('.', ',')}?`);
+      if (!confirmacao) return;
 
       buscarPessoaComSaldo(valorRecorrencia, (pessoaEncontrada) => {
         if (!pessoaEncontrada) {
