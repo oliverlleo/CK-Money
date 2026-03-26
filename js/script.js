@@ -4358,6 +4358,8 @@ function exibirInfoUsuario(user) {
       userInfoElement = document.createElement('div');
       userInfoElement.id = 'userInfo';
       userInfoElement.className = 'user-info';
+      userInfoElement.style.cursor = 'pointer'; // Make it clickable
+      userInfoElement.onclick = toggleDesktopUserDropdown;
       
       // Inserir antes do primeiro link no sidebar
       const sidebar = document.getElementById('sidebar');
@@ -4372,16 +4374,70 @@ function exibirInfoUsuario(user) {
       }
     }
     
+    const themeIconClass = document.documentElement.getAttribute('data-theme') === 'dark' ? 'fa-moon' : 'fa-sun';
+
     // Atualizar conteúdo
     userInfoElement.innerHTML = `
       <div class="user-avatar">
         <img src="${user.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.displayName || user.email)}" alt="Avatar">
       </div>
-      <div class="user-details">
+      <div class="user-details" style="flex: 1;">
         <div class="user-name">${user.displayName || 'Usuário'}</div>
         <div class="user-email">${user.email}</div>
       </div>
+      <i class="fas fa-chevron-down" style="color: var(--text-muted); font-size: 0.8rem; margin-left: 0.5rem;"></i>
+
+      <div id="desktopUserDropdown" class="desktop-user-dropdown" style="display: none;">
+        <button class="desktop-menu-btn" onclick="toggleTheme(); event.stopPropagation();">
+          <i class="fas ${themeIconClass}" id="themeIcon"></i>
+          Alternar tema
+        </button>
+        <div class="desktop-dropdown-divider"></div>
+        <button class="desktop-logout-btn" onclick="logout(); event.stopPropagation();">
+          <i class="fa-solid fa-sign-out-alt"></i>
+          Sair da conta
+        </button>
+      </div>
     `;
+  }
+}
+
+/**
+ * Toggle do dropdown desktop do usuário
+ */
+function toggleDesktopUserDropdown(event) {
+  event.stopPropagation();
+  const dropdown = document.getElementById('desktopUserDropdown');
+  if (dropdown) {
+    const isActive = dropdown.classList.contains('active');
+
+    if (isActive) {
+      // Fechar dropdown
+      dropdown.classList.remove('active');
+      dropdown.style.display = 'none';
+      document.removeEventListener('click', closeDesktopDropdownOnClickOutside);
+    } else {
+      // Abrir dropdown
+      dropdown.classList.add('active');
+      dropdown.style.display = 'block';
+      setTimeout(() => {
+        document.addEventListener('click', closeDesktopDropdownOnClickOutside);
+      }, 100);
+    }
+  }
+}
+
+/**
+ * Fecha dropdown desktop ao clicar fora
+ */
+function closeDesktopDropdownOnClickOutside(event) {
+  const dropdown = document.getElementById('desktopUserDropdown');
+  const userInfo = document.getElementById('userInfo');
+
+  if (dropdown && !dropdown.contains(event.target) && (!userInfo || !userInfo.contains(event.target))) {
+    dropdown.classList.remove('active');
+    dropdown.style.display = 'none';
+    document.removeEventListener('click', closeDesktopDropdownOnClickOutside);
   }
 }
 
@@ -4389,22 +4445,9 @@ function exibirInfoUsuario(user) {
  * Adiciona botão de logout ao menu
  */
 function adicionarBotaoLogout() {
-  // Verificar se estamos na página principal
-  if (document.getElementById('sidebar')) {
-    // Verificar se o botão já existe
-    if (!document.getElementById('logoutButton')) {
-      // Criar link de logout
-      const logoutLink = document.createElement('a');
-      logoutLink.href = '#';
-      logoutLink.id = 'logoutButton';
-      logoutLink.className = 'nav-link';
-      logoutLink.innerHTML = '<i class="fa-solid fa-sign-out-alt"></i><span>Sair</span>';
-      logoutLink.addEventListener('click', logout);
-      
-      // Adicionar ao sidebar
-      document.getElementById('sidebar').appendChild(logoutLink);
-    }
-  }
+  // Esta função agora está vazia. O botão de Sair foi movido para dentro
+  // do dropdown menu do usuário através da função exibirInfoUsuario() no Desktop
+  // e do mobileUserDropdown no Mobile.
 }
 
 /**

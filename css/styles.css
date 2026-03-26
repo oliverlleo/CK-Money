@@ -4126,3 +4126,69 @@ body.login-page {
     display: none !important;
   }
 }
+
+/* =================== DESKTOP USER DROPDOWN =================== */
+.user-info {
+  position: relative;
+  cursor: pointer;
+  transition: background-color var(--transition-speed);
+  border-radius: var(--border-radius-md);
+}
+
+.user-info:hover {
+  background-color: rgba(67, 97, 238, 0.05);
+}
+
+.desktop-user-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: var(--card-color);
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--border-radius-md);
+  padding: 0.5rem;
+  z-index: 1000;
+  border: 1px solid var(--border-color);
+  animation: fadeInDropdown 0.2s ease-out;
+}
+
+@keyframes fadeInDropdown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.desktop-menu-btn, .desktop-logout-btn {
+  width: 100%;
+  padding: 0.75rem;
+  border: none;
+  background: transparent;
+  color: var(--text-color);
+  text-align: left;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  transition: background-color var(--transition-speed);
+}
+
+.desktop-menu-btn:hover {
+  background-color: rgba(67, 97, 238, 0.1);
+  color: var(--primary);
+}
+
+.desktop-logout-btn {
+  color: var(--danger);
+}
+
+.desktop-logout-btn:hover {
+  background-color: rgba(247, 37, 133, 0.1);
+}
+
+.desktop-dropdown-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 0.5rem 0;
+}
