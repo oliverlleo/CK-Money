@@ -8,16 +8,34 @@ function atualizarFluxoCaixa() {
   const dateRangeStr = document.getElementById('dataRangeFluxoCaixa').value;
   const tipoAgrupamento = document.getElementById('agrupamentoFluxoCaixa').value;
 
-  if (!dateRangeStr) return;
+  // Use the global window variables set by script.js daterangepicker config
+  let inicio, fim;
 
-  const [startStr, endStr] = dateRangeStr.split(' - ');
-  const inicio = moment(startStr, 'DD/MM/YYYY');
-  const fim = moment(endStr, 'DD/MM/YYYY');
+  if (window.rangeStartFluxoCaixa && window.rangeEndFluxoCaixa) {
+    inicio = moment(window.rangeStartFluxoCaixa, 'YYYY-MM-DD');
+    fim = moment(window.rangeEndFluxoCaixa, 'YYYY-MM-DD');
+  } else if (dateRangeStr === 'Todo Período' || !dateRangeStr) {
+    // If not set or "Todo Período", default to a large range starting today
+    inicio = moment();
+    fim = moment().add(5, 'years');
+  } else {
+    // Attempt fallback parse of the input string if it has the "DD/MM/YYYY - DD/MM/YYYY" format
+    if (dateRangeStr.includes(' - ')) {
+      const [startStr, endStr] = dateRangeStr.split(' - ');
+      inicio = moment(startStr, 'DD/MM/YYYY');
+      fim = moment(endStr, 'DD/MM/YYYY');
+    } else {
+      // Fallback for named presets like "Próximos 3 Meses" if window vars failed to set
+      inicio = moment();
+      fim = moment().add(3, 'months');
+    }
+  }
 
   if (!inicio.isValid() || !fim.isValid()) {
-    console.error("Datas inválidas");
+    console.error("Datas inválidas:", dateRangeStr);
     return;
   }
+
 
   // Fetch all necessary data
   const uid = currentUser.uid;
@@ -216,7 +234,7 @@ function atualizarFluxoCaixa() {
         else saidasDia += ev.valor;
       });
 
-      if (eventosDia.length > 0 || agrupamentoTempo === 'mensal') {
+      if (eventosDia.length > 0 || tipoAgrupamento === 'mensal') {
         saldoAcumulado += (entradasDia - saidasDia);
         fluxoTimeline.push({
           data: dataStr,
