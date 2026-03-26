@@ -3754,6 +3754,15 @@ body.login-page {
 
 /* =================== MOBILE TABLE REAL DEVICE FIX =================== */
 
+/* Na versão desktop, esconder cartões mobile e garantir tabela */
+.cartoes-mobile-container {
+  display: none !important;
+}
+#cartoesListaPrincipal .table-container {
+  display: block !important;
+}
+
+
 @media (max-width: 768px) {
   /* FORÇAR controle total do viewport em mobile REAL */
   html {
@@ -3876,26 +3885,6 @@ body.login-page {
   .cartao-mobile-row.limite .cartao-mobile-valor {
     color: var(--success) !important;
     font-size: 1rem !important;
-    font-weight: 700 !important;
-  }
-
-  /* Destaque para datas importantes */
-  .cartao-mobile-row.data-importante .cartao-mobile-valor {
-    color: var(--warning) !important;
-    font-weight: 600 !important;
-  }
-
-  /* Responsividade - desktop deve manter tabela original */
-  @media (min-width: 769px) {
-    /* Na versão desktop, esconder cartões mobile e mostrar tabela */
-    .cartoes-mobile-container {
-      display: none !important;
-    }
-    
-    #cartoesListaPrincipal .table-container {
-      display: block !important;
-    }
-  }
   
   /* Tabela mobile - COMPLETAMENTE reformulada para mobile real */
   #todasDespesasTable {
@@ -4191,4 +4180,16 @@ body.login-page {
   height: 1px;
   background: var(--border-color);
   margin: 0.5rem 0;
+}
+
+/* =================== RESPONSIVIDADE FIX (DESKTOP) =================== */
+@media (min-width: 769px) {
+  /* Na versão desktop, esconder cartões mobile e mostrar tabela */
+  .cartoes-mobile-container {
+    display: none !important;
+  }
+
+  #cartoesListaPrincipal .table-container {
+    display: block !important;
+  }
 }
