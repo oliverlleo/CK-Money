@@ -1,9 +1,6 @@
-// Logic for the Cash Flow (Fluxo de Caixa) tab
+const fs = require('fs');
 
-/**
- * Main function to update Cash Flow data and UI
- */
-
+const code = `
 function atualizarFluxoCaixa() {
   const dateRangeStr = document.getElementById('fluxoDataRange').value;
   const tipoAgrupamento = document.getElementById('agrupamentoTempo').value;
@@ -47,7 +44,7 @@ function atualizarFluxoCaixa() {
                   eventos.push({
                     data: moment(rec.dataRecebimento).format('YYYY-MM-DD'),
                     tipo: 'renda_real',
-                    descricao: `Recebimento: ${r.nome}`,
+                    descricao: \`Recebimento: \${r.nome}\`,
                     valor: parseFloat(rec.valor),
                     status: 'recebido'
                   });
@@ -69,7 +66,7 @@ function atualizarFluxoCaixa() {
                  eventos.push({
                     data: projDate.format('YYYY-MM-DD'),
                     tipo: 'renda_projetada',
-                    descricao: `Projetado: ${r.nome}`,
+                    descricao: \`Projetado: \${r.nome}\`,
                     valor: parseFloat(pag.valor),
                     status: 'pendente'
                  });
@@ -117,7 +114,7 @@ function atualizarFluxoCaixa() {
                eventos.push({
                  data: moment(p.vencimento).format('YYYY-MM-DD'),
                  tipo: 'despesa',
-                 descricao: `${d.descricao} (Parc. ${idx + 1}/${d.numeroParcelas || d.parcelas.length})`,
+                 descricao: \`\${d.descricao} (Parc. \${idx + 1}/\${d.numeroParcelas || d.parcelas.length})\`,
                  valor: parseFloat(p.valor),
                  status: p.pago ? 'pago' : 'pendente'
                });
@@ -129,7 +126,7 @@ function atualizarFluxoCaixa() {
                eventos.push({
                  data: moment(r.data).format('YYYY-MM-DD'),
                  tipo: 'despesa',
-                 descricao: `${d.descricao} (Recorrente)`,
+                 descricao: \`\${d.descricao} (Recorrente)\`,
                  valor: parseFloat(r.valor),
                  status: r.pago ? 'pago' : 'pendente'
                });
@@ -145,7 +142,7 @@ function atualizarFluxoCaixa() {
                  eventos.push({
                    data: curDate.format('YYYY-MM-DD'),
                    tipo: 'despesa_projetada',
-                   descricao: `${d.descricao} (Projetado)`,
+                   descricao: \`\${d.descricao} (Projetado)\`,
                    valor: parseFloat(d.valor),
                    status: 'pendente'
                  });
@@ -258,7 +255,7 @@ function atualizarFluxoCaixa() {
        fluxoFinal = Array.from(mesesMap.values()).map(m => {
           const [yearStr, monthStr] = m.dataAgrupada.split('-');
           const monthIdx = parseInt(monthStr, 10) - 1;
-          m.label = `${monthNames[monthIdx]} ${yearStr}`;
+          m.label = \`\${monthNames[monthIdx]} \${yearStr}\`;
           return m;
        });
     }
@@ -280,170 +277,12 @@ function atualizarFluxoCaixa() {
   }).catch(err => {
     console.error("Erro ao gerar fluxo de caixa:", err);
     const container = document.getElementById('tabelaFluxoCaixa');
-    if (container) container.innerHTML = `<div class="alert alert-danger">Erro ao carregar os dados: ${err.message}</div>`;
+    if (container) container.innerHTML = \`<div class="alert alert-danger">Erro ao carregar os dados: \${err.message}</div>\`;
   });
 }
+`;
 
-function renderizarCardsFluxoCaixa(dados) {
-  const container = document.getElementById('cardsFluxoCaixa');
-  if (!container) return;
-
-  const formatMoney = (val) => `R$ ${parseFloat(val).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-
-  const fluxoLiquido = dados.totalEntradas - dados.totalSaidas;
-  const fluxoClass = fluxoLiquido >= 0 ? 'text-success' : 'text-danger';
-
-  container.innerHTML = `
-    <div class="dashboard-card">
-      <div class="dashboard-card-header">
-        <div class="dashboard-card-title">Saldo Inicial (Estimado)</div>
-      </div>
-      <div class="dashboard-card-value">${formatMoney(dados.saldoInicial)}</div>
-    </div>
-    <div class="dashboard-card">
-      <div class="dashboard-card-header">
-        <div class="dashboard-card-title">Entradas Projetadas</div>
-      </div>
-      <div class="dashboard-card-value text-success">+${formatMoney(dados.totalEntradas)}</div>
-    </div>
-    <div class="dashboard-card">
-      <div class="dashboard-card-header">
-        <div class="dashboard-card-title">Saídas Projetadas</div>
-      </div>
-      <div class="dashboard-card-value text-danger">-${formatMoney(dados.totalSaidas)}</div>
-    </div>
-    <div class="dashboard-card">
-      <div class="dashboard-card-header">
-        <div class="dashboard-card-title">Fluxo Líquido</div>
-      </div>
-      <div class="dashboard-card-value ${fluxoClass}">${formatMoney(fluxoLiquido)}</div>
-    </div>
-    <div class="dashboard-card">
-      <div class="dashboard-card-header">
-        <div class="dashboard-card-title">Saldo Final Projetado</div>
-      </div>
-      <div class="dashboard-card-value">${formatMoney(dados.saldoFinalProjetado)}</div>
-    </div>
-  `;
-}
-
-function renderizarGraficoFluxoCaixa(dados) {
-  const container = document.querySelector('#graficoFluxoCaixa');
-  if (!container) return;
-  container.innerHTML = '';
-
-  if (dados.timeline.length === 0) {
-    container.innerHTML = '<div class="text-center p-4">Não há dados projetados para o período selecionado.</div>';
-    return;
-  }
-
-  const labels = dados.timeline.map(item => item.label || moment(item.data).format('DD/MM/YYYY'));
-  const entradas = dados.timeline.map(item => item.entradas);
-  const saidas = dados.timeline.map(item => item.saidas);
-  const acumulado = dados.timeline.map(item => item.saldoAcumulado);
-
-  const options = {
-    series: [
-      { name: 'Entradas', type: 'column', data: entradas },
-      { name: 'Saídas', type: 'column', data: saidas },
-      { name: 'Saldo Acumulado', type: 'line', data: acumulado }
-    ],
-    chart: { height: 350, type: 'line', toolbar: { show: false } },
-    stroke: { width: [0, 0, 3], curve: 'smooth' },
-    colors: ['#4caf50', '#f44336', '#2196f3'],
-    labels: labels,
-    xaxis: { type: 'category' },
-    yaxis: [
-      { title: { text: 'Valores (R$)' }, labels: { formatter: (val) => val.toFixed(0) } }
-    ],
-    tooltip: { shared: true, intersect: false, y: { formatter: (y) => typeof y !== "undefined" ? "R$ " + y.toFixed(2) : y } },
-    legend: { position: 'top' }
-  };
-
-  const chart = new ApexCharts(container, options);
-  chart.render();
-}
-
-function renderizarTabelaFluxoCaixa(dados) {
-  const container = document.getElementById('tabelaFluxoCaixa');
-  if (!container) return;
-
-  if (dados.timeline.length === 0) {
-    container.innerHTML = '<p class="text-center">Sem dados para exibir.</p>';
-    return;
-  }
-
-  let html = `
-    <table class="table-full-width">
-      <thead>
-        <tr>
-          <th>Data / Período</th>
-          <th>Entradas</th>
-          <th>Saídas</th>
-          <th>Saldo do Período</th>
-          <th>Saldo Acumulado</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-
-  dados.timeline.forEach(item => {
-    const isDiario = dados.agrupamento === 'diario';
-    const labelData = isDiario ? moment(item.data).format('DD/MM/YYYY') : item.label;
-    const saldoPeriodo = item.entradas - item.saidas;
-    const saldoClass = saldoPeriodo >= 0 ? 'text-success' : 'text-danger';
-
-    html += `
-      <tr style="background-color: rgba(0,0,0,0.02); font-weight: bold;">
-        <td>${labelData}</td>
-        <td class="text-success">R$ ${item.entradas.toFixed(2)}</td>
-        <td class="text-danger">R$ ${item.saidas.toFixed(2)}</td>
-        <td class="${saldoClass}">R$ ${saldoPeriodo.toFixed(2)}</td>
-        <td>R$ ${item.saldoAcumulado.toFixed(2)}</td>
-      </tr>
-    `;
-
-    // Detalhamento dos eventos
-    if (item.eventos && item.eventos.length > 0) {
-      // Sort events: Incomes first, then expenses
-      item.eventos.sort((a, b) => {
-        if (a.tipo.includes('renda') && !b.tipo.includes('renda')) return -1;
-        if (!a.tipo.includes('renda') && b.tipo.includes('renda')) return 1;
-        return 0;
-      });
-
-      item.eventos.forEach(ev => {
-        const isEntrada = ev.tipo.includes('renda');
-        const icon = isEntrada ? '<i class="fas fa-arrow-up text-success"></i>' : '<i class="fas fa-arrow-down text-danger"></i>';
-        const valorFormatado = isEntrada ? `R$ ${ev.valor.toFixed(2)}` : `- R$ ${ev.valor.toFixed(2)}`;
-        const corValor = isEntrada ? 'text-success' : 'text-danger';
-        const badgeStatus = ev.status === 'pago' || ev.status === 'recebido'
-            ? '<span class="badge bg-success">Realizado</span>'
-            : '<span class="badge bg-warning text-dark">Pendente</span>';
-
-        // Escapar descrição para evitar XSS
-        const escapeHtml = (unsafe) => {
-            return (unsafe || '').toString()
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        };
-
-        html += `
-          <tr style="font-size: 0.9em;">
-            <td style="padding-left: 2rem;">${icon} ${escapeHtml(ev.descricao)}</td>
-            <td colspan="2" class="${corValor}">${valorFormatado}</td>
-            <td colspan="2">${badgeStatus}</td>
-          </tr>
-        `;
-      });
-    }
-  });
-
-  html += `</tbody></table>`;
-  container.innerHTML = html;
-}
-
-window.atualizarFluxoCaixa = atualizarFluxoCaixa;
+let content = fs.readFileSync('js/fluxo_caixa.js', 'utf8');
+content = content.replace(/function atualizarFluxoCaixa\(\) \{[\s\S]*?function renderizarCardsFluxoCaixa/g, code + '\nfunction renderizarCardsFluxoCaixa');
+fs.writeFileSync('js/fluxo_caixa.js', content);
+console.log('Updated fluxo_caixa.js successfully');
