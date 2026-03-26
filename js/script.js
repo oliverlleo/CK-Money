@@ -2414,8 +2414,9 @@ function renderCalendar() {
       const despesa = child.val();
       
       // Despesas à vista
-      if (despesa.formaPagamento === "avista" && !despesa.pago && despesa.dataCompra) {
-        const data = new Date(despesa.dataCompra);
+      if (despesa.formaPagamento === "avista" && despesa.dataCompra) {
+        const dataStr = despesa.dataCompra.length === 10 ? despesa.dataCompra + "T12:00:00" : despesa.dataCompra;
+        const data = new Date(dataStr);
         if (data.getMonth() === currentCalendarMonth && data.getFullYear() === currentCalendarYear) {
           const dia = data.getDate();
           if (!despesasPorDia[dia]) despesasPorDia[dia] = [];
@@ -2425,8 +2426,9 @@ function renderCalendar() {
       // Parcelas de cartão
       else if (despesa.formaPagamento === "cartao" && despesa.parcelas) {
         despesa.parcelas.forEach((parcela, index) => {
-          if (!parcela.pago && parcela.vencimento) {
-            const data = new Date(parcela.vencimento);
+          if (parcela.vencimento) {
+            const dataStr = parcela.vencimento.length === 10 ? parcela.vencimento + "T12:00:00" : parcela.vencimento;
+            const data = new Date(dataStr);
             if (data.getMonth() === currentCalendarMonth && data.getFullYear() === currentCalendarYear) {
               const dia = data.getDate();
               if (!despesasPorDia[dia]) despesasPorDia[dia] = [];
@@ -2435,6 +2437,23 @@ function renderCalendar() {
                 parcela: index + 1,
                 totalParcelas: despesa.parcelas.length,
                 valorParcela: parcela.valor
+              });
+            }
+          }
+        });
+      }
+      // Recorrente
+      else if (despesa.formaPagamento === "recorrente" && despesa.recorrencias) {
+        despesa.recorrencias.forEach((recorrencia) => {
+          if (recorrencia.vencimento) {
+            const dataStr = recorrencia.vencimento.length === 10 ? recorrencia.vencimento + "T12:00:00" : recorrencia.vencimento;
+            const data = new Date(dataStr);
+            if (data.getMonth() === currentCalendarMonth && data.getFullYear() === currentCalendarYear) {
+              const dia = data.getDate();
+              if (!despesasPorDia[dia]) despesasPorDia[dia] = [];
+              despesasPorDia[dia].push({
+                ...despesa,
+                valorParcela: recorrencia.valor || despesa.valor
               });
             }
           }
@@ -2485,6 +2504,8 @@ function showDayDetails(day, despesas) {
   despesas.forEach(d => {
     if (d.formaPagamento === "avista") {
       totalDia += parseFloat(d.valor) || 0;
+    } else if (d.formaPagamento === "recorrente") {
+      totalDia += parseFloat(d.valorParcela || d.valor) || 0;
     } else if (d.valorParcela) {
       totalDia += parseFloat(d.valorParcela) || 0;
     }
@@ -2506,6 +2527,14 @@ function showDayDetails(day, despesas) {
           <div class="despesa-detalhe">À Vista - ${getCategoriaName(despesa.categoria)}</div>
         </div>
         <div class="despesa-valor">R$ ${parseFloat(despesa.valor).toFixed(2)}</div>
+      `;
+    } else if (despesa.formaPagamento === "recorrente") {
+      despesaElement.innerHTML = `
+        <div class="despesa-info">
+          <div class="despesa-titulo">${despesa.descricao}</div>
+          <div class="despesa-detalhe">Recorrente - ${getCategoriaName(despesa.categoria)}</div>
+        </div>
+        <div class="despesa-valor">R$ ${parseFloat(despesa.valorParcela || despesa.valor).toFixed(2)}</div>
       `;
     } else {
       despesaElement.innerHTML = `
