@@ -3965,37 +3965,6 @@ function loadCartoes() {
         
         html += "</tbody></table></div>";
         
-        // Adicionar versão mobile como cartões
-        html += "<div class='cartoes-mobile-container'>";
-        cartoesData.forEach(cartao => {
-          const limite = parseFloat(cartao.limite);
-          const bandeira = cartao.bandeira || 'VISA'; // Valor padrão se não especificado
-          
-          html += `
-            <div class='cartao-mobile'>
-              <div class='cartao-mobile-header'>
-                <h4 class='cartao-mobile-nome'>${cartao.nome}</h4>
-                <span class='cartao-mobile-bandeira'>${bandeira}</span>
-              </div>
-              <div class='cartao-mobile-info'>
-                <div class='cartao-mobile-row limite'>
-                  <span class='cartao-mobile-label'>Limite Disponível:</span>
-                  <span class='cartao-mobile-valor'>R$ ${limite.toFixed(2)}</span>
-                </div>
-                <div class='cartao-mobile-row data-importante'>
-                  <span class='cartao-mobile-label'>Fechamento:</span>
-                  <span class='cartao-mobile-valor'>Dia ${cartao.diaFechamento}</span>
-                </div>
-                <div class='cartao-mobile-row data-importante'>
-                  <span class='cartao-mobile-label'>Vencimento:</span>
-                  <span class='cartao-mobile-valor'>Dia ${cartao.diaVencimento}</span>
-                </div>
-              </div>
-            </div>
-          `;
-        });
-        html += "</div>";
-        
       } else {
         html += "<p>Nenhum cartão cadastrado.</p>";
       }
