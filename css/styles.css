@@ -4020,3 +4020,10 @@ body.login-page {
     display: none !important;
   }
 }
+
+/* Correção: Limite de altura e scrollbar para listas no dashboard desktop/mobile */
+.despesas-lista, .receitas-lista {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 5px; /* space for scrollbar */
+}
