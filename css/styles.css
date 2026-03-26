@@ -168,11 +168,11 @@
   font-weight: 600;
 }
 
-/* Lista de receitas (similar às despesas) */
+/* Lista de receitas (similar às despesas) - limitando altura para aprox 3 itens com scroll */
 .receitas-lista {
-  max-height: 300px;
+  max-height: 220px;
   overflow-y: auto;
-  padding-right: 8px;
+  padding-right: 5px;
 }
 
 .receita-item {
@@ -1476,6 +1476,13 @@ tbody tr:hover {
   margin-top: 1rem;
 }
 
+/* Limitar altura da lista de despesas no dashboard para aprox. 3 itens com scroll */
+.despesas-lista {
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
 /* Despesas */
 .despesa-item {
   display: flex;
@@ -2589,8 +2596,6 @@ body.login-page {
   /* Despesas lista mobile */
   .despesas-lista {
     font-size: 0.875rem;
-    max-height: 300px;
-    overflow-y: auto;
   }
 
   .despesas-lista .despesa-item {
@@ -4021,9 +4026,11 @@ body.login-page {
   }
 }
 
-/* Correção: Limite de altura e scrollbar para listas no dashboard desktop/mobile */
-.despesas-lista, .receitas-lista {
-  max-height: 400px;
-  overflow-y: auto;
-  padding-right: 5px; /* space for scrollbar */
+/* Correção para menu lateral */
+@media (min-width: 769px) {
+  aside {
+    height: 100vh;
+    position: sticky;
+    top: 0;
+  }
 }
