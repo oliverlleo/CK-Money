@@ -1,0 +1,116 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - text:       
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - heading " Contas" [level=2] [ref=e4]:
+        - generic [ref=e5]: 
+        - text: Contas
+      - generic [ref=e6]:
+        - link " Dashboard" [ref=e7] [cursor=pointer]:
+          - /url: "#"
+          - generic [ref=e8]: 
+          - generic [ref=e9]: Dashboard
+        - link " Despesas" [ref=e10] [cursor=pointer]:
+          - /url: "#"
+          - generic [ref=e11]: 
+          - generic [ref=e12]: Despesas
+        - link " Relatórios & Previsões" [ref=e13] [cursor=pointer]:
+          - /url: "#"
+          - generic [ref=e14]: 
+          - generic [ref=e15]: Relatórios & Previsões
+        - link " Inteligência Financeira" [ref=e16] [cursor=pointer]:
+          - /url: "#"
+          - generic [ref=e17]: 
+          - generic [ref=e18]: Inteligência Financeira
+        - link " Metas" [ref=e19] [cursor=pointer]:
+          - /url: "#"
+          - generic [ref=e20]: 
+          - generic [ref=e21]: Metas
+        - link " Gerenciar Carteira" [ref=e22] [cursor=pointer]:
+          - /url: "#"
+          - generic [ref=e23]: 
+          - generic [ref=e24]: Gerenciar Carteira
+        - link " Exportar" [ref=e25] [cursor=pointer]:
+          - /url: "#"
+          - generic [ref=e26]: 
+          - generic [ref=e27]: Exportar
+        - link " Alertas" [ref=e28] [cursor=pointer]:
+          - /url: "#"
+          - generic [ref=e29]: 
+          - generic [ref=e30]: Alertas
+    - main [ref=e31]:
+      - heading "Sistema de Gerenciamento de Contas" [level=1] [ref=e33]
+      - generic [ref=e34]:
+        - generic [ref=e35]:
+          - heading "Dashboard Resumido" [level=2] [ref=e36]
+          - generic [ref=e37]:
+            - combobox [ref=e39]:
+              - option "Janeiro" [selected]
+              - option "Fevereiro"
+              - option "Março"
+              - option "Abril"
+              - option "Maio"
+              - option "Junho"
+              - option "Julho"
+              - option "Agosto"
+              - option "Setembro"
+              - option "Outubro"
+              - option "Novembro"
+              - option "Dezembro"
+            - combobox [ref=e41]:
+              - option "2020" [selected]
+              - option "2021"
+              - option "2022"
+              - option "2023"
+              - option "2024"
+              - option "2025"
+              - option "2026"
+              - option "2027"
+              - option "2028"
+              - option "2029"
+              - option "2030"
+            - button " Atualizar" [ref=e42] [cursor=pointer]:
+              - generic [ref=e43]: 
+              - generic [ref=e44]: Atualizar
+          - text: 
+        - generic [ref=e45]:
+          - generic [ref=e46]:
+            - generic [ref=e47]:
+              - generic [ref=e48]: Saldo Atual
+              - generic [ref=e50]: 
+            - generic [ref=e51]: R$ 0.00
+            - generic [ref=e52]:
+              - generic [ref=e53]: Disponível para uso
+              - button "" [ref=e54] [cursor=pointer]:
+                - generic [ref=e55]: 
+          - generic [ref=e56]:
+            - generic [ref=e57]:
+              - generic [ref=e58]: Despesas do Mês
+              - generic [ref=e59]:
+                - button "" [ref=e60] [cursor=pointer]:
+                  - generic [ref=e61]: 
+                - button "" [ref=e62] [cursor=pointer]:
+                  - generic [ref=e63]: 
+            - generic [ref=e64]: R$ 0.00
+            - generic [ref=e65]: Março de 2025
+          - generic [ref=e66]:
+            - generic [ref=e67]:
+              - generic [ref=e68]: Próximos Vencimentos
+              - generic [ref=e70]: 
+            - generic [ref=e71]: "0"
+            - generic [ref=e72]: Dias até o próximo vencimento
+          - text: +
+        - generic [ref=e73]:
+          - heading "Análise de Despesas" [level=3] [ref=e75]
+          - generic [ref=e79]:
+            - heading "Despesas do Mês" [level=4] [ref=e81]
+            - heading "Receitas do Mês" [level=4] [ref=e83]
+        - button "+ Cadastrar Nova Despesa" [ref=e84] [cursor=pointer]:
+          - generic [ref=e85]: +
+          - generic [ref=e86]: Cadastrar Nova Despesa
+      - text:  +           + +    +    
+  - text: + +    + +             
+```

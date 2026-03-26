@@ -5,8 +5,8 @@
  */
 
 function atualizarFluxoCaixa() {
-  const dateRangeStr = document.getElementById('fluxoDataRange').value;
-  const tipoAgrupamento = document.getElementById('agrupamentoTempo').value;
+  const dateRangeStr = document.getElementById('dataRangeFluxoCaixa').value;
+  const tipoAgrupamento = document.getElementById('agrupamentoFluxoCaixa').value;
 
   if (!dateRangeStr) return;
 
