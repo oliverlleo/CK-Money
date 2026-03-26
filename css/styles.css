@@ -225,6 +225,38 @@
     height: 400px;
   }
   
+  /* Limitar a altura das listas no desktop para mostrar apenas ~3 itens e scrollar o resto */
+  .despesas-lista,
+  .receitas-lista {
+    max-height: 250px;
+    overflow-y: auto;
+    padding-right: 8px; /* Espaço para a barra de rolagem */
+    scrollbar-width: thin; /* Para Firefox */
+    scrollbar-color: rgba(67, 97, 238, 0.3) transparent; /* Para Firefox */
+  }
+
+  /* Customização suave da barra de rolagem para desktop */
+  .despesas-lista::-webkit-scrollbar,
+  .receitas-lista::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .despesas-lista::-webkit-scrollbar-track,
+  .receitas-lista::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .despesas-lista::-webkit-scrollbar-thumb,
+  .receitas-lista::-webkit-scrollbar-thumb {
+    background: rgba(67, 97, 238, 0.3);
+    border-radius: 10px;
+  }
+
+  .despesas-lista::-webkit-scrollbar-thumb:hover,
+  .receitas-lista::-webkit-scrollbar-thumb:hover {
+    background: rgba(67, 97, 238, 0.6);
+  }
+
   .mobile-nav-tabs {
     display: none !important;
   }
