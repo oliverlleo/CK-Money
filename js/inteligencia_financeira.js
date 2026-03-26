@@ -127,6 +127,24 @@ function analisarSituacaoFinanceira() {
               }
             });
           }
+          // Processar despesas recorrentes
+          else if (despesa.formaPagamento === "recorrente" && despesa.recorrencias) {
+            despesa.recorrencias.forEach(recorrencia => {
+              const dataVencimento = new Date(recorrencia.vencimento);
+
+              // Verificar se é do ano atual
+              if (dataVencimento.getFullYear() === anoAtual) {
+                const valor = parseFloat(recorrencia.valor) || parseFloat(despesa.valor) || 0;
+                const mes = dataVencimento.getMonth();
+
+                // Adicionar ao total anual
+                dadosFinanceiros.despesas.anual += valor;
+
+                // Adicionar ao total mensal
+                dadosFinanceiros.despesas.mensal[mes] += valor;
+              }
+            });
+          }
           });
         }
         

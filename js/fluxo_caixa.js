@@ -143,12 +143,12 @@ function atualizarFluxoCaixa() {
            });
         } else if (d.formaPagamento === 'recorrente' && d.recorrencias) {
            d.recorrencias.forEach((r, idx) => {
-             if (r.data) {
+             if (r.vencimento) {
                eventos.push({
-                 data: moment(r.data).format('YYYY-MM-DD'),
+                 data: moment(r.vencimento).format('YYYY-MM-DD'),
                  tipo: 'despesa',
                  descricao: `${d.descricao} (Recorrente)`,
-                 valor: parseFloat(r.valor),
+                 valor: parseFloat(r.valor) || parseFloat(d.valor) || 0,
                  status: r.pago ? 'pago' : 'pendente'
                });
              }
@@ -156,8 +156,8 @@ function atualizarFluxoCaixa() {
 
            // Projetar recorrentes para o futuro
            let lastRecorrencia = d.recorrencias[d.recorrencias.length - 1];
-           if (lastRecorrencia && lastRecorrencia.data) {
-             let curDate = moment(lastRecorrencia.data).add(1, 'month');
+           if (lastRecorrencia && lastRecorrencia.vencimento) {
+             let curDate = moment(lastRecorrencia.vencimento).add(1, 'month');
              while(curDate.isSameOrBefore(fim)) {
                if (curDate.isSameOrAfter(inicio)) {
                  eventos.push({
