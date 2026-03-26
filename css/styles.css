@@ -225,10 +225,10 @@
     height: 400px;
   }
   
-  /* Limitar a altura das listas no desktop para mostrar apenas ~3 itens e scrollar o resto */
+  /* Limitar a altura das listas no desktop para mostrar apenas ~4 itens e scrollar o resto */
   .despesas-lista,
   .receitas-lista {
-    max-height: 250px;
+    max-height: 290px;
     overflow-y: auto;
     padding-right: 8px; /* Espaço para a barra de rolagem */
     scrollbar-width: thin; /* Para Firefox */
