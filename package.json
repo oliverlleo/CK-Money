@@ -1,0 +1,25 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "Sistema open source para gerenciamento financeiro pessoal desenvolvido em vanilla HTML, CSS e JavaScript.",
+  "main": "sw.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oliverlleo/CK-Money.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/oliverlleo/CK-Money/issues"
+  },
+  "homepage": "https://github.com/oliverlleo/CK-Money#readme",
+  "dependencies": {
+    "http-server": "^14.1.1",
+    "playwright": "^1.58.2"
+  }
+}
