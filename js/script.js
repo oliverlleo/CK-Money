@@ -13,6 +13,51 @@ let rangeStart = null;
 let rangeEnd = null;
 let currentUser = null;
 
+// ===================== PWA INSTALAÇÃO =====================
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  // Previne o mini-infobar padrão de aparecer em dispositivos móveis
+  e.preventDefault();
+  // Guarda o evento para ser chamado depois.
+  deferredPrompt = e;
+
+  // Verifica se o usuário já dispensou o banner antes
+  const pwaBannerDismissed = localStorage.getItem('pwaBannerDismissed');
+
+  if (!pwaBannerDismissed) {
+    // Atualiza a interface para notificar o usuário que ele pode instalar o PWA
+    const installBanner = document.getElementById('pwaInstallBanner');
+    if (installBanner) {
+      installBanner.style.display = 'flex';
+
+      const btnAccept = document.getElementById('pwaInstallAccept');
+      const btnDecline = document.getElementById('pwaInstallDecline');
+
+      if (btnAccept) {
+        btnAccept.addEventListener('click', async () => {
+          // Oculta o banner fornecido pelo app
+          installBanner.style.display = 'none';
+          // Mostra o prompt de instalação padrão
+          deferredPrompt.prompt();
+          // Aguarda o usuário responder ao prompt
+          const { outcome } = await deferredPrompt.userChoice;
+          console.log(`User response to the install prompt: ${outcome}`);
+          // Nós o usamos uma vez, não podemos usá-lo novamente, descarta
+          deferredPrompt = null;
+        });
+      }
+
+      if (btnDecline) {
+        btnDecline.addEventListener('click', () => {
+          installBanner.style.display = 'none';
+          localStorage.setItem('pwaBannerDismissed', 'true');
+        });
+      }
+    }
+  }
+});
+
 // Mapa de categorias para uso global
 window.novo_categoriasMap = {};
 
@@ -3160,7 +3205,7 @@ function confirmarPagamentoDespesa() {
 function fazerLogout() {
   firebase.auth().signOut()
     .then(() => {
-      window.location.href = 'login.html';
+      window.location.href = '/login';
     })
     .catch((error) => {
       console.error('Erro ao fazer logout:', error);
@@ -4532,7 +4577,7 @@ function logout() {
     currentUser = null;
     
     // Redirecionar para a página de login
-    window.location.href = 'login.html';
+    window.location.href = '/login';
   }).catch((error) => {
     console.error('Erro ao fazer logout:', error);
     exibirToast('Erro ao fazer logout', 'danger');
@@ -4631,8 +4676,8 @@ function handleAuthStateChanged(user) {
     carregarDadosUsuario();
   } else {
     // Usuário não está logado, redirecionar para a página de login
-    if (!window.location.href.includes('login.html')) {
-      window.location.href = 'login.html';
+    if (!window.location.pathname.includes('/login')) {
+      window.location.href = '/login';
     }
   }
 }
