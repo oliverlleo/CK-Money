@@ -3731,21 +3731,31 @@ function loadCategorias() {
       let html = "<h3>Categorias Cadastradas</h3>";
       
       if (snapshot.exists()) {
-        html += "<div class='table-container'><table><thead><tr><th>Nome</th></tr></thead><tbody>";
+        html += "<div class='categorias-list'>";
         
         snapshot.forEach(child => {
           const categoria = child.val();
           html += `
-            <tr>
-              <td>${categoria.nome}</td>
-            </tr>
+            <div class="categoria-item">
+              <div class="categoria-info">
+                <div class="categoria-titulo">${categoria.nome}</div>
+              </div>
+              <div class="categoria-acoes">
+                <button class="btn-icon btn-primary" onclick="prepararEditarCategoria('${child.key}', '${categoria.nome}')">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-icon btn-danger" onclick="excluirCategoria('${child.key}')">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
           `;
           
           // Adicionar ao mapa de categorias
           window.novo_categoriasMap[child.key] = categoria.nome;
         });
         
-        html += "</tbody></table></div>";
+        html += "</div>";
       } else {
         html += "<p>Nenhuma categoria cadastrada.</p>";
       }
@@ -4246,9 +4256,11 @@ function loadRendas() {
           </div>
           ${pagamentosInfo}
         </div>
-        <button class="btn-icon btn-danger" onclick="alert('Função disponível apenas para usuários logados')">
-          <i class="fas fa-trash"></i>
-        </button>
+        <div class="renda-acoes">
+          <button class="btn-icon btn-danger" onclick="alert('Função disponível apenas para usuários logados')">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
       `;
       
       rendaList.appendChild(div);
@@ -4287,9 +4299,11 @@ function loadRendas() {
           </div>
           ${pagamentosInfo}
         </div>
-        <button class="btn-icon btn-danger" onclick="deleteRenda('${key}')">
-          <i class="fas fa-trash"></i>
-        </button>
+        <div class="renda-acoes">
+          <button class="btn-icon btn-danger" onclick="deleteRenda('${key}')">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
       `;
       
       rendaList.appendChild(div);
