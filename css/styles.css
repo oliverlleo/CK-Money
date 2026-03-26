@@ -3583,8 +3583,9 @@ body.login-page {
 /* =================== MOBILE OPTIMIZATION FOR RENDA & CATEGORIA SECTIONS =================== */
   /* Melhorias específicas para a seção de rendas no mobile */
   .renda-item {
-    flex-direction: column !important;
-    align-items: stretch !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
     padding: 0.75rem !important;
     margin-bottom: 0.5rem !important;
     position: relative !important;
@@ -3592,32 +3593,37 @@ body.login-page {
   
   /* Melhorias específicas para a seção de categorias no mobile */
   .categoria-item {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    padding: 0.75rem 0.75rem 0.5rem 0.75rem !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0.75rem !important;
     margin-bottom: 0.5rem !important;
     position: relative !important;
   }
   
   .categoria-info {
-    width: 100% !important;
-    margin-bottom: 0.75rem !important;
-    padding-right: 48px !important; /* Espaço para os botões posicionados absolutamente */
+    flex: 1 !important;
+    width: auto !important;
+    margin-bottom: 0 !important;
+    padding-right: 0.5rem !important;
   }
   
   .categoria-titulo {
     font-size: 1rem !important;
     font-weight: 600 !important;
     color: var(--primary-color) !important;
+    margin-bottom: 0 !important;
   }
   
   .categoria-acoes {
-    position: absolute !important;
-    top: 0.75rem !important;
-    right: 0.75rem !important;
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
     display: flex !important;
-    flex-direction: row !important; /* Alterado de column para row */
+    flex-direction: row !important;
     gap: 0.35rem !important;
+    align-self: center !important;
+    margin-top: 0 !important;
   }
   
   /* Modificar botões nos modais para serem mais compactos em mobile */
@@ -3673,20 +3679,22 @@ body.login-page {
   }
   
   .renda-info {
-    width: 100% !important;
-    margin-bottom: 0.75rem !important;
+    flex: 1 !important;
+    width: auto !important;
+    margin-bottom: 0 !important;
+    padding-right: 0.5rem !important;
   }
   
   .renda-titulo {
     font-size: 1rem !important;
     font-weight: 600 !important;
-    margin-bottom: 0.5rem !important;
+    margin-bottom: 0.25rem !important;
     color: var(--primary-color) !important;
   }
   
   .renda-detalhe {
     font-size: 0.85rem !important;
-    margin-bottom: 0.5rem !important;
+    margin-bottom: 0.25rem !important;
     padding: 0.25rem 0.5rem !important;
     background: rgba(40, 167, 69, 0.1) !important;
     border-radius: 4px !important;
@@ -3707,11 +3715,11 @@ body.login-page {
     max-width: 100% !important;
   }
   
-  /* Botão de delete posicionado no canto superior direito */
+  /* Botão de delete natural e não absoluto */
   .renda-item .btn-icon {
-    position: absolute !important;
-    top: 0.5rem !important;
-    right: 0.5rem !important;
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
     width: 32px !important;
     height: 32px !important;
     padding: 0 !important;
@@ -3722,6 +3730,12 @@ body.login-page {
     border: 1px solid rgba(220, 53, 69, 0.2) !important;
   }
   
+  .renda-acoes {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
   .renda-item .btn-icon:hover {
     background: #dc3545 !important;
     color: white !important;
@@ -4191,4 +4205,62 @@ body.login-page {
   height: 1px;
   background: var(--border-color);
   margin: 0.5rem 0;
+}
+
+/* ====== GLOBAL ALIGNMENT FOR CARDS (DESKTOP & MOBILE) ====== */
+.renda-item,
+.categoria-item,
+.cartao-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+}
+
+.renda-acoes,
+.categoria-acoes,
+.cartao-acoes {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.renda-item .btn-icon,
+.categoria-item .btn-icon,
+.cartao-item .btn-icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.categoria-item .btn-icon.btn-danger,
+.renda-item .btn-icon.btn-danger {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+  border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+.categoria-item .btn-icon.btn-primary,
+.renda-item .btn-icon.btn-primary {
+  background: rgba(67, 97, 238, 0.1);
+  color: #4361ee;
+  border: 1px solid rgba(67, 97, 238, 0.2);
+}
+
+.categoria-item .btn-icon.btn-primary:hover,
+.renda-item .btn-icon.btn-primary:hover {
+  background: #4361ee;
+  color: white;
+}
+
+.categoria-item .btn-icon.btn-danger:hover,
+.renda-item .btn-icon.btn-danger:hover {
+  background: #dc3545;
+  color: white;
 }
