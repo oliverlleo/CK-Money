@@ -1,9 +1,9 @@
 /**
  * Service Worker para o App de Gestão Financeira
- * Versão: 1
+ * Versão: 4
  */
 
-const CACHE_NAME = 'gestao-financeira-cache-v1';
+const CACHE_NAME = 'gestao-financeira-cache-v4';
 
 // Lista de todos os arquivos do seu app para guardar em cache.
 const urlsToCache = [
@@ -15,6 +15,8 @@ const urlsToCache = [
   '/js/script.js',
   '/js/inteligencia_financeira.js',
   '/js/utils.js',
+  '/js/navigation.js',
+  '/js/pwa.js',
   '/icon-192x192.png',
   '/icon-512x512.png'
   // NOTA: Bibliotecas externas (Firebase, JQuery, etc.) não foram adicionadas

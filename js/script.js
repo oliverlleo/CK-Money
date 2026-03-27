@@ -13,6 +13,7 @@ let rangeStart = null;
 let rangeEnd = null;
 let currentUser = null;
 
+
 // Mapa de categorias para uso global
 window.novo_categoriasMap = {};
 
@@ -255,6 +256,75 @@ function initDateRangePicker() {
           rangeStart = null;
           rangeEnd = null;
           atualizarRelatorios();
+        });
+      }
+
+      const dataRangeFluxoCaixaInput = $('#dataRangeFluxoCaixa');
+      if (dataRangeFluxoCaixaInput.length) {
+        dataRangeFluxoCaixaInput.daterangepicker({
+          locale: {
+            format: 'DD/MM/YYYY',
+            separator: ' - ',
+            applyLabel: 'Aplicar',
+            cancelLabel: 'Cancelar',
+            fromLabel: 'De',
+            toLabel: 'Até',
+            customRangeLabel: 'Personalizado',
+            weekLabel: 'S',
+            daysOfWeek: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
+            monthNames: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
+            firstDay: 0
+          },
+          ranges: {
+            'Todo Período': [moment().subtract(10, 'years'), moment().add(10, 'years')],
+            'Este Mês': [moment().startOf('month'), moment().endOf('month')],
+            'Próximos 3 Meses': [moment(), moment().add(3, 'months')],
+            'Próximos 6 Meses': [moment(), moment().add(6, 'months')],
+            'Este Ano': [moment().startOf('year'), moment().endOf('year')],
+            'Próximo Ano': [moment().add(1, 'year').startOf('year'), moment().add(1, 'year').endOf('year')]
+          },
+          startDate: moment(),
+          endDate: moment().add(3, 'months'),
+          opens: 'left',
+          autoUpdateInput: false
+        });
+
+        // Definir "Próximos 3 Meses" como padrão
+        dataRangeFluxoCaixaInput.val('Próximos 3 Meses');
+
+        // Define default values if empty
+        window.rangeStartFluxoCaixa = moment().format('YYYY-MM-DD');
+        window.rangeEndFluxoCaixa = moment().add(3, 'months').format('YYYY-MM-DD');
+
+        // Event listener para aplicar o filtro
+        dataRangeFluxoCaixaInput.on('apply.daterangepicker', function(ev, picker) {
+          const label = picker.chosenLabel;
+
+          if (label === 'Todo Período') {
+            $(this).val('Todo Período');
+            window.rangeStartFluxoCaixa = null;
+            window.rangeEndFluxoCaixa = null;
+          } else {
+            $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+            window.rangeStartFluxoCaixa = picker.startDate.format('YYYY-MM-DD');
+            window.rangeEndFluxoCaixa = picker.endDate.format('YYYY-MM-DD');
+          }
+
+          // Atualizar fluxo de caixa
+          if (typeof atualizarFluxoCaixa === 'function') {
+            atualizarFluxoCaixa();
+          }
+        });
+
+        // Event listener para cancelar
+        dataRangeFluxoCaixaInput.on('cancel.daterangepicker', function(ev, picker) {
+          $(this).val('Próximos 3 Meses');
+          window.rangeStartFluxoCaixa = moment().format('YYYY-MM-DD');
+          window.rangeEndFluxoCaixa = moment().add(3, 'months').format('YYYY-MM-DD');
+          if (typeof atualizarFluxoCaixa === 'function') {
+            atualizarFluxoCaixa();
+          }
         });
       }
     } else {
@@ -2079,9 +2149,7 @@ function filtrarTodasDespesas() {
         tr.innerHTML = `
           <td data-label="Descrição">${despesa.descricao}</td>
           <td data-label="Valor">R$ ${parseFloat(despesa.valor).toFixed(2)}</td>
-          <td data-label="Detalhes">${dataCompra.toLocaleDateString()} 
-            <span class="categoria-info">• ${getCategoriaName(despesa.categoria)}</span> 
-            <span class="status-info">• ${statusBadge}</span></td>
+          <td data-label="Data"><span class="desktop-date">${dataCompra.toLocaleDateString()}</span><span class="mobile-date" style="display:none;">${dataCompra.toLocaleDateString()} <span class="categoria-info">• ${getCategoriaName(despesa.categoria)}</span> <span class="status-info">• ${statusBadge}</span></span></td>
           <td data-label="Categoria">${getCategoriaName(despesa.categoria)}</td>
           <td data-label="Status">${statusCompleto}</td>
           <td data-label="Ações" class="desktop-actions">
@@ -2130,9 +2198,7 @@ function filtrarTodasDespesas() {
           tr.innerHTML = `
             <td data-label="Descrição">${despesa.descricao} - Parcela ${index+1}/${despesa.parcelas.length}</td>
             <td data-label="Valor">R$ ${parseFloat(parcela.valor).toFixed(2)}</td>
-            <td data-label="Detalhes">${dataVencimento.toLocaleDateString()} 
-              <span class="categoria-info">• ${getCategoriaName(despesa.categoria)}</span> 
-              <span class="status-info">• ${statusBadge}</span></td>
+            <td data-label="Data"><span class="desktop-date">${dataVencimento.toLocaleDateString()}</span><span class="mobile-date" style="display:none;">${dataVencimento.toLocaleDateString()} <span class="categoria-info">• ${getCategoriaName(despesa.categoria)}</span> <span class="status-info">• ${statusBadge}</span></span></td>
             <td data-label="Categoria">${getCategoriaName(despesa.categoria)}</td>
             <td data-label="Status">${statusCompleto}</td>
             <td data-label="Ações" class="desktop-actions">
@@ -2217,9 +2283,7 @@ function filtrarTodasDespesas() {
         tr.innerHTML = `
           <td data-label="Descrição">${despesa.descricao} - Recorrente</td>
           <td data-label="Valor">R$ ${parseFloat(despesa.valor).toFixed(2)}/mês</td>
-          <td data-label="Detalhes">${dataVencimentoStr} 
-            <span class="categoria-info">• ${getCategoriaName(despesa.categoria)}</span> 
-            <span class="status-info">• ${statusText}</span></td>
+          <td data-label="Data"><span class="desktop-date">${dataVencimentoStr}</span><span class="mobile-date" style="display:none;">${dataVencimentoStr} <span class="categoria-info">• ${getCategoriaName(despesa.categoria)}</span> <span class="status-info">• ${statusText}</span></span></td>
           <td data-label="Categoria">${getCategoriaName(despesa.categoria)}</td>
           <td data-label="Status">${statusText}</td>
           <td data-label="Ações" class="desktop-actions">
@@ -3091,7 +3155,7 @@ function confirmarPagamentoDespesa() {
 function fazerLogout() {
   firebase.auth().signOut()
     .then(() => {
-      window.location.href = 'login.html';
+      redirecionarPara('login');
     })
     .catch((error) => {
       console.error('Erro ao fazer logout:', error);
@@ -3491,6 +3555,10 @@ function showRelatorioTab(tabId) {
       fim = new Date(rangeEnd);
     }
     atualizarGraficoCategorias(inicio, fim);
+  } else if (tabId === 'fluxoCaixaTab') {
+    if (typeof atualizarFluxoCaixa === 'function') {
+      atualizarFluxoCaixa();
+    }
   }
 }
 
@@ -4404,16 +4472,16 @@ function exibirInfoUsuario(user) {
       </div>
       <i class="fas fa-chevron-down" style="color: var(--text-muted); font-size: 0.8rem; margin-left: 0.5rem;"></i>
 
-      <div id="desktopUserDropdown" class="desktop-user-dropdown" style="display: none;">
-        <button class="desktop-menu-btn" onclick="toggleTheme(); event.stopPropagation();">
+      <div id="desktopUserDropdown" class="desktop-user-dropdown" style="display: none; position: absolute; right: 0; top: calc(100% + 5px); width: 200px; background: var(--card-color); box-shadow: var(--shadow-lg); border-radius: var(--border-radius-md); padding: 0.5rem; z-index: 1000; border: 1px solid var(--border-color);">
+        <div class="desktop-menu-item" onclick="toggleTheme(); event.stopPropagation();" style="display:flex; align-items:center; gap:8px; padding:8px 12px; cursor:pointer; color:var(--text-color); border-radius: 4px;">
           <i class="fas ${themeIconClass}" id="themeIcon"></i>
           Alternar tema
-        </button>
-        <div class="desktop-dropdown-divider"></div>
-        <button class="desktop-logout-btn" onclick="logout(); event.stopPropagation();">
+        </div>
+        <div style="height: 1px; background-color: var(--border-color); margin: 0.25rem 0;"></div>
+        <div class="desktop-menu-item logout" onclick="logout(); event.stopPropagation();" style="display:flex; align-items:center; gap:8px; padding:8px 12px; cursor:pointer; color:#dc3545; border-radius: 4px;">
           <i class="fa-solid fa-sign-out-alt"></i>
           Sair da conta
-        </button>
+        </div>
       </div>
     `;
   }
@@ -4476,7 +4544,7 @@ function logout() {
     currentUser = null;
     
     // Redirecionar para a página de login
-    window.location.href = 'login.html';
+    redirecionarPara('login');
   }).catch((error) => {
     console.error('Erro ao fazer logout:', error);
     exibirToast('Erro ao fazer logout', 'danger');
@@ -4575,8 +4643,8 @@ function handleAuthStateChanged(user) {
     carregarDadosUsuario();
   } else {
     // Usuário não está logado, redirecionar para a página de login
-    if (!window.location.href.includes('login.html')) {
-      window.location.href = 'login.html';
+    if (!window.location.href.includes('login')) {
+      redirecionarPara('login');
     }
   }
 }
