@@ -1610,10 +1610,12 @@ tbody tr:hover {
 .user-info {
   display: flex;
   align-items: center;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid rgba(0,0,0,0.1);
-  transition: all var(--transition-speed);
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: var(--border-radius-md);
+  transition: background-color 0.2s;
+  position: relative;
 }
 
 .user-avatar {
@@ -4163,8 +4165,8 @@ body.login-page {
 .desktop-user-dropdown {
   position: absolute;
   top: 100%;
-  left: 0;
-  width: 100%;
+  right: 0;
+  width: 200px;
   background: var(--card-color);
   box-shadow: var(--shadow-lg);
   border-radius: var(--border-radius-md);
@@ -4244,4 +4246,32 @@ body.login-page {
   #todasDespesasTable td[data-label="Data"] .desktop-date {
     display: none !important;
   }
+}
+
+/* Correção para a tabela de Todas as Despesas no Desktop */
+@media (min-width: 769px) {
+  #todasDespesasTable td[data-label="Data"] .mobile-date {
+    display: none !important;
+  }
+  #todasDespesasTable td[data-label="Data"] .desktop-date {
+    display: inline !important;
+  }
+}
+
+/* Correção para a tabela de Todas as Despesas no Mobile */
+@media (max-width: 768px) {
+  #todasDespesasTable td[data-label="Data"] .mobile-date {
+    display: inline !important;
+  }
+  #todasDespesasTable td[data-label="Data"] .desktop-date {
+    display: none !important;
+  }
+}
+
+.desktop-menu-item:hover {
+  background-color: var(--hover-color, rgba(0,0,0,0.05));
+  border-radius: 4px;
+}
+.desktop-menu-item.logout:hover {
+  background-color: rgba(220, 53, 69, 0.1);
 }
