@@ -66,6 +66,16 @@
   </style>
   
 
+
+  <!-- PWA Install Prompt Listener (DEVE estar no <head> para nao perder o evento) -->
+  <script>
+    window.deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      window.deferredPrompt = e;
+      console.log('beforeinstallprompt disparado e capturado!');
+    });
+  </script>
 </head>
 <body>
   <!-- Mobile Top Bar -->

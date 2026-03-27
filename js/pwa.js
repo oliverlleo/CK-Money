@@ -1,5 +1,5 @@
 // ===================== PWA INSTALAÇÃO =====================
-let deferredPrompt;
+
 
 // Cria o banner do PWA dinamicamente para funcionar em todas as páginas
 function createPwaBanner() {
@@ -61,12 +61,12 @@ function initPwaLogic() {
           // Oculta o banner
           installBanner.style.setProperty('display', 'none', 'important');
 
-          if (deferredPrompt) {
+          if (window.deferredPrompt) {
             // Android Chrome - Suporta o evento automático
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
+            window.deferredPrompt.prompt();
+            const { outcome } = await window.deferredPrompt.userChoice;
             console.log(`PWA install prompt outcome: ${outcome}`);
-            deferredPrompt = null;
+            window.deferredPrompt = null;
           } else {
             // iOS Safari ou outros navegadores que não suportam disparo automático
             // Mostramos um modal com instruções manuais
@@ -88,10 +88,6 @@ function initPwaLogic() {
 }
 
 // Escuta o evento (Android/Chrome) para armazená-lo se estiver disponível
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault(); // Previne a barra automática
-  deferredPrompt = e; // Salva o evento para quando o usuário clicar no nosso botão
-});
 
 // Quando o DOM estiver pronto, cria o HTML e roda a lógica
 document.addEventListener('DOMContentLoaded', () => {
