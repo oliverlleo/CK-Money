@@ -4225,3 +4225,10 @@ body.login-page {
     display: block !important;
   }
 }
+
+/* Ocultar banner do PWA no Desktop (telas > 768px) */
+@media (min-width: 769px) {
+  #pwaInstallBanner {
+    display: none !important;
+  }
+}
