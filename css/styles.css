@@ -4231,6 +4231,74 @@ body.login-page {
     gap: 0; /* Removeremos gap horizontal porque agora é flex-column organizado com headers e info blocks independentes */
     flex-direction: column;
     align-items: stretch;
+    position: relative;
+  }
+
+  body .renda-item {
+    padding: 1.25rem;
+    background: white;
+    border-radius: var(--border-radius-md);
+    border: 1px solid #eaeaea;
+    box-shadow: none;
+    position: relative;
+    display: block; /* override flex to normal block flow */
+  }
+
+  body .renda-item .renda-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem !important;
+  }
+
+  body .renda-item .renda-titulo {
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    color: #212529 !important;
+    margin: 0 !important;
+  }
+
+  body .renda-item .renda-acoes {
+    position: absolute !important;
+    top: 1.25rem !important;
+    right: 1.25rem !important;
+  }
+
+  body .renda-item .btn-icon {
+    color: #6c757d !important;
+    background: transparent !important;
+    border: none !important;
+    width: auto !important;
+    height: auto !important;
+    padding: 0 !important;
+    font-size: 1rem !important;
+  }
+
+  body .renda-item .renda-detalhe {
+    font-size: 0.9rem !important;
+    color: #495057 !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  body .renda-item .renda-detalhe strong {
+    font-weight: normal !important;
+    color: #495057 !important;
+  }
+
+  body .renda-item .renda-pagamentos-container strong {
+    font-size: 0.9rem !important;
+    font-weight: normal !important;
+    color: #495057 !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  body .renda-item .badge {
+    background-color: #eff2fe !important; /* light blue background matches exactly */
+    color: #6a7afe !important;
+    font-weight: 500 !important;
+    font-size: 0.85rem !important;
+    padding: 0.35rem 0.6rem !important;
+    border-radius: 4px !important;
   }
 
   body .renda-item:hover,
@@ -4241,7 +4309,6 @@ body.login-page {
   }
 
   /* Container de Ações */
-  body .renda-acoes,
   body .categoria-acoes {
     display: flex;
     flex-direction: row;
@@ -4249,8 +4316,13 @@ body.login-page {
     position: static;
   }
 
+  body .renda-acoes {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+  }
+
   /* Botões de Ação transparentes nos cards */
-  body .renda-item .btn-icon,
   body .categoria-item .btn-icon,
   body .categoria-acoes .btn-icon {
     background: transparent;
@@ -4262,7 +4334,21 @@ body.login-page {
     padding: 0;
   }
 
-  body .renda-item .btn-icon.btn-danger:hover,
+  body .renda-item .btn-icon {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: var(--text-muted) !important;
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+  }
+
+  body .renda-item .btn-icon:hover {
+    color: var(--danger) !important;
+    background: transparent !important;
+  }
+
   body .categoria-item .btn-icon.btn-danger:hover,
   body .categoria-acoes .btn-icon.btn-danger:hover {
     color: var(--danger);
