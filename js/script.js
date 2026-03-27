@@ -3731,20 +3731,21 @@ function loadCategorias() {
       let html = "<h3>Categorias Cadastradas</h3>";
       
       if (snapshot.exists()) {
-        html += "<div class='categorias-list'>";
+        html += "<div class='categorias-list-container' style='display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem;'>";
         
         snapshot.forEach(child => {
+          const key = child.key;
           const categoria = child.val();
           html += `
             <div class="categoria-item">
               <div class="categoria-info">
                 <div class="categoria-titulo">${categoria.nome}</div>
               </div>
-              <div class="categoria-acoes">
-                <button class="btn-icon btn-primary" onclick="prepararEditarCategoria('${child.key}', '${categoria.nome}')">
+              <div class="categoria-acoes" style="display: flex; gap: 0.5rem;">
+                <button class="btn-icon btn-primary" title="Editar" onclick='prepararEditarCategoria("${key}", "${categoria.nome.replace(/"/g, '&quot;')}")'>
                   <i class="fas fa-edit"></i>
                 </button>
-                <button class="btn-icon btn-danger" onclick="excluirCategoria('${child.key}')">
+                <button class="btn-icon btn-danger" title="Excluir" onclick="excluirCategoria('${key}')">
                   <i class="fas fa-trash"></i>
                 </button>
               </div>
@@ -4256,11 +4257,9 @@ function loadRendas() {
           </div>
           ${pagamentosInfo}
         </div>
-        <div class="renda-acoes">
-          <button class="btn-icon btn-danger" onclick="alert('Função disponível apenas para usuários logados')">
-            <i class="fas fa-trash"></i>
-          </button>
-        </div>
+        <button class="btn-icon btn-danger" onclick="alert('Função disponível apenas para usuários logados')">
+          <i class="fas fa-trash"></i>
+        </button>
       `;
       
       rendaList.appendChild(div);
