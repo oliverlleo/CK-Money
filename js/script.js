@@ -3208,7 +3208,7 @@ function confirmarPagamentoDespesa() {
 function fazerLogout() {
   firebase.auth().signOut()
     .then(() => {
-      window.location.href = '/login';
+      redirecionarPara('login');
     })
     .catch((error) => {
       console.error('Erro ao fazer logout:', error);
@@ -4580,7 +4580,7 @@ function logout() {
     currentUser = null;
     
     // Redirecionar para a página de login
-    window.location.href = '/login';
+    redirecionarPara('login');
   }).catch((error) => {
     console.error('Erro ao fazer logout:', error);
     exibirToast('Erro ao fazer logout', 'danger');
@@ -4679,8 +4679,8 @@ function handleAuthStateChanged(user) {
     carregarDadosUsuario();
   } else {
     // Usuário não está logado, redirecionar para a página de login
-    if (!window.location.pathname.includes('/login')) {
-      window.location.href = '/login';
+    if (!window.location.href.includes('login')) {
+      redirecionarPara('login');
     }
   }
 }
