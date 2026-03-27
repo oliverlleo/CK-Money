@@ -4226,7 +4226,10 @@ body.login-page {
   }
 }
 
-/* Ocultar banner do PWA no Desktop (telas > 768px) */
+/* Ocultar banner do PWA no Desktop (telas > 768px) e garantir que aparece no mobile */
+#pwaInstallBanner {
+  display: flex !important;
+}
 @media (min-width: 769px) {
   #pwaInstallBanner {
     display: none !important;
