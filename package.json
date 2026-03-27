@@ -1,25 +1,15 @@
 {
+<<<<<<< jules-despesas-desktop-fix-11105311055789909465
+  "name": "playwright-tests",
+=======
   "dependencies": {
     "playwright": "^1.58.2",
     "serve": "^14.2.6"
   },
   "name": "app",
+>>>>>>> main
   "version": "1.0.0",
-  "description": "Sistema open source para gerenciamento financeiro pessoal desenvolvido em vanilla HTML, CSS e JavaScript.",
-  "main": "patch_exibir_info.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/oliverlleo/CK-Money.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/oliverlleo/CK-Money/issues"
-  },
-  "homepage": "https://github.com/oliverlleo/CK-Money#readme"
+  "dependencies": {
+    "@playwright/test": "^1.40.0"
+  }
 }
