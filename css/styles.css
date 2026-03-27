@@ -1610,10 +1610,12 @@ tbody tr:hover {
 .user-info {
   display: flex;
   align-items: center;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid rgba(0,0,0,0.1);
-  transition: all var(--transition-speed);
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: var(--border-radius-md);
+  transition: background-color 0.2s;
+  position: relative;
 }
 
 .user-avatar {
@@ -4163,8 +4165,8 @@ body.login-page {
 .desktop-user-dropdown {
   position: absolute;
   top: 100%;
-  left: 0;
-  width: 100%;
+  right: 0;
+  width: 200px;
   background: var(--card-color);
   box-shadow: var(--shadow-lg);
   border-radius: var(--border-radius-md);
