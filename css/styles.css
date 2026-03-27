@@ -4082,7 +4082,11 @@ body.login-page {
     display: table-header-group !important;
   }
   
-
+  /* Altera o conteúdo da coluna "Detalhes" na versão desktop */
+  #todasDespesasTable td[data-label="Detalhes"] .categoria-info,
+  #todasDespesasTable td[data-label="Detalhes"] .status-info {
+    display: none;
+  }
   
   /* Remover comportamento de swipe na versão desktop */
   #todasDespesasTable .swipeable-row {
@@ -4092,37 +4096,25 @@ body.login-page {
   /* Estilos dos botões de ação desktop */
   .desktop-actions {
     white-space: nowrap;
-    display: flex !important;
-    flex-direction: row !important;
-    gap: 4px;
-    align-items: center;
-    justify-content: flex-start;
   }
   
   .btn-action {
-    background: transparent;
-    border: 1px solid transparent;
-    padding: 0;
-    margin: 0;
-    border-radius: 8px; /* More modern rounding */
+    background: none;
+    border: none;
+    padding: 6px 8px;
+    margin: 0 2px;
+    border-radius: 4px;
     cursor: pointer;
-    font-size: 14px; /* slightly smaller icon */
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px; /* slightly bigger hit area */
-    height: 32px;
+    font-size: 14px;
+    transition: all 0.2s ease;
   }
   
   .btn-action:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transform: scale(1.1);
   }
   
   .btn-pay {
-    color: #10b981; /* Tailwind emerald-500 */
-    background-color: rgba(16, 185, 129, 0.1);
+    color: #28a745;
   }
   
   .btn-pay:hover {
@@ -4131,8 +4123,7 @@ body.login-page {
   }
   
   .btn-edit {
-    color: #3b82f6; /* Tailwind blue-500 */
-    background-color: rgba(59, 130, 246, 0.1);
+    color: #007bff;
   }
   
   .btn-edit:hover {
@@ -4141,8 +4132,7 @@ body.login-page {
   }
   
   .btn-delete {
-    color: #ef4444; /* Tailwind red-500 */
-    background-color: rgba(239, 68, 68, 0.1);
+    color: #dc3545;
   }
   
   .btn-delete:hover {
@@ -4233,5 +4223,25 @@ body.login-page {
 
   #cartoesListaPrincipal .table-container {
     display: block !important;
+  }
+}
+
+/* Correção para a tabela de Todas as Despesas no Desktop */
+@media (min-width: 769px) {
+  #todasDespesasTable td[data-label="Data"] .mobile-date {
+    display: none !important;
+  }
+  #todasDespesasTable td[data-label="Data"] .desktop-date {
+    display: inline !important;
+  }
+}
+
+/* Correção para a tabela de Todas as Despesas no Mobile */
+@media (max-width: 768px) {
+  #todasDespesasTable td[data-label="Data"] .mobile-date {
+    display: inline !important;
+  }
+  #todasDespesasTable td[data-label="Data"] .desktop-date {
+    display: none !important;
   }
 }

@@ -446,7 +446,7 @@ function adicionarCampoPagamento() {
       <input type="number" class="form-control pagamento-valor" placeholder="Valor" step="0.01" required pattern="[0-9]*" inputmode="decimal">
     </div>
     <button type="button" class="remover-pagamento">
-      <i class="fa-solid fa-trash-can"></i>
+      <i class="fas fa-trash"></i>
     </button>
   `;
   
@@ -2079,21 +2079,18 @@ function filtrarTodasDespesas() {
         tr.innerHTML = `
           <td data-label="Descrição">${despesa.descricao}</td>
           <td data-label="Valor">R$ ${parseFloat(despesa.valor).toFixed(2)}</td>
-          <td data-label="Data">
-    <span class="d-none d-md-block">${dataCompra.toLocaleDateString()}</span>
-    <span class="d-block d-md-none">${dataCompra.toLocaleDateString()} • ${getCategoriaName(despesa.categoria)} • ${statusBadge}</span>
-  </td>
+          <td data-label="Data"><span class="desktop-date">${dataCompra.toLocaleDateString()}</span><span class="mobile-date" style="display:none;">${dataCompra.toLocaleDateString()} <span class="categoria-info">• ${getCategoriaName(despesa.categoria)}</span> <span class="status-info">• ${statusBadge}</span></span></td>
           <td data-label="Categoria">${getCategoriaName(despesa.categoria)}</td>
           <td data-label="Status">${statusCompleto}</td>
           <td data-label="Ações" class="desktop-actions">
             <button class="btn-action btn-pay" onclick="pagarDespesaDirectly('${key}', 'avista')" title="Pagar">
-              <i class="fa-solid fa-check"></i>
+              <i class="fas fa-check"></i>
             </button>
             <button class="btn-action btn-edit" onclick="editarDespesa('${key}')" title="Editar">
-              <i class="fa-solid fa-pen"></i>
+              <i class="fas fa-edit"></i>
             </button>
             <button class="btn-action btn-delete" onclick="confirmarExclusaoDespesa('${key}')" title="Excluir">
-              <i class="fa-solid fa-trash-can"></i>
+              <i class="fas fa-trash"></i>
             </button>
           </td>
         `;
@@ -2131,21 +2128,18 @@ function filtrarTodasDespesas() {
           tr.innerHTML = `
             <td data-label="Descrição">${despesa.descricao} - Parcela ${index+1}/${despesa.parcelas.length}</td>
             <td data-label="Valor">R$ ${parseFloat(parcela.valor).toFixed(2)}</td>
-            <td data-label="Data">
-    <span class="d-none d-md-block">${dataVencimento.toLocaleDateString()}</span>
-    <span class="d-block d-md-none">${dataVencimento.toLocaleDateString()} • ${getCategoriaName(despesa.categoria)} • ${statusBadge}</span>
-  </td>
+            <td data-label="Data"><span class="desktop-date">${dataVencimento.toLocaleDateString()}</span><span class="mobile-date" style="display:none;">${dataVencimento.toLocaleDateString()} <span class="categoria-info">• ${getCategoriaName(despesa.categoria)}</span> <span class="status-info">• ${statusBadge}</span></span></td>
             <td data-label="Categoria">${getCategoriaName(despesa.categoria)}</td>
             <td data-label="Status">${statusCompleto}</td>
             <td data-label="Ações" class="desktop-actions">
               <button class="btn-action btn-pay" onclick="pagarDespesaDirectly('${key}', 'cartao', ${index})" title="Pagar">
-                <i class="fa-solid fa-check"></i>
+                <i class="fas fa-check"></i>
               </button>
               <button class="btn-action btn-edit" onclick="editarDespesa('${key}')" title="Editar">
-                <i class="fa-solid fa-pen"></i>
+                <i class="fas fa-edit"></i>
               </button>
               <button class="btn-action btn-delete" onclick="confirmarExclusaoDespesa('${key}')" title="Excluir">
-                <i class="fa-solid fa-trash-can"></i>
+                <i class="fas fa-trash"></i>
               </button>
             </td>
           `;
@@ -2219,21 +2213,18 @@ function filtrarTodasDespesas() {
         tr.innerHTML = `
           <td data-label="Descrição">${despesa.descricao} - Recorrente</td>
           <td data-label="Valor">R$ ${parseFloat(despesa.valor).toFixed(2)}/mês</td>
-          <td data-label="Data">
-    <span class="d-none d-md-block">${dataVencimentoStr}</span>
-    <span class="d-block d-md-none">${dataVencimentoStr} • ${getCategoriaName(despesa.categoria)} • ${statusText}</span>
-  </td>
+          <td data-label="Data"><span class="desktop-date">${dataVencimentoStr}</span><span class="mobile-date" style="display:none;">${dataVencimentoStr} <span class="categoria-info">• ${getCategoriaName(despesa.categoria)}</span> <span class="status-info">• ${statusText}</span></span></td>
           <td data-label="Categoria">${getCategoriaName(despesa.categoria)}</td>
           <td data-label="Status">${statusText}</td>
           <td data-label="Ações" class="desktop-actions">
             <button class="btn-action btn-pay" onclick="pagarDespesaDirectly('${key}', 'recorrente')" title="Pagar">
-              <i class="fa-solid fa-check"></i>
+              <i class="fas fa-check"></i>
             </button>
             <button class="btn-action btn-edit" onclick="editarDespesa('${key}')" title="Editar">
-              <i class="fa-solid fa-pen"></i>
+              <i class="fas fa-edit"></i>
             </button>
             <button class="btn-action btn-delete" onclick="confirmarExclusaoDespesa('${key}')" title="Excluir">
-              <i class="fa-solid fa-trash-can"></i>
+              <i class="fas fa-trash"></i>
             </button>
           </td>
         `;
@@ -3715,10 +3706,10 @@ function loadCategorias() {
           </div>
           <div class="categoria-acoes">
             <button class="btn-icon btn-primary" onclick="prepararEditarCategoria('${key}', '${categoria.nome}')">
-              <i class="fa-solid fa-pen"></i>
+              <i class="fas fa-edit"></i>
             </button>
             <button class="btn-icon btn-danger" onclick="excluirCategoria('${key}')">
-              <i class="fa-solid fa-trash-can"></i>
+              <i class="fas fa-trash"></i>
             </button>
           </div>
         `;
@@ -3961,7 +3952,7 @@ function loadCartoes() {
             </div>
           </div>
           <button class="btn-icon btn-danger" onclick="excluirCartao('${key}')">
-            <i class="fa-solid fa-trash-can"></i>
+            <i class="fas fa-trash"></i>
           </button>
         `;
         
@@ -4112,7 +4103,7 @@ function adicionarPagamento() {
       <input type="number" class="form-control pagamento-valor" placeholder="Valor" step="0.01">
     </div>
     <button class="btn-icon" onclick="removerPagamento(this)">
-      <i class="fa-solid fa-trash-can"></i>
+      <i class="fas fa-trash"></i>
     </button>
   `;
   
@@ -4250,7 +4241,7 @@ function loadRendas() {
           ${pagamentosInfo}
         </div>
         <button class="btn-icon btn-danger" onclick="alert('Função disponível apenas para usuários logados')">
-          <i class="fa-solid fa-trash-can"></i>
+          <i class="fas fa-trash"></i>
         </button>
       `;
       
@@ -4291,7 +4282,7 @@ function loadRendas() {
           ${pagamentosInfo}
         </div>
         <button class="btn-icon btn-danger" onclick="deleteRenda('${key}')">
-          <i class="fa-solid fa-trash-can"></i>
+          <i class="fas fa-trash"></i>
         </button>
       `;
       
