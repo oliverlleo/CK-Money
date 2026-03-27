@@ -36,21 +36,5 @@
       "type": "image/png",
       "purpose": "maskable"
     }
-  ],
-  "screenshots": [
-    {
-      "src": "/screenshot-mobile-1.png",
-      "sizes": "540x1170",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Visão geral do Dashboard"
-    },
-    {
-      "src": "/screenshot-mobile-2.png",
-      "sizes": "540x1170",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Lista de Despesas"
-    }
   ]
 }
