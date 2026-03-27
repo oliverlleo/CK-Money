@@ -4082,7 +4082,7 @@ body.login-page {
     display: table-header-group !important;
   }
   
-  /* Ocultar elementos mobile-only na versão desktop */
+  /* Ocultar elementos mobile-only na versão desktop e remover seus espaços textuais */
   #todasDespesasTable td[data-label="Data"] .mobile-only-details {
     display: none !important;
   }
@@ -4103,19 +4103,19 @@ body.login-page {
   }
   
   .btn-action {
-    background: none;
-    border: none;
+    background: transparent;
+    border: 1px solid transparent;
     padding: 0;
     margin: 0;
-    border-radius: 4px;
+    border-radius: 8px; /* More modern rounding */
     cursor: pointer;
-    font-size: 16px;
-    transition: all 0.2s ease;
+    font-size: 14px; /* slightly smaller icon */
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: 32px; /* slightly bigger hit area */
+    height: 32px;
   }
   
   .btn-action:hover {
@@ -4124,8 +4124,8 @@ body.login-page {
   }
   
   .btn-pay {
-    color: #28a745;
-    background-color: rgba(40,167,69,0.1);
+    color: #10b981; /* Tailwind emerald-500 */
+    background-color: rgba(16, 185, 129, 0.1);
   }
   
   .btn-pay:hover {
@@ -4134,8 +4134,8 @@ body.login-page {
   }
   
   .btn-edit {
-    color: #007bff;
-    background-color: rgba(0,123,255,0.1);
+    color: #3b82f6; /* Tailwind blue-500 */
+    background-color: rgba(59, 130, 246, 0.1);
   }
   
   .btn-edit:hover {
@@ -4144,8 +4144,8 @@ body.login-page {
   }
   
   .btn-delete {
-    color: #dc3545;
-    background-color: rgba(220,53,69,0.1);
+    color: #ef4444; /* Tailwind red-500 */
+    background-color: rgba(239, 68, 68, 0.1);
   }
   
   .btn-delete:hover {
