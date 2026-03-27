@@ -4082,9 +4082,15 @@ body.login-page {
     display: table-header-group !important;
   }
   
-  /* Ocultar elementos mobile-only na versão desktop e remover seus espaços textuais */
-  #todasDespesasTable td[data-label="Data"] .mobile-only-details {
+  /* Ocultar ABSOLUTAMENTE TUDO que for mobile-only na tabela na versão desktop */
+  #todasDespesasTable td[data-label="Data"] .mobile-only-details,
+  #todasDespesasTable td[data-label="Data"] span.mobile-only-details {
     display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    top: -9999px !important;
+    left: -9999px !important;
   }
   
   /* Remover comportamento de swipe na versão desktop */

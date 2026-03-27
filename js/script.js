@@ -2079,7 +2079,7 @@ function filtrarTodasDespesas() {
         tr.innerHTML = `
           <td data-label="Descrição">${despesa.descricao}</td>
           <td data-label="Valor">R$ ${parseFloat(despesa.valor).toFixed(2)}</td>
-          <td data-label="Data">${dataCompra.toLocaleDateString()} <span class="mobile-only-details d-block d-md-none"><span class="categoria-info">• ${getCategoriaName(despesa.categoria)}</span> <span class="status-info">• ${statusBadge}</span></span></td>
+          <td data-label="Data">${dataCompra.toLocaleDateString()} <span class="mobile-only-details"><span class="categoria-info">• ${getCategoriaName(despesa.categoria)}</span> <span class="status-info">• ${statusBadge}</span></span></td>
           <td data-label="Categoria">${getCategoriaName(despesa.categoria)}</td>
           <td data-label="Status">${statusCompleto}</td>
           <td data-label="Ações" class="desktop-actions">
@@ -2128,7 +2128,7 @@ function filtrarTodasDespesas() {
           tr.innerHTML = `
             <td data-label="Descrição">${despesa.descricao} - Parcela ${index+1}/${despesa.parcelas.length}</td>
             <td data-label="Valor">R$ ${parseFloat(parcela.valor).toFixed(2)}</td>
-            <td data-label="Data">${dataVencimento.toLocaleDateString()} <span class="mobile-only-details d-block d-md-none"><span class="categoria-info">• ${getCategoriaName(despesa.categoria)}</span> <span class="status-info">• ${statusBadge}</span></span></td>
+            <td data-label="Data">${dataVencimento.toLocaleDateString()} <span class="mobile-only-details"><span class="categoria-info">• ${getCategoriaName(despesa.categoria)}</span> <span class="status-info">• ${statusBadge}</span></span></td>
             <td data-label="Categoria">${getCategoriaName(despesa.categoria)}</td>
             <td data-label="Status">${statusCompleto}</td>
             <td data-label="Ações" class="desktop-actions">
@@ -2213,7 +2213,7 @@ function filtrarTodasDespesas() {
         tr.innerHTML = `
           <td data-label="Descrição">${despesa.descricao} - Recorrente</td>
           <td data-label="Valor">R$ ${parseFloat(despesa.valor).toFixed(2)}/mês</td>
-          <td data-label="Data">${dataVencimentoStr} <span class="mobile-only-details d-block d-md-none"><span class="categoria-info">• ${getCategoriaName(despesa.categoria)}</span> <span class="status-info">• ${statusText}</span></span></td>
+          <td data-label="Data">${dataVencimentoStr} <span class="mobile-only-details"><span class="categoria-info">• ${getCategoriaName(despesa.categoria)}</span> <span class="status-info">• ${statusText}</span></span></td>
           <td data-label="Categoria">${getCategoriaName(despesa.categoria)}</td>
           <td data-label="Status">${statusText}</td>
           <td data-label="Ações" class="desktop-actions">
