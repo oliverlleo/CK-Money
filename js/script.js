@@ -13,6 +13,51 @@ let rangeStart = null;
 let rangeEnd = null;
 let currentUser = null;
 
+// ===================== PWA INSTALAÇÃO =====================
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  // Previne o mini-infobar padrão de aparecer em dispositivos móveis
+  e.preventDefault();
+  // Guarda o evento para ser chamado depois.
+  deferredPrompt = e;
+
+  // Verifica se o usuário já dispensou o banner antes
+  const pwaBannerDismissed = localStorage.getItem('pwaBannerDismissed');
+
+  if (!pwaBannerDismissed) {
+    // Atualiza a interface para notificar o usuário que ele pode instalar o PWA
+    const installBanner = document.getElementById('pwaInstallBanner');
+    if (installBanner) {
+      installBanner.style.display = 'flex';
+
+      const btnAccept = document.getElementById('pwaInstallAccept');
+      const btnDecline = document.getElementById('pwaInstallDecline');
+
+      if (btnAccept) {
+        btnAccept.addEventListener('click', async () => {
+          // Oculta o banner fornecido pelo app
+          installBanner.style.display = 'none';
+          // Mostra o prompt de instalação padrão
+          deferredPrompt.prompt();
+          // Aguarda o usuário responder ao prompt
+          const { outcome } = await deferredPrompt.userChoice;
+          console.log(`User response to the install prompt: ${outcome}`);
+          // Nós o usamos uma vez, não podemos usá-lo novamente, descarta
+          deferredPrompt = null;
+        });
+      }
+
+      if (btnDecline) {
+        btnDecline.addEventListener('click', () => {
+          installBanner.style.display = 'none';
+          localStorage.setItem('pwaBannerDismissed', 'true');
+        });
+      }
+    }
+  }
+});
+
 // Mapa de categorias para uso global
 window.novo_categoriasMap = {};
 
@@ -255,6 +300,75 @@ function initDateRangePicker() {
           rangeStart = null;
           rangeEnd = null;
           atualizarRelatorios();
+        });
+      }
+
+      const dataRangeFluxoCaixaInput = $('#dataRangeFluxoCaixa');
+      if (dataRangeFluxoCaixaInput.length) {
+        dataRangeFluxoCaixaInput.daterangepicker({
+          locale: {
+            format: 'DD/MM/YYYY',
+            separator: ' - ',
+            applyLabel: 'Aplicar',
+            cancelLabel: 'Cancelar',
+            fromLabel: 'De',
+            toLabel: 'Até',
+            customRangeLabel: 'Personalizado',
+            weekLabel: 'S',
+            daysOfWeek: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
+            monthNames: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
+            firstDay: 0
+          },
+          ranges: {
+            'Todo Período': [moment().subtract(10, 'years'), moment().add(10, 'years')],
+            'Este Mês': [moment().startOf('month'), moment().endOf('month')],
+            'Próximos 3 Meses': [moment(), moment().add(3, 'months')],
+            'Próximos 6 Meses': [moment(), moment().add(6, 'months')],
+            'Este Ano': [moment().startOf('year'), moment().endOf('year')],
+            'Próximo Ano': [moment().add(1, 'year').startOf('year'), moment().add(1, 'year').endOf('year')]
+          },
+          startDate: moment(),
+          endDate: moment().add(3, 'months'),
+          opens: 'left',
+          autoUpdateInput: false
+        });
+
+        // Definir "Próximos 3 Meses" como padrão
+        dataRangeFluxoCaixaInput.val('Próximos 3 Meses');
+
+        // Define default values if empty
+        window.rangeStartFluxoCaixa = moment().format('YYYY-MM-DD');
+        window.rangeEndFluxoCaixa = moment().add(3, 'months').format('YYYY-MM-DD');
+
+        // Event listener para aplicar o filtro
+        dataRangeFluxoCaixaInput.on('apply.daterangepicker', function(ev, picker) {
+          const label = picker.chosenLabel;
+
+          if (label === 'Todo Período') {
+            $(this).val('Todo Período');
+            window.rangeStartFluxoCaixa = null;
+            window.rangeEndFluxoCaixa = null;
+          } else {
+            $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+            window.rangeStartFluxoCaixa = picker.startDate.format('YYYY-MM-DD');
+            window.rangeEndFluxoCaixa = picker.endDate.format('YYYY-MM-DD');
+          }
+
+          // Atualizar fluxo de caixa
+          if (typeof atualizarFluxoCaixa === 'function') {
+            atualizarFluxoCaixa();
+          }
+        });
+
+        // Event listener para cancelar
+        dataRangeFluxoCaixaInput.on('cancel.daterangepicker', function(ev, picker) {
+          $(this).val('Próximos 3 Meses');
+          window.rangeStartFluxoCaixa = moment().format('YYYY-MM-DD');
+          window.rangeEndFluxoCaixa = moment().add(3, 'months').format('YYYY-MM-DD');
+          if (typeof atualizarFluxoCaixa === 'function') {
+            atualizarFluxoCaixa();
+          }
         });
       }
     } else {
@@ -3085,7 +3199,7 @@ function confirmarPagamentoDespesa() {
 function fazerLogout() {
   firebase.auth().signOut()
     .then(() => {
-      window.location.href = 'login.html';
+      window.location.href = '/login';
     })
     .catch((error) => {
       console.error('Erro ao fazer logout:', error);
@@ -3485,6 +3599,10 @@ function showRelatorioTab(tabId) {
       fim = new Date(rangeEnd);
     }
     atualizarGraficoCategorias(inicio, fim);
+  } else if (tabId === 'fluxoCaixaTab') {
+    if (typeof atualizarFluxoCaixa === 'function') {
+      atualizarFluxoCaixa();
+    }
   }
 }
 
@@ -4453,7 +4571,7 @@ function logout() {
     currentUser = null;
     
     // Redirecionar para a página de login
-    window.location.href = 'login.html';
+    window.location.href = '/login';
   }).catch((error) => {
     console.error('Erro ao fazer logout:', error);
     exibirToast('Erro ao fazer logout', 'danger');
@@ -4552,8 +4670,8 @@ function handleAuthStateChanged(user) {
     carregarDadosUsuario();
   } else {
     // Usuário não está logado, redirecionar para a página de login
-    if (!window.location.href.includes('login.html')) {
-      window.location.href = 'login.html';
+    if (!window.location.pathname.includes('/login')) {
+      window.location.href = '/login';
     }
   }
 }
