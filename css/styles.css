@@ -4205,9 +4205,9 @@ body.login-page {
     background: var(--card-color);
     box-shadow: var(--shadow-sm);
     padding: 1.25rem;
-    gap: 1rem;
-    flex-direction: row;
-    align-items: center;
+    gap: 0; /* Removeremos gap horizontal porque agora é flex-column organizado com headers e info blocks independentes */
+    flex-direction: column;
+    align-items: stretch;
   }
 
   body .renda-item:hover,
@@ -4250,5 +4250,21 @@ body.login-page {
   body .categoria-acoes .btn-icon.btn-primary:hover {
     color: var(--primary);
     background: rgba(67, 97, 238, 0.1);
+  }
+
+  /* Transformar as Listas em Grid no Desktop */
+  #usuariosListaPrincipal,
+  .categorias-list-container {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem !important;
+    align-items: start;
+  }
+
+  /* Resetar margin/padding extras que vinham do flex layout */
+  body .renda-item,
+  body .categoria-item {
+    margin-bottom: 0 !important;
+    height: 100%; /* Faz todos os cards da mesma linha terem a mesma altura */
   }
 }
