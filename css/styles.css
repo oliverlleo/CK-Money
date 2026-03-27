@@ -4249,12 +4249,13 @@ body.login-page {
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 1rem !important;
+    width: 100% !important;
   }
 
   body .renda-item .renda-titulo {
-    font-size: 1.1rem !important;
+    font-size: 1.15rem !important;
     font-weight: 700 !important;
-    color: #212529 !important;
+    color: #333 !important;
     margin: 0 !important;
   }
 
@@ -4262,42 +4263,74 @@ body.login-page {
     position: absolute !important;
     top: 1.25rem !important;
     right: 1.25rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
-  body .renda-item .btn-icon {
-    color: #6c757d !important;
+  body .renda-item .renda-acoes .btn-icon {
+    color: #8c98a4 !important; /* Soft gray color exactly like the first image */
     background: transparent !important;
     border: none !important;
-    width: auto !important;
-    height: auto !important;
+    width: 16px !important; /* Smaller icon width */
+    height: 16px !important; /* Smaller icon height */
+    min-width: 16px !important;
+    min-height: 16px !important;
     padding: 0 !important;
-    font-size: 1rem !important;
+    font-size: 0.9rem !important;
+    box-shadow: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 0 !important;
+  }
+
+  body .renda-item .renda-acoes .btn-icon:hover {
+    color: #6c757d !important; /* Darker gray on hover */
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Override any specific btn-danger rules from elsewhere that make it pink */
+  body .renda-item .renda-acoes .btn-icon.btn-danger {
+    color: #8c98a4 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  body .renda-item .renda-acoes .btn-icon.btn-danger:hover {
+    color: #6c757d !important;
+    background: transparent !important;
   }
 
   body .renda-item .renda-detalhe {
-    font-size: 0.9rem !important;
-    color: #495057 !important;
+    font-size: 0.95rem !important;
+    color: #6c757d !important;
     margin-bottom: 0.25rem !important;
   }
 
   body .renda-item .renda-detalhe strong {
     font-weight: normal !important;
-    color: #495057 !important;
+    color: #6c757d !important;
   }
 
   body .renda-item .renda-pagamentos-container strong {
-    font-size: 0.9rem !important;
+    font-size: 0.95rem !important;
     font-weight: normal !important;
-    color: #495057 !important;
+    color: #6c757d !important;
     margin-bottom: 0.5rem !important;
   }
 
   body .renda-item .badge {
-    background-color: #eff2fe !important; /* light blue background matches exactly */
-    color: #6a7afe !important;
+    background-color: #f0f4ff !important; /* light blue background matches exactly */
+    color: #4361ee !important;
     font-weight: 500 !important;
     font-size: 0.85rem !important;
-    padding: 0.35rem 0.6rem !important;
+    padding: 0.4rem 0.6rem !important;
     border-radius: 4px !important;
   }
 
