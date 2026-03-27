@@ -4245,3 +4245,31 @@ body.login-page {
     display: none !important;
   }
 }
+
+/* Correção para a tabela de Todas as Despesas no Desktop */
+@media (min-width: 769px) {
+  #todasDespesasTable td[data-label="Data"] .mobile-date {
+    display: none !important;
+  }
+  #todasDespesasTable td[data-label="Data"] .desktop-date {
+    display: inline !important;
+  }
+}
+
+/* Correção para a tabela de Todas as Despesas no Mobile */
+@media (max-width: 768px) {
+  #todasDespesasTable td[data-label="Data"] .mobile-date {
+    display: inline !important;
+  }
+  #todasDespesasTable td[data-label="Data"] .desktop-date {
+    display: none !important;
+  }
+}
+
+.desktop-menu-item:hover {
+  background-color: var(--hover-color, rgba(0,0,0,0.05));
+  border-radius: 4px;
+}
+.desktop-menu-item.logout:hover {
+  background-color: rgba(220, 53, 69, 0.1);
+}

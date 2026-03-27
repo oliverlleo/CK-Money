@@ -4500,11 +4500,16 @@ function exibirInfoUsuario(user) {
       <i class="fas fa-chevron-down" style="color: var(--text-muted); font-size: 0.8rem; margin-left: 0.5rem;"></i>
 
       <div id="desktopUserDropdown" class="desktop-user-dropdown" style="display: none;">
-        <button class="desktop-menu-btn" onclick="toggleTheme(); event.stopPropagation();">
+        <div class="desktop-menu-item" onclick="toggleTheme(); event.stopPropagation();" style="display:flex; align-items:center; gap:8px; padding:8px 12px; cursor:pointer; color:var(--text-color);">
           <i class="fas ${themeIconClass}" id="themeIcon"></i>
           Alternar tema
-        </button>
+        </div>
         <div class="desktop-dropdown-divider"></div>
+        <div class="desktop-menu-item logout" onclick="logout(); event.stopPropagation();" style="display:flex; align-items:center; gap:8px; padding:8px 12px; cursor:pointer; color:#dc3545;">
+          <i class="fa-solid fa-sign-out-alt"></i>
+          Sair da conta
+        </div>
+      </div>
         <button class="desktop-logout-btn" onclick="logout(); event.stopPropagation();">
           <i class="fa-solid fa-sign-out-alt"></i>
           Sair da conta
