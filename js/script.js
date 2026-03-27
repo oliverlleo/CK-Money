@@ -25,7 +25,10 @@ window.addEventListener('beforeinstallprompt', (e) => {
   // Verifica se o usuário já dispensou o banner antes
   const pwaBannerDismissed = localStorage.getItem('pwaBannerDismissed');
 
-  if (!pwaBannerDismissed) {
+  // Exibe apenas para mobile
+  const isMobile = window.matchMedia('(max-width: 768px)').matches;
+
+  if (!pwaBannerDismissed && isMobile) {
     // Atualiza a interface para notificar o usuário que ele pode instalar o PWA
     const installBanner = document.getElementById('pwaInstallBanner');
     if (installBanner) {
