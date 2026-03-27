@@ -3799,21 +3799,32 @@ function loadCategorias() {
       let html = "<h3>Categorias Cadastradas</h3>";
       
       if (snapshot.exists()) {
-        html += "<div class='table-container'><table><thead><tr><th>Nome</th></tr></thead><tbody>";
+        html += "<div class='categorias-list-container' style='display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem;'>";
         
         snapshot.forEach(child => {
+          const key = child.key;
           const categoria = child.val();
           html += `
-            <tr>
-              <td>${categoria.nome}</td>
-            </tr>
+            <div class="categoria-item">
+              <div class="categoria-card-header" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+                <div class="categoria-titulo" style="font-size: 1.1rem; font-weight: 600; color: var(--text-color); margin: 0;">${categoria.nome}</div>
+                <div class="categoria-acoes" style="display: flex; gap: 0.5rem;">
+                  <button class="btn-icon btn-primary" title="Editar" onclick='prepararEditarCategoria("${key}", "${categoria.nome.replace(/"/g, '&quot;')}")'>
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-icon btn-danger" title="Excluir" onclick="excluirCategoria('${key}')">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
           `;
           
           // Adicionar ao mapa de categorias
           window.novo_categoriasMap[child.key] = categoria.nome;
         });
         
-        html += "</tbody></table></div>";
+        html += "</div>";
       } else {
         html += "<p>Nenhuma categoria cadastrada.</p>";
       }
@@ -4298,25 +4309,28 @@ function loadRendas() {
       
       let pagamentosInfo = "";
       if (pessoa.pagamentos && pessoa.pagamentos.length > 0) {
-        pagamentosInfo = "<div class='renda-pagamentos'><strong>Pagamentos:</strong><br>";
-        pessoa.pagamentos.forEach((pag, index) => {
-          if (index > 0) pagamentosInfo += "<br>";
-          pagamentosInfo += `• Dia ${pag.dia}: R$ ${parseFloat(pag.valor).toFixed(2)}`;
+        pagamentosInfo = "<div class='renda-pagamentos-container' style='margin-top: 0.5rem;'><strong style='display:block; margin-bottom: 0.25rem; font-size: 0.85rem; color: var(--text-muted);'>Pagamentos:</strong><div style='display: flex; flex-wrap: wrap; gap: 0.5rem;'>";
+        pessoa.pagamentos.forEach((pag) => {
+          pagamentosInfo += `<span class="badge" style="background: rgba(67, 97, 238, 0.1); color: var(--primary); font-weight: 500; font-size: 0.8rem; padding: 0.4rem 0.6rem; border-radius: 4px;">Dia ${pag.dia}: R$ ${parseFloat(pag.valor).toFixed(2)}</span>`;
         });
-        pagamentosInfo += "</div>";
+        pagamentosInfo += "</div></div>";
       }
       
       div.innerHTML = `
-        <div class="renda-info">
-          <div class="renda-titulo">${pessoa.nome}</div>
-          <div class="renda-detalhe">
-            <strong>Saldo Inicial:</strong> R$ ${parseFloat(pessoa.saldoInicial).toFixed(2)}
+        <div class="renda-card-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+          <div class="renda-titulo" style="font-size: 1.1rem; font-weight: 600; color: var(--text-color); margin: 0;">${pessoa.nome}</div>
+          <div class="renda-acoes">
+            <button class="btn-icon btn-danger" onclick="alert('Função disponível apenas para usuários logados')">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        <div class="renda-info" style="margin: 0;">
+          <div class="renda-detalhe" style="font-size: 0.9rem; color: var(--text-color); margin-bottom: 0.5rem;">
+            <strong style="color: var(--text-muted);">Saldo Inicial:</strong> R$ ${parseFloat(pessoa.saldoInicial).toFixed(2)}
           </div>
           ${pagamentosInfo}
         </div>
-        <button class="btn-icon btn-danger" onclick="alert('Função disponível apenas para usuários logados')">
-          <i class="fas fa-trash"></i>
-        </button>
       `;
       
       rendaList.appendChild(div);
@@ -4339,25 +4353,28 @@ function loadRendas() {
       
       let pagamentosInfo = "";
       if (pessoa.pagamentos && pessoa.pagamentos.length > 0) {
-        pagamentosInfo = "<div class='renda-pagamentos'><strong>Pagamentos:</strong><br>";
-        pessoa.pagamentos.forEach((pag, index) => {
-          if (index > 0) pagamentosInfo += "<br>";
-          pagamentosInfo += `• Dia ${pag.dia}: R$ ${parseFloat(pag.valor).toFixed(2)}`;
+        pagamentosInfo = "<div class='renda-pagamentos-container' style='margin-top: 0.5rem;'><strong style='display:block; margin-bottom: 0.25rem; font-size: 0.85rem; color: var(--text-muted);'>Pagamentos:</strong><div style='display: flex; flex-wrap: wrap; gap: 0.5rem;'>";
+        pessoa.pagamentos.forEach((pag) => {
+          pagamentosInfo += `<span class="badge" style="background: rgba(67, 97, 238, 0.1); color: var(--primary); font-weight: 500; font-size: 0.8rem; padding: 0.4rem 0.6rem; border-radius: 4px;">Dia ${pag.dia}: R$ ${parseFloat(pag.valor).toFixed(2)}</span>`;
         });
-        pagamentosInfo += "</div>";
+        pagamentosInfo += "</div></div>";
       }
       
       div.innerHTML = `
-        <div class="renda-info">
-          <div class="renda-titulo">${pessoa.nome}</div>
-          <div class="renda-detalhe">
-            <strong>Saldo Inicial:</strong> R$ ${parseFloat(pessoa.saldoInicial).toFixed(2)}
+        <div class="renda-card-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+          <div class="renda-titulo" style="font-size: 1.1rem; font-weight: 600; color: var(--text-color); margin: 0;">${pessoa.nome}</div>
+          <div class="renda-acoes">
+            <button class="btn-icon btn-danger" onclick="deleteRenda('${key}')">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        <div class="renda-info" style="margin: 0;">
+          <div class="renda-detalhe" style="font-size: 0.9rem; color: var(--text-color); margin-bottom: 0.5rem;">
+            <strong style="color: var(--text-muted);">Saldo Inicial:</strong> R$ ${parseFloat(pessoa.saldoInicial).toFixed(2)}
           </div>
           ${pagamentosInfo}
         </div>
-        <button class="btn-icon btn-danger" onclick="deleteRenda('${key}')">
-          <i class="fas fa-trash"></i>
-        </button>
       `;
       
       rendaList.appendChild(div);

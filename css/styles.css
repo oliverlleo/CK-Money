@@ -4216,72 +4216,78 @@ body.login-page {
   margin: 0.5rem 0;
 }
 
-/* =================== RESPONSIVIDADE FIX (DESKTOP) =================== */
+/* =================== WEB/DESKTOP ENHANCEMENTS =================== */
 @media (min-width: 769px) {
-  /* Na versão desktop, esconder cartões mobile e mostrar tabela */
-  .cartoes-mobile-container {
-    display: none !important;
+  /* MELHORIAS APENAS PARA DESKTOP - Não afetam o mobile */
+
+  /* Cards de Rendas, Categorias e Cartões */
+  body .renda-item,
+  body .categoria-item,
+  body .cartao-item {
+    border: 1px solid var(--border-color);
+    background: var(--card-color);
+    box-shadow: var(--shadow-sm);
+    padding: 1.25rem;
+    gap: 0; /* Removeremos gap horizontal porque agora é flex-column organizado com headers e info blocks independentes */
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  #cartoesListaPrincipal .table-container {
-    display: block !important;
+  body .renda-item:hover,
+  body .categoria-item:hover,
+  body .cartao-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
   }
-}
 
-/* Correção para a tabela de Todas as Despesas no Desktop */
-@media (min-width: 769px) {
-  #todasDespesasTable td[data-label="Data"] .mobile-date {
-    display: none !important;
+  /* Container de Ações */
+  body .renda-acoes,
+  body .categoria-acoes {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    position: static;
   }
-  #todasDespesasTable td[data-label="Data"] .desktop-date {
-    display: inline !important;
-  }
-}
 
-/* Correção para a tabela de Todas as Despesas no Mobile */
-@media (max-width: 768px) {
-  #todasDespesasTable td[data-label="Data"] .mobile-date {
-    display: inline !important;
+  /* Botões de Ação transparentes nos cards */
+  body .renda-item .btn-icon,
+  body .categoria-item .btn-icon,
+  body .categoria-acoes .btn-icon {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    color: var(--text-muted);
+    width: 36px;
+    height: 36px;
+    padding: 0;
   }
-  #todasDespesasTable td[data-label="Data"] .desktop-date {
-    display: none !important;
-  }
-}
 
-/* Correção para a tabela de Todas as Despesas no Desktop */
-@media (min-width: 769px) {
-  #todasDespesasTable td[data-label="Data"] .mobile-date {
-    display: none !important;
+  body .renda-item .btn-icon.btn-danger:hover,
+  body .categoria-item .btn-icon.btn-danger:hover,
+  body .categoria-acoes .btn-icon.btn-danger:hover {
+    color: var(--danger);
+    background: rgba(247, 37, 133, 0.1);
   }
-  #todasDespesasTable td[data-label="Data"] .desktop-date {
-    display: inline !important;
-  }
-}
 
-/* Correção para a tabela de Todas as Despesas no Mobile */
-@media (max-width: 768px) {
-  #todasDespesasTable td[data-label="Data"] .mobile-date {
-    display: inline !important;
+  body .categoria-item .btn-icon.btn-primary:hover,
+  body .categoria-acoes .btn-icon.btn-primary:hover {
+    color: var(--primary);
+    background: rgba(67, 97, 238, 0.1);
   }
-  #todasDespesasTable td[data-label="Data"] .desktop-date {
-    display: none !important;
+
+  /* Transformar as Listas em Grid no Desktop */
+  #usuariosListaPrincipal,
+  .categorias-list-container {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem !important;
+    align-items: start;
   }
-}
 
-.desktop-menu-item:hover {
-  background-color: var(--hover-color, rgba(0,0,0,0.05));
-  border-radius: 4px;
-}
-.desktop-menu-item.logout:hover {
-  background-color: rgba(220, 53, 69, 0.1);
-}
-
-/* Ocultar banner do PWA no Desktop (telas > 768px) e garantir que aparece no mobile */
-#pwaInstallBanner {
-  display: flex !important;
-}
-@media (min-width: 769px) {
-  #pwaInstallBanner {
-    display: none !important;
+  /* Resetar margin/padding extras que vinham do flex layout */
+  body .renda-item,
+  body .categoria-item {
+    margin-bottom: 0 !important;
+    height: 100%; /* Faz todos os cards da mesma linha terem a mesma altura */
   }
 }

@@ -1,0 +1,94 @@
+
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="http://localhost:3000/css/styles.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <style>
+            body { padding: 2rem; background-color: #f8f9fa; }
+        </style>
+    </head>
+    <body>
+        <div class="container" style="max-width: 1000px; margin: 0 auto;">
+            <h2>Rendas (Web)</h2>
+            <div id="usuariosListaPrincipal">
+                <div class="renda-item">
+                    <div class="renda-card-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                        <div class="renda-titulo" style="font-size: 1.1rem; font-weight: 600; color: var(--text-color); margin: 0;">Leonardo Rodrigues</div>
+                        <div class="renda-acoes">
+                            <button class="btn-icon btn-danger"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <div class="renda-info" style="margin: 0;">
+                        <div class="renda-detalhe" style="font-size: 0.9rem; color: var(--text-color); margin-bottom: 0.5rem;">
+                            <strong style="color: var(--text-muted);">Saldo Inicial:</strong> R$ 0.00
+                        </div>
+                        <div class='renda-pagamentos-container' style='margin-top: 0.5rem;'>
+                            <strong style='display:block; margin-bottom: 0.25rem; font-size: 0.85rem; color: var(--text-muted);'>Pagamentos:</strong>
+                            <div style='display: flex; flex-wrap: wrap; gap: 0.5rem;'>
+                                <span class="badge" style="background: rgba(67, 97, 238, 0.1); color: var(--primary); font-weight: 500; font-size: 0.8rem; padding: 0.4rem 0.6rem; border-radius: 4px;">Dia 5: R$ 656.00</span>
+                                <span class="badge" style="background: rgba(67, 97, 238, 0.1); color: var(--primary); font-weight: 500; font-size: 0.8rem; padding: 0.4rem 0.6rem; border-radius: 4px;">Dia 5: R$ 1587.00</span>
+                                <span class="badge" style="background: rgba(67, 97, 238, 0.1); color: var(--primary); font-weight: 500; font-size: 0.8rem; padding: 0.4rem 0.6rem; border-radius: 4px;">Dia 20: R$ 1287.00</span>
+                                <span class="badge" style="background: rgba(67, 97, 238, 0.1); color: var(--primary); font-weight: 500; font-size: 0.8rem; padding: 0.4rem 0.6rem; border-radius: 4px;">Dia 20: R$ 530.50</span>
+                                <span class="badge" style="background: rgba(67, 97, 238, 0.1); color: var(--primary); font-weight: 500; font-size: 0.8rem; padding: 0.4rem 0.6rem; border-radius: 4px;">Dia 5: R$ 700.00</span>
+                                <span class="badge" style="background: rgba(67, 97, 238, 0.1); color: var(--primary); font-weight: 500; font-size: 0.8rem; padding: 0.4rem 0.6rem; border-radius: 4px;">Dia 20: R$ 1000.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="renda-item">
+                    <div class="renda-card-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                        <div class="renda-titulo" style="font-size: 1.1rem; font-weight: 600; color: var(--text-color); margin: 0;">João Silva</div>
+                        <div class="renda-acoes">
+                            <button class="btn-icon btn-danger"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <div class="renda-info" style="margin: 0;">
+                        <div class="renda-detalhe" style="font-size: 0.9rem; color: var(--text-color); margin-bottom: 0.5rem;">
+                            <strong style="color: var(--text-muted);">Saldo Inicial:</strong> R$ 1200.00
+                        </div>
+                        <div class='renda-pagamentos-container' style='margin-top: 0.5rem;'>
+                            <strong style='display:block; margin-bottom: 0.25rem; font-size: 0.85rem; color: var(--text-muted);'>Pagamentos:</strong>
+                            <div style='display: flex; flex-wrap: wrap; gap: 0.5rem;'>
+                                <span class="badge" style="background: rgba(67, 97, 238, 0.1); color: var(--primary); font-weight: 500; font-size: 0.8rem; padding: 0.4rem 0.6rem; border-radius: 4px;">Dia 1: R$ 300.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h2 style="margin-top: 3rem;">Categorias (Web)</h2>
+            <div class="categorias-list-container">
+                <div class="categoria-item">
+                  <div class="categoria-card-header" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+                    <div class="categoria-titulo" style="font-size: 1.1rem; font-weight: 600; color: var(--text-color); margin: 0;">Alimentação</div>
+                    <div class="categoria-acoes" style="display: flex; gap: 0.5rem;">
+                      <button class="btn-icon btn-primary" title="Editar">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button class="btn-icon btn-danger" title="Excluir">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="categoria-item">
+                  <div class="categoria-card-header" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+                    <div class="categoria-titulo" style="font-size: 1.1rem; font-weight: 600; color: var(--text-color); margin: 0;">Transporte</div>
+                    <div class="categoria-acoes" style="display: flex; gap: 0.5rem;">
+                      <button class="btn-icon btn-primary" title="Editar">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button class="btn-icon btn-danger" title="Excluir">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
