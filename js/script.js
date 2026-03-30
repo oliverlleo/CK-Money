@@ -12,6 +12,7 @@ let currentCalendarYear = new Date().getFullYear();
 let rangeStart = null;
 let rangeEnd = null;
 let currentUser = null;
+let appBootstrapped = false;
 
 
 // Mapa de categorias para uso global
@@ -4276,115 +4277,78 @@ function cadastrarPessoa() {
  */
 function loadRendas() {
   const rendaList = document.getElementById("usuariosListaPrincipal");
+  if (!rendaList) return;
+
   rendaList.innerHTML = "";
-  
-  // Verificar se o usuário está autenticado - ou mostrar dados de exemplo para demonstração
+
   if (!currentUser || !currentUser.uid) {
-    // Dados de exemplo para demonstração do design mobile
-    const exemploRendas = [
-      {
-        key: 'exemplo1',
-        nome: 'Leonardo',
-        saldoInicial: 6045.18,
-        pagamentos: [
-          { dia: 20, valor: 1235.00 },
-          { dia: 5, valor: 1517.00 },
-          { dia: 20, valor: 1235.00 },
-          { dia: 5, valor: 1500.00 }
-        ]
-      },
-      {
-        key: 'exemplo2',
-        nome: 'Jaqueline',
-        saldoInicial: 0.00,
-        pagamentos: [
-          { dia: 1, valor: 500.00 }
-        ]
-      }
-    ];
-    
-    exemploRendas.forEach(pessoa => {
-      const div = document.createElement("div");
-      div.className = "renda-item";
-      
-      let pagamentosInfo = "";
-      if (pessoa.pagamentos && pessoa.pagamentos.length > 0) {
-        pagamentosInfo = "<div class='renda-pagamentos-container' style='margin-top: 0.5rem;'><strong style='display:block; margin-bottom: 0.25rem; font-size: 0.85rem; color: var(--text-muted);'>Pagamentos:</strong><div style='display: flex; flex-wrap: wrap; gap: 0.5rem;'>";
-        pessoa.pagamentos.forEach((pag) => {
-          pagamentosInfo += `<span class="badge" style="background: rgba(67, 97, 238, 0.1); color: var(--primary); font-weight: 500; font-size: 0.8rem; padding: 0.4rem 0.6rem; border-radius: 4px;">Dia ${pag.dia}: R$ ${parseFloat(pag.valor).toFixed(2)}</span>`;
-        });
-        pagamentosInfo += "</div></div>";
-      }
-      
-      div.innerHTML = `
-        <div class="renda-card-header" style="margin-bottom: 0.35rem;">
-          <div class="renda-titulo" style="font-size: 1.1rem; font-weight: 600; color: var(--text-color); margin: 0;">${pessoa.nome}</div>
-        </div>
-        <div class="renda-info" style="margin: 0;">
-          <div class="renda-detalhe renda-detalhe-saldo" style="font-size: 0.9rem; color: var(--text-color); margin-bottom: 0.5rem;">
-            <button class="renda-delete-inline-btn" onclick="alert('Função disponível apenas para usuários logados')" title="Excluir renda" aria-label="Excluir renda">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
-            <span>
-              <strong style="color: var(--text-muted);">Saldo Inicial:</strong> R$ ${parseFloat(pessoa.saldoInicial).toFixed(2)}
-            </span>
-          </div>
-          ${pagamentosInfo}
-        </div>
-      `;
-      
-      rendaList.appendChild(div);
-    });
+    rendaList.innerHTML = "<p>Carregando dados do usuário...</p>";
     return;
   }
-  
-  // Buscar apenas as rendas do usuário atual
+
   db.ref("pessoas").orderByChild("userId").equalTo(currentUser.uid).once("value").then(snapshot => {
     if (!snapshot.exists()) {
       rendaList.innerHTML = "<p>Nenhuma renda cadastrada.</p>";
       return;
     }
-    
+
     snapshot.forEach(child => {
       const key = child.key;
       const pessoa = child.val();
+
       const div = document.createElement("div");
       div.className = "renda-item";
-      
-      let pagamentosInfo = "";
-      if (pessoa.pagamentos && pessoa.pagamentos.length > 0) {
-        pagamentosInfo = "<div class='renda-pagamentos-container' style='margin-top: 0.5rem;'><strong style='display:block; margin-bottom: 0.25rem; font-size: 0.85rem; color: var(--text-muted);'>Pagamentos:</strong><div style='display: flex; flex-wrap: wrap; gap: 0.5rem;'>";
-        pessoa.pagamentos.forEach((pag) => {
-          pagamentosInfo += `<span class="badge" style="background: rgba(67, 97, 238, 0.1); color: var(--primary); font-weight: 500; font-size: 0.8rem; padding: 0.4rem 0.6rem; border-radius: 4px;">Dia ${pag.dia}: R$ ${parseFloat(pag.valor).toFixed(2)}</span>`;
-        });
-        pagamentosInfo += "</div></div>";
-      }
-      
-      div.innerHTML = `
-        <div class="renda-card-header" style="margin-bottom: 0.35rem;">
-          <div class="renda-titulo" style="font-size: 1.1rem; font-weight: 600; color: var(--text-color); margin: 0;">${pessoa.nome}</div>
-        </div>
-        <div class="renda-info" style="margin: 0;">
-          <div class="renda-detalhe renda-detalhe-saldo" style="font-size: 0.9rem; color: var(--text-color); margin-bottom: 0.5rem;">
-            <button class="renda-delete-inline-btn" onclick="deleteRenda('${key}')" title="Excluir renda" aria-label="Excluir renda">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
-            <span>
-              <strong style="color: var(--text-muted);">Saldo Inicial:</strong> R$ ${parseFloat(pessoa.saldoInicial).toFixed(2)}
-            </span>
-          </div>
-          ${pagamentosInfo}
-        </div>
-      `;
-      
+      div.innerHTML = renderRendaCard(key, pessoa);
+
       rendaList.appendChild(div);
     });
+  }).catch(error => {
+    console.error("Erro ao carregar rendas:", error);
+    rendaList.innerHTML = "<p>Erro ao carregar rendas.</p>";
   });
 }
 
-/**
- * Exclui uma renda
- */
+function renderRendaCard(key, pessoa) {
+  let pagamentosInfo = "";
+
+  if (pessoa.pagamentos && pessoa.pagamentos.length > 0) {
+    pagamentosInfo = "<div class='renda-pagamentos-container' style='margin-top: 0.5rem;'><strong style='display:block; margin-bottom: 0.25rem; font-size: 0.85rem; color: var(--text-muted);'>Pagamentos:</strong><div style='display: flex; flex-wrap: wrap; gap: 0.5rem;'>";
+    pessoa.pagamentos.forEach((pag) => {
+      pagamentosInfo += `<span class="badge" style="background: rgba(67, 97, 238, 0.1); color: var(--primary); font-weight: 500; font-size: 0.8rem; padding: 0.4rem 0.6rem; border-radius: 4px;">Dia ${pag.dia}: R$ ${parseFloat(pag.valor).toFixed(2)}</span>`;
+    });
+    pagamentosInfo += "</div></div>";
+  }
+
+  return `
+    <button
+      class="renda-delete-btn-desktop"
+      onclick="deleteRenda('${key}')"
+      title="Excluir renda"
+      aria-label="Excluir renda"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 6h18"></path>
+        <path d="M8 6V4h8v2"></path>
+        <path d="M19 6l-1 14H6L5 6"></path>
+        <path d="M10 11v6"></path>
+        <path d="M14 11v6"></path>
+      </svg>
+    </button>
+
+    <div class="renda-card-header">
+      <div class="renda-titulo">${pessoa.nome}</div>
+    </div>
+
+    <div class="renda-info">
+      <div class="renda-detalhe">
+        <strong>Saldo Inicial:</strong> R$ ${parseFloat(pessoa.saldoInicial || 0).toFixed(2)}
+      </div>
+      ${pagamentosInfo}
+    </div>
+  `;
+}
+
+
 function deleteRenda(key) {
   if (!currentUser || !currentUser.uid) {
     exibirToast("Você precisa estar logado para excluir uma renda.", "warning");
