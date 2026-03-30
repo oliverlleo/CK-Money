@@ -4260,9 +4260,9 @@ body.login-page {
   }
 
   body .renda-item .renda-acoes {
-    position: absolute !important;
-    top: 1.25rem !important;
-    right: 1.25rem !important;
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -4350,9 +4350,7 @@ body.login-page {
   }
 
   body .renda-acoes {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
+    position: static;
   }
 
   /* Botões de Ação transparentes nos cards */
