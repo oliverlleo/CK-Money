@@ -3742,540 +3742,7 @@ body.login-page {
   }
   
   /* Botão de delete posicionado no canto superior direito */
-  .renda-item .btn-icon {
-
-    width: 32px !important;
-    height: 32px !important;
-    padding: 0 !important;
-    border-radius: 50% !important;
-    font-size: 0.75rem !important;
-    background: rgba(220, 53, 69, 0.1) !important;
-    color: #dc3545 !important;
-    border: 1px solid rgba(220, 53, 69, 0.2) !important;
-  }
   
-
-  
-  /* Formatação melhor para os valores monetários */
-  .renda-detalhe strong,
-  .renda-pagamentos strong {
-    color: var(--text-color) !important;
-    font-weight: 600 !important;
-  }
-  
-  /* Separação visual entre diferentes pagamentos */
-  .renda-pagamentos {
-    position: relative !important;
-  }
-  
-  .renda-pagamentos::before {
-    content: "📋" !important;
-    position: absolute !important;
-    top: 0.5rem !important;
-    left: 0.5rem !important;
-    font-size: 0.9rem !important;
-  }
-  
-  .renda-pagamentos {
-    padding-left: 2rem !important;
-  }
-}
-
-/* =================== MOBILE TABLE REAL DEVICE FIX =================== */
-
-/* Na versão desktop, esconder cartões mobile e garantir tabela */
-.cartoes-mobile-container {
-  display: none !important;
-}
-#cartoesListaPrincipal .table-container {
-  display: block !important;
-}
-
-
-@media (max-width: 768px) {
-  /* FORÇAR controle total do viewport em mobile REAL */
-  html {
-    overflow-x: hidden !important;
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-  
-  body {
-    overflow-x: hidden !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-  
-  /* Container principal - ajuste para mobile real */
-  .app-container {
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: hidden !important;
-    padding: 0 0.5rem !important;
-    box-sizing: border-box !important;
-  }
-  
-  /* Container da tabela - REAL mobile friendly */
-  .table-container,
-  .table-responsive {
-    overflow: hidden !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    box-sizing: border-box !important;
-  }
-
-  /* CARTÕES MOBILE - Layout de cartão para informações completas */
-  #cartoesListaPrincipal .table-container {
-    display: none !important; /* Esconder tabela original */
-  }
-
-  /* Container específivo para versão mobile dos cartões */
-  .cartoes-mobile-container {
-    display: block !important;
-    width: 100% !important;
-    margin: 1rem 0 !important;
-    padding: 0 !important;
-  }
-
-  /* Estilo para cada cartão individual */
-  .cartao-mobile {
-    display: block !important;
-    width: 100% !important;
-    margin: 0 0 1rem 0 !important;
-    padding: 1rem !important;
-    background: var(--card-color) !important;
-    border: 1px solid var(--border-color) !important;
-    border-left: 4px solid var(--primary) !important;
-    border-radius: 12px !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
-    position: relative !important;
-    box-sizing: border-box !important;
-  }
-
-  /* Header do cartão com nome e bandeira */
-  .cartao-mobile-header {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    margin-bottom: 0.75rem !important;
-    padding-bottom: 0.5rem !important;
-    border-bottom: 1px solid var(--border-color) !important;
-  }
-
-  .cartao-mobile-nome {
-    font-size: 1.1rem !important;
-    font-weight: 600 !important;
-    color: var(--text-primary) !important;
-    margin: 0 !important;
-  }
-
-  .cartao-mobile-bandeira {
-    font-size: 0.8rem !important;
-    padding: 0.25rem 0.5rem !important;
-    background: var(--primary-light) !important;
-    color: var(--primary) !important;
-    border-radius: 20px !important;
-    font-weight: 500 !important;
-  }
-
-  /* Informações do cartão */
-  .cartao-mobile-info {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 0.5rem !important;
-  }
-
-  .cartao-mobile-row {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    padding: 0.25rem 0 !important;
-  }
-
-  .cartao-mobile-label {
-    font-size: 0.85rem !important;
-    color: var(--text-muted) !important;
-    font-weight: 500 !important;
-    margin: 0 !important;
-  }
-
-  .cartao-mobile-valor {
-    font-size: 0.9rem !important;
-    color: var(--text-primary) !important;
-    font-weight: 600 !important;
-    text-align: right !important;
-  }
-
-  /* Destaque para limite */
-  .cartao-mobile-row.limite .cartao-mobile-valor {
-    color: var(--success) !important;
-    font-size: 1rem !important;
-  
-  /* Tabela mobile - COMPLETAMENTE reformulada para mobile real */
-  #todasDespesasTable {
-    width: 100% !important;
-    max-width: 100% !important;
-    display: block !important;
-    overflow: hidden !important;
-    border-collapse: separate !important;
-    table-layout: auto !important;
-  }
-  
-  #todasDespesasTable thead {
-    display: none !important;
-  }
-  
-  #todasDespesasTable tbody {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-  
-  /* CARD mobile - ultra compacto para celular real */
-  #todasDespesasTable tr {
-    display: block !important;
-    width: calc(100vw - 1rem) !important;
-    max-width: calc(100vw - 1rem) !important;
-    margin: 0 0 0.5rem 0 !important;
-    padding: 0.5rem !important;
-    border-left: 3px solid var(--primary) !important;
-    background: var(--card-color) !important;
-    border-radius: 8px !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
-    overflow: hidden !important;
-    box-sizing: border-box !important;
-    position: relative !important;
-  }
-  
-  /* RESET completo dos TDs */
-  #todasDespesasTable td {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    border: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    overflow: hidden !important;
-    box-sizing: border-box !important;
-    text-overflow: ellipsis !important;
-  }
-  
-  /* LINHA 1: Descrição - mais compacta */
-  #todasDespesasTable td:nth-child(1) {
-    font-weight: 600 !important;
-    font-size: 0.9rem !important;
-    line-height: 1.3 !important;
-    margin-bottom: 0.3rem !important;
-    padding-right: 60px !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-  }
-  
-  /* LINHA 2: Data + Categoria - mais compacta */
-  #todasDespesasTable td:nth-child(3) {
-    font-size: 0.75rem !important;
-    color: #666 !important;
-    margin-bottom: 0.3rem !important;
-    line-height: 1.2 !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-  }
-  
-  /* LINHA 3: Valor - GARANTIR que apareça completo */
-  #todasDespesasTable td:nth-child(2) {
-    text-align: center !important;
-    background: rgba(67, 97, 238, 0.08) !important;
-    border-radius: 6px !important;
-    padding: 0.4rem 0.2rem !important;
-    font-weight: 700 !important;
-    font-size: 1rem !important;
-    margin-top: 0.2rem !important;
-    width: calc(100% - 0.4rem) !important;
-    max-width: calc(100% - 0.4rem) !important;
-    overflow: visible !important;
-    white-space: nowrap !important;
-  }
-  
-  /* Ações - menores para mobile real */
-  #todasDespesasTable td:nth-child(6) {
-
-    width: auto !important;
-    max-width: 50px !important;
-  }
-  
-  #todasDespesasTable .action-buttons {
-    display: flex !important;
-    gap: 0.2rem !important;
-    flex-wrap: nowrap !important;
-  }
-  
-  #todasDespesasTable .btn-icon {
-    padding: 0.25rem !important;
-    font-size: 0.75rem !important;
-    min-width: 24px !important;
-    width: 24px !important;
-    height: 24px !important;
-    border-radius: 3px !important;
-  }
-  
-  /* ESCONDER campos desnecessários na versão mobile */
-  #todasDespesasTable td:nth-child(4),
-  #todasDespesasTable td:nth-child(5) {
-    display: none !important;
-  }
-  
-  /* Badge - menor para mobile */
-  #todasDespesasTable .badge {
-    font-size: 0.6rem !important;
-    padding: 0.15rem 0.3rem !important;
-    margin-left: 0.3rem !important;
-    display: inline-block !important;
-    white-space: nowrap !important;
-    max-width: 80px !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-  }
-  
-  /* FORÇA ABSOLUTA - sem overflow em qualquer elemento */
-  * {
-    max-width: 100vw !important;
-    overflow-x: hidden !important;
-    box-sizing: border-box !important;
-  }
-  
-  /* Especial para elementos da tabela */
-  #todasDespesasTable,
-  #todasDespesasTable *,
-  .table-container,
-  .table-container *,
-  .chart-container,
-  .chart-container * {
-    max-width: 100% !important;
-    overflow-x: hidden !important;
-    box-sizing: border-box !important;
-    word-break: break-word !important;
-  }
-}
-
-/* CSS apenas para desktop - exibir as colunas separadas corretamente */
-@media (min-width: 769px) {
-  /* Restaurar colunas separadas na versão desktop */
-  #todasDespesasTable td[data-label="Categoria"],
-  #todasDespesasTable td[data-label="Status"],
-  #todasDespesasTable td[data-label="Ações"] {
-    display: table-cell !important;
-  }
-  
-  /* Exibir cabeçalho da tabela na versão desktop */
-  #todasDespesasTable thead {
-    display: table-header-group !important;
-  }
-  
-  /* Altera o conteúdo da coluna "Detalhes" na versão desktop */
-  #todasDespesasTable td[data-label="Detalhes"] .categoria-info,
-  #todasDespesasTable td[data-label="Detalhes"] .status-info {
-    display: none;
-  }
-  
-  /* Remover comportamento de swipe na versão desktop */
-  #todasDespesasTable .swipeable-row {
-    cursor: default;
-  }
-  
-  /* Estilos dos botões de ação desktop */
-  .desktop-actions {
-    white-space: nowrap;
-  }
-  
-  .btn-action {
-    background: none;
-    border: none;
-    padding: 6px 8px;
-    margin: 0 2px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.2s ease;
-  }
-  
-  .btn-action:hover {
-    transform: scale(1.1);
-  }
-  
-  .btn-pay {
-    color: #28a745;
-  }
-  
-  .btn-pay:hover {
-    background-color: #28a745;
-    color: white;
-  }
-  
-  .btn-edit {
-    color: #007bff;
-  }
-  
-  .btn-edit:hover {
-    background-color: #007bff;
-    color: white;
-  }
-  
-  .btn-delete {
-    color: #dc3545;
-  }
-  
-  .btn-delete:hover {
-    background-color: #dc3545;
-    color: white;
-  }
-}
-
-/* Ocultar coluna de ações na versão mobile */
-@media (max-width: 768px) {
-  #todasDespesasTable td[data-label="Ações"] {
-    display: none !important;
-  }
-}
-
-/* =================== DESKTOP USER DROPDOWN =================== */
-.user-info {
-  position: relative;
-  cursor: pointer;
-  transition: background-color var(--transition-speed);
-  border-radius: var(--border-radius-md);
-}
-
-.user-info:hover {
-  background-color: rgba(67, 97, 238, 0.05);
-}
-
-.desktop-user-dropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  width: 200px;
-  background: var(--card-color);
-  box-shadow: var(--shadow-lg);
-  border-radius: var(--border-radius-md);
-  padding: 0.5rem;
-  z-index: 1000;
-  border: 1px solid var(--border-color);
-  animation: fadeInDropdown 0.2s ease-out;
-}
-
-@keyframes fadeInDropdown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.desktop-menu-btn, .desktop-logout-btn {
-  width: 100%;
-  padding: 0.75rem;
-  border: none;
-  background: transparent;
-  color: var(--text-color);
-  text-align: left;
-  border-radius: var(--border-radius-sm);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.95rem;
-  transition: background-color var(--transition-speed);
-}
-
-.desktop-menu-btn:hover {
-  background-color: rgba(67, 97, 238, 0.1);
-  color: var(--primary);
-}
-
-.desktop-logout-btn {
-  color: var(--danger);
-}
-
-.desktop-logout-btn:hover {
-  background-color: rgba(247, 37, 133, 0.1);
-}
-
-.desktop-dropdown-divider {
-  height: 1px;
-  background: var(--border-color);
-  margin: 0.5rem 0;
-}
-
-/* =================== WEB/DESKTOP ENHANCEMENTS =================== */
-@media (min-width: 769px) {
-  /* MELHORIAS APENAS PARA DESKTOP - Não afetam o mobile */
-
-  /* Cards de Rendas, Categorias e Cartões */
-  body .renda-item,
-  body .categoria-item,
-  body .cartao-item {
-    border: 1px solid var(--border-color);
-    background: var(--card-color);
-    box-shadow: var(--shadow-sm);
-    padding: 1.25rem;
-    gap: 0; /* Removeremos gap horizontal porque agora é flex-column organizado com headers e info blocks independentes */
-    flex-direction: column;
-    align-items: stretch;
-    position: relative;
-  }
-
-
-
-
-
-
-
-  body .renda-item:hover,
-  body .categoria-item:hover,
-  body .cartao-item:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-  }
-
-  /* Container de Ações */
-  body .categoria-acoes {
-    display: flex;
-    flex-direction: row;
-    gap: 0.5rem;
-    position: static;
-  }
-
-
-
-  /* Botões de Ação transparentes nos cards */
-  body .categoria-item .btn-icon,
-  body .categoria-acoes .btn-icon {
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    color: var(--text-muted);
-    width: 36px;
-    height: 36px;
-    padding: 0;
-  }
-
-  body .renda-item .btn-icon {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    color: var(--text-muted) !important;
-    width: 32px !important;
-    height: 32px !important;
-    padding: 0 !important;
-  }
-
-  body .renda-item .btn-icon:hover {
-    color: var(--danger) !important;
-    background: transparent !important;
-  }
 
   body .categoria-item .btn-icon.btn-danger:hover,
   body .categoria-acoes .btn-icon.btn-danger:hover {
@@ -4308,55 +3775,78 @@ body.login-page {
 
 
 
+/* ================== RENDA CARDS CLEAN DESKTOP & MOBILE ================== */
+body .renda-item {
+  position: relative !important;
+}
+
+body .renda-item .renda-delete-btn-desktop {
+  position: absolute !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #667085 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  z-index: 5 !important;
+}
+
+body .renda-item .renda-delete-btn-desktop:hover {
+  background: #f2f4f7 !important;
+  color: #344054 !important;
+}
+
+body .renda-item .renda-delete-btn-desktop svg {
+  stroke: currentColor !important;
+  fill: none !important;
+  stroke-width: 1.9 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  pointer-events: none !important;
+}
 
 @media (min-width: 769px) {
-
   body .renda-item {
-    position: relative !important;
     padding: 1rem 3.2rem 1rem 1rem !important;
-    background: white;
-    border-radius: var(--border-radius-md);
-    border: 1px solid #eaeaea;
-    box-shadow: none;
-    display: block;
+    display: block !important;
   }
 
   body .renda-item .renda-delete-btn-desktop {
-    position: absolute !important;
     top: 14px !important;
     right: 14px !important;
     width: 30px !important;
     height: 30px !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border: none !important;
     border-radius: 10px !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    color: #667085 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    cursor: pointer !important;
-    z-index: 5 !important;
-    appearance: none !important;
-    -webkit-appearance: none !important;
-  }
-
-  body .renda-item .renda-delete-btn-desktop:hover {
-    background: #f2f4f7 !important;
-    color: #344054 !important;
   }
 
   body .renda-item .renda-delete-btn-desktop svg {
     width: 18px !important;
     height: 18px !important;
-    stroke: currentColor !important;
-    fill: none !important;
-    stroke-width: 1.9 !important;
-    stroke-linecap: round !important;
-    stroke-linejoin: round !important;
-    pointer-events: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  body .renda-item {
+    padding: 0.85rem 2.6rem 0.85rem 0.85rem !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
   }
 
+  body .renda-item .renda-delete-btn-desktop {
+    top: 10px !important;
+    right: 10px !important;
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 8px !important;
+  }
+
+  body .renda-item .renda-delete-btn-desktop svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
 }
+/* ===================================================================== */

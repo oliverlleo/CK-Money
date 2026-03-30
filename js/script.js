@@ -468,10 +468,6 @@ function initMobileAndOptimizations() {
   }
   
   // Inicializar a seção de configurações com a aba de rendas ativa
-  if (document.getElementById('configuracoesSection')) {
-    showConfigTab('rendaTab');
-  }
-  
   // Adicionar event listener para o botão "Adicionar Pagamento"
   const adicionarPagamentoBtn = document.getElementById('adicionarPagamento');
   if (adicionarPagamentoBtn) {
@@ -5341,9 +5337,6 @@ document.addEventListener('DOMContentLoaded', function() {
   const dashboardYearInput = document.getElementById("dashboardYear");
   if (dashboardYearInput) dashboardYearInput.value = hoje.getFullYear();
   
-  // Atualizar dashboard
-  atualizarDashboard();
-  
   // Inicializar data de compra com a data atual
   const dataCompraInput = document.getElementById("dataCompra");
   if (dataCompraInput) {
@@ -5354,9 +5347,6 @@ document.addEventListener('DOMContentLoaded', function() {
   if (dataPagamentoInput) {
     dataPagamentoInput.valueAsDate = hoje;
   }
-
-  // Filtrar despesas
-  filtrarTodasDespesas();
 });
 
 /**
