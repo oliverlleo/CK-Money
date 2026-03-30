@@ -7,18 +7,18 @@ const CACHE_NAME = 'gestao-financeira-cache-v4';
 
 // Lista de todos os arquivos do seu app para guardar em cache.
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/login.html',
-  '/css/styles.css',
-  '/css/inteligencia_financeira.css',
-  '/js/script.js',
-  '/js/inteligencia_financeira.js',
-  '/js/utils.js',
-  '/js/navigation.js',
-  '/js/pwa.js',
-  '/icon-192x192.png',
-  '/icon-512x512.png'
+  './',
+  './index.html',
+  './login.html',
+  './css/styles.css',
+  './css/inteligencia_financeira.css',
+  './js/script.js',
+  './js/inteligencia_financeira.js',
+  './js/utils.js',
+  './js/navigation.js',
+  './js/pwa.js',
+  './icon-192x192.png',
+  './icon-512x512.png'
   // NOTA: Bibliotecas externas (Firebase, JQuery, etc.) não foram adicionadas
   // para garantir compatibilidade e evitar problemas com CORS.
   // Elas serão carregadas da rede quando houver conexão.
