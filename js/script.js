@@ -4320,8 +4320,8 @@ function loadRendas() {
         <div class="renda-card-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
           <div class="renda-titulo" style="font-size: 1.1rem; font-weight: 600; color: var(--text-color); margin: 0;">${pessoa.nome}</div>
           <div class="renda-acoes">
-            <button class="btn-icon btn-danger" onclick="alert('Função disponível apenas para usuários logados')">
-              <i class="fa-regular fa-trash-can"></i>
+            <button class="btn-icon renda-delete-btn" title="Excluir renda" aria-label="Excluir renda" onclick="alert('Função disponível apenas para usuários logados')">
+              <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
         </div>
@@ -4364,8 +4364,8 @@ function loadRendas() {
         <div class="renda-card-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
           <div class="renda-titulo" style="font-size: 1.1rem; font-weight: 600; color: var(--text-color); margin: 0;">${pessoa.nome}</div>
           <div class="renda-acoes">
-            <button class="btn-icon btn-danger" onclick="deleteRenda('${key}')">
-              <i class="fa-regular fa-trash-can"></i>
+            <button class="btn-icon renda-delete-btn" title="Excluir renda" aria-label="Excluir renda" onclick="deleteRenda('${key}')">
+              <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
         </div>
