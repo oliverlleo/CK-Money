@@ -15,7 +15,7 @@ function createPwaBanner() {
     // na detecção inicial de tela via JS que as vezes atrasa.
     const bannerHtml = `
     <!-- Banner de Instalação PWA -->
-    <div id="pwaInstallBanner" class="pwa-install-banner" style="position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--card-color); color: var(--text-color); padding: 15px 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 9999; flex-direction: column; align-items: center; gap: 10px; width: 90%; max-width: 400px; border: 1px solid var(--border-color);">
+    <div id="pwaInstallBanner" class="pwa-install-banner" style="display: none; position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--card-color); color: var(--text-color); padding: 15px 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 9999; flex-direction: column; align-items: center; gap: 10px; width: 90%; max-width: 400px; border: 1px solid var(--border-color);">
         <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
             <img src="icon-192x192.png" alt="App Icon" style="width: 40px; height: 40px; border-radius: 8px;">
             <div>
@@ -29,21 +29,7 @@ function createPwaBanner() {
         </div>
     </div>
 
-    <!-- Modal de Instrução iOS / Safari / Navegadores sem suporte automático -->
-    <div id="pwaIOSModal" class="modal" style="display: none; z-index: 10000;">
-      <div class="modal-content" style="text-align: center; max-width: 350px; padding: 20px;">
-        <h2 style="margin-bottom: 15px; font-size: 1.2rem;">Adicionar à Tela de Início</h2>
-        <img src="icon-192x192.png" alt="App Icon" style="width: 60px; height: 60px; border-radius: 12px; margin-bottom: 15px;">
-        <p style="margin-bottom: 10px; font-size: 0.95rem; color: var(--text-color);">
-          Para instalar o aplicativo no seu dispositivo:
-        </p>
-        <ol style="text-align: left; margin-bottom: 20px; font-size: 0.9rem; padding-left: 20px; color: var(--text-color);">
-          <li style="margin-bottom: 8px;">Toque no ícone de <strong>Compartilhar</strong> <i class="fas fa-share-square"></i> (ou os três pontinhos no Android/Chrome) no seu navegador.</li>
-          <li>Selecione <strong>"Adicionar à Tela de Início"</strong> <i class="fas fa-plus-square"></i>.</li>
-        </ol>
-        <button class="btn btn-primary btn-block" onclick="document.getElementById('pwaIOSModal').style.display='none'">Entendi</button>
-      </div>
-    </div>
+
     `;
 
     document.body.insertAdjacentHTML('beforeend', bannerHtml);
@@ -67,13 +53,6 @@ function initPwaLogic() {
             const { outcome } = await window.deferredPrompt.userChoice;
             console.log(`PWA install prompt outcome: ${outcome}`);
             window.deferredPrompt = null;
-          } else {
-            // iOS Safari ou outros navegadores que não suportam disparo automático
-            // Mostramos um modal com instruções manuais
-            const iosModal = document.getElementById('pwaIOSModal');
-            if (iosModal) {
-              iosModal.style.display = 'flex';
-            }
           }
         });
       }

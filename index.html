@@ -73,6 +73,10 @@
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       window.deferredPrompt = e;
+      const installBanner = document.getElementById('pwaInstallBanner');
+      if (installBanner) {
+        installBanner.style.setProperty('display', 'flex', 'important');
+      }
       console.log('beforeinstallprompt disparado e capturado!');
     });
   </script>
