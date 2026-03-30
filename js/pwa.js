@@ -69,7 +69,7 @@ function createPwaBanner() {
 
   btnAccept.addEventListener('click', async () => {
     if (deferredPrompt) {
-      installBanner.style.display = 'none';
+      installBanner.style.setProperty('display', 'none', 'important');
       deferredPrompt.prompt();
       await deferredPrompt.userChoice;
       deferredPrompt = null;
@@ -77,12 +77,13 @@ function createPwaBanner() {
     }
 
     if (isSafariIOS() && iosModal) {
+      installBanner.style.setProperty('display', 'none', 'important');
       iosModal.style.display = 'flex';
     }
   });
 
   btnDecline.addEventListener('click', () => {
-    installBanner.style.display = 'none';
+    installBanner.style.setProperty('display', 'none', 'important');
     localStorage.setItem('pwaBannerDismissed', 'true');
   });
 }
