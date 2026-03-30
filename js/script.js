@@ -631,6 +631,8 @@ function showSection(sectionId) {
       renderizarPainelMetas();
     }
   } else if (sectionId === 'configuracoesSection') {
+    const tabId = getActiveConfigTabId();
+
     if (!authStateResolved) {
       return;
     }
@@ -640,9 +642,7 @@ function showSection(sectionId) {
       return;
     }
 
-    loadRendas();
-    loadCategorias();
-    loadCartoes();
+    showConfigTab(tabId);
   } else if (sectionId === 'despesasSection') {
     if (!authStateResolved) {
       return;
@@ -710,7 +710,8 @@ function showConfigTab(tabId) {
   tabButtons.forEach(btn => btn.classList.remove('active'));
 
   for (let i = 0; i < tabButtons.length; i++) {
-    if (tabButtons[i].getAttribute('onclick') && tabButtons[i].getAttribute('onclick').includes(tabId)) {
+    const onclick = tabButtons[i].getAttribute('onclick') || '';
+    if (onclick.includes(`showConfigTab('${tabId}')`)) {
       tabButtons[i].classList.add('active');
       break;
     }
@@ -721,11 +722,10 @@ function showConfigTab(tabId) {
   }
 
   if (!currentUser || !currentUser.uid) {
-    redirecionarPara('login');
     return;
   }
 
-  if (tabId === "configCategoriasTab") {
+  if (tabId === 'configCategoriasTab') {
     loadCategorias();
   } else if (tabId === 'rendaTab') {
     loadRendas();
@@ -4620,22 +4620,21 @@ function handleAuthStateChanged(user) {
 
   currentUser = user;
 
-  if (appBootstrapped) return;
-  appBootstrapped = true;
+  if (!appBootstrapped) {
+    appBootstrapped = true;
 
-  loadThemeFromFirebase();
-  atualizarReferenciaDB(user.uid);
-  exibirInfoUsuario(user);
-  atualizarInfoUsuarioMobile(user);
-  adicionarBotaoLogout();
-
-  carregarDadosUsuario();
+    loadThemeFromFirebase();
+    atualizarReferenciaDB(user.uid);
+    exibirInfoUsuario(user);
+    atualizarInfoUsuarioMobile(user);
+    adicionarBotaoLogout();
+    carregarDadosUsuario();
+  }
 
   const activeSection = document.querySelector('main > section[style*="display: block"]')?.id;
+
   if (activeSection === 'configuracoesSection') {
-    loadRendas();
-    loadCategorias();
-    loadCartoes();
+    showConfigTab(getActiveConfigTabId());
   } else if (activeSection === 'despesasSection') {
     filtrarTodasDespesas();
   } else {
