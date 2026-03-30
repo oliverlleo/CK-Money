@@ -12,6 +12,7 @@ let currentCalendarYear = new Date().getFullYear();
 let rangeStart = null;
 let rangeEnd = null;
 let currentUser = null;
+let authStateResolved = false;
 let appBootstrapped = false;
 
 
@@ -630,12 +631,28 @@ function showSection(sectionId) {
       renderizarPainelMetas();
     }
   } else if (sectionId === 'configuracoesSection') {
-    // Carregar dados para as abas de configurações
+    if (!authStateResolved) {
+      return;
+    }
+
+    if (!currentUser || !currentUser.uid) {
+      redirecionarPara('login');
+      return;
+    }
+
     loadRendas();
     loadCategorias();
     loadCartoes();
   } else if (sectionId === 'despesasSection') {
-    // Carregar despesas quando esta seção for mostrada
+    if (!authStateResolved) {
+      return;
+    }
+
+    if (!currentUser || !currentUser.uid) {
+      redirecionarPara('login');
+      return;
+    }
+
     filtrarTodasDespesas();
   } else if (sectionId === 'relatorioIntegradoSection') {
     // Se estiver acessando a seção de relatórios, inicializar a primeira aba com "Todo Período" padrão
@@ -681,27 +698,33 @@ function setActiveBottomNav(clickedItem) {
  * @param {string} tabId - ID da aba a ser mostrada
  */
 function showConfigTab(tabId) {
-  // Esconder todas as abas
   const tabPanes = document.querySelectorAll('.config-tab-pane');
   tabPanes.forEach(pane => pane.style.display = 'none');
-  
-  // Mostrar a aba selecionada
-  document.getElementById(tabId).style.display = 'block';
-  
-  // Atualizar botões de navegação
+
+  const targetPane = document.getElementById(tabId);
+  if (targetPane) {
+    targetPane.style.display = 'block';
+  }
+
   const tabButtons = document.querySelectorAll('.config-tab-btn');
   tabButtons.forEach(btn => btn.classList.remove('active'));
-  
-  // Encontrar e ativar o botão correspondente
-  const buttons = document.querySelectorAll('.config-tab-btn');
-  for (let i = 0; i < buttons.length; i++) {
-    if (buttons[i].getAttribute('onclick') && buttons[i].getAttribute('onclick').includes(tabId)) {
-      buttons[i].classList.add('active');
+
+  for (let i = 0; i < tabButtons.length; i++) {
+    if (tabButtons[i].getAttribute('onclick') && tabButtons[i].getAttribute('onclick').includes(tabId)) {
+      tabButtons[i].classList.add('active');
       break;
     }
   }
-  
-  // Carregar dados específicos da aba
+
+  if (!authStateResolved) {
+    return;
+  }
+
+  if (!currentUser || !currentUser.uid) {
+    redirecionarPara('login');
+    return;
+  }
+
   if (tabId === "configCategoriasTab") {
     loadCategorias();
   } else if (tabId === 'rendaTab') {
@@ -1728,8 +1751,7 @@ function cadastrarDespesa() {
         .then(() => {
           exibirToast("Despesa cadastrada com sucesso!", "success");
           fecharModal("cadastroDespesaModal");
-          atualizarDashboard();
-          filtrarTodasDespesas();
+
         })
         .catch(error => {
           console.error("Erro ao cadastrar despesa:", error);
@@ -1797,8 +1819,7 @@ function cadastrarDespesa() {
     .then(() => {
       exibirToast("Despesa cadastrada com sucesso!", "success");
       fecharModal("cadastroDespesaModal");
-      atualizarDashboard();
-      filtrarTodasDespesas();
+
     })
     .catch(error => {
       console.error("Erro ao cadastrar despesa:", error);
@@ -2047,8 +2068,7 @@ function pagarDespesa() {
       }).then(() => {
         exibirToast("Despesa paga com sucesso!", "success");
         fecharModal("pagarDespesaModal");
-        atualizarDashboard();
-        filtrarTodasDespesas();
+
       });
     } else if (despesa.formaPagamento === "cartao") {
       const parcelaIndex = parseInt(document.getElementById("parcelaSelect").value);
@@ -2063,8 +2083,7 @@ function pagarDespesa() {
       }).then(() => {
         exibirToast("Parcela paga com sucesso!", "success");
         fecharModal("pagarDespesaModal");
-        atualizarDashboard();
-        filtrarTodasDespesas();
+
       });
     } else if (despesa.formaPagamento === "recorrente") {
       const parcelaIndex = parseInt(document.getElementById("parcelaSelect").value);
@@ -2082,8 +2101,7 @@ function pagarDespesa() {
         
         exibirToast("Recorrência paga com sucesso!", "success");
         fecharModal("pagarDespesaModal");
-        atualizarDashboard();
-        filtrarTodasDespesas();
+
       });
     }
   });
@@ -2351,8 +2369,7 @@ function confirmarExclusaoDespesa(despesaId) {
   if (confirm("Tem certeza que deseja excluir esta despesa? Esta ação não pode ser desfeita.")) {
     db.ref("despesas").child(despesaId).remove().then(() => {
       exibirToast("Despesa excluída com sucesso!", "success");
-      atualizarDashboard();
-      filtrarTodasDespesas();
+
     }).catch(error => {
       console.error("Erro ao excluir despesa:", error);
       exibirToast("Erro ao excluir despesa.", "error");
@@ -2423,8 +2440,7 @@ function excluirDespesa(despesaId) {
     db.ref("despesas").child(despesaId).remove()
       .then(() => {
         exibirToast("Despesa excluída com sucesso!", "success");
-        atualizarDashboard();
-        filtrarTodasDespesas();
+
       })
       .catch(error => {
         console.error("Erro ao excluir despesa:", error);
@@ -3753,9 +3769,12 @@ function loadCategorias() {
   if (categoriasListaPrincipal) categoriasListaPrincipal.innerHTML = "";
   
   // Verificar se o usuário está autenticado
+  if (!authStateResolved) {
+    return;
+  }
+
   if (!currentUser || !currentUser.uid) {
-    console.error("Usuário não autenticado");
-    exibirToast("Você precisa estar autenticado para acessar as categorias", "danger");
+    console.warn("loadCategorias abortado: usuário não autenticado");
     return;
   }
   
@@ -4009,9 +4028,12 @@ function loadCartoes() {
   if (cartoesListaPrincipal) cartoesListaPrincipal.innerHTML = "";
   
   // Verificar se o usuário está autenticado
+  if (!authStateResolved) {
+    return;
+  }
+
   if (!currentUser || !currentUser.uid) {
-    console.error("Usuário não autenticado");
-    exibirToast("Você precisa estar autenticado para acessar os cartões", "danger");
+    console.warn("loadCartoes abortado: usuário não autenticado");
     return;
   }
   
@@ -4277,8 +4299,12 @@ function loadRendas() {
 
   rendaList.innerHTML = "";
 
+  if (!authStateResolved) {
+    return;
+  }
+
   if (!currentUser || !currentUser.uid) {
-    rendaList.innerHTML = "<p>Carregando dados do usuário...</p>";
+    rendaList.innerHTML = "";
     return;
   }
 
@@ -4580,32 +4606,40 @@ function atualizarInfoUsuarioMobile(user) {
  * Manipula mudanças no estado de autenticação
  */
 function handleAuthStateChanged(user) {
-  if (user) {
-    // Usuário está logado
-    currentUser = user;
-    
-    // Carregar tema do Firebase
-    loadThemeFromFirebase();
-    
-    // Atualizar referência do banco de dados para o usuário atual
-    atualizarReferenciaDB(user.uid);
-    
-    // Exibir informações do usuário (desktop)
-    exibirInfoUsuario(user);
-    
-    // Atualizar informações do usuário (mobile)
-    atualizarInfoUsuarioMobile(user);
-    
-    // Adicionar botão de logout
-    adicionarBotaoLogout();
-    
-    // Carregar dados do usuário
-    carregarDadosUsuario();
-  } else {
-    // Usuário não está logado, redirecionar para a página de login
+  authStateResolved = true;
+
+  if (!user) {
+    currentUser = null;
+    appBootstrapped = false;
+
     if (!window.location.href.includes('login')) {
       redirecionarPara('login');
     }
+    return;
+  }
+
+  currentUser = user;
+
+  if (appBootstrapped) return;
+  appBootstrapped = true;
+
+  loadThemeFromFirebase();
+  atualizarReferenciaDB(user.uid);
+  exibirInfoUsuario(user);
+  atualizarInfoUsuarioMobile(user);
+  adicionarBotaoLogout();
+
+  carregarDadosUsuario();
+
+  const activeSection = document.querySelector('main > section[style*="display: block"]')?.id;
+  if (activeSection === 'configuracoesSection') {
+    loadRendas();
+    loadCategorias();
+    loadCartoes();
+  } else if (activeSection === 'despesasSection') {
+    filtrarTodasDespesas();
+  } else {
+    atualizarDashboard();
   }
 }
 
@@ -5616,8 +5650,7 @@ function atualizarDespesa() {
             .then(() => {
               exibirToast("Despesa atualizada com sucesso!", "success");
               fecharModal("cadastroDespesaModal");
-              atualizarDashboard();
-              filtrarTodasDespesas();
+
             })
             .catch(error => {
               console.error("Erro ao atualizar despesa:", error);
@@ -5701,8 +5734,7 @@ function atualizarDespesa() {
       .then(() => {
         exibirToast("Despesa atualizada com sucesso!", "success");
         fecharModal("cadastroDespesaModal");
-        atualizarDashboard();
-        filtrarTodasDespesas();
+
       })
       .catch(error => {
         console.error("Erro ao atualizar despesa:", error);
