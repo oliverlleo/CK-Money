@@ -516,7 +516,7 @@ function adicionarCampoPagamento() {
       <input type="number" class="form-control pagamento-valor" placeholder="Valor" step="0.01" required pattern="[0-9]*" inputmode="decimal">
     </div>
     <button type="button" class="remover-pagamento">
-      <i class="fas fa-trash"></i>
+      <i class="fa-regular fa-trash-can"></i>
     </button>
   `;
   
@@ -2160,7 +2160,7 @@ function filtrarTodasDespesas() {
               <i class="fas fa-edit"></i>
             </button>
             <button class="btn-action btn-delete" onclick="confirmarExclusaoDespesa('${key}')" title="Excluir">
-              <i class="fas fa-trash"></i>
+              <i class="fa-regular fa-trash-can"></i>
             </button>
           </td>
         `;
@@ -2209,7 +2209,7 @@ function filtrarTodasDespesas() {
                 <i class="fas fa-edit"></i>
               </button>
               <button class="btn-action btn-delete" onclick="confirmarExclusaoDespesa('${key}')" title="Excluir">
-                <i class="fas fa-trash"></i>
+                <i class="fa-regular fa-trash-can"></i>
               </button>
             </td>
           `;
@@ -2294,7 +2294,7 @@ function filtrarTodasDespesas() {
               <i class="fas fa-edit"></i>
             </button>
             <button class="btn-action btn-delete" onclick="confirmarExclusaoDespesa('${key}')" title="Excluir">
-              <i class="fas fa-trash"></i>
+              <i class="fa-regular fa-trash-can"></i>
             </button>
           </td>
         `;
@@ -3783,7 +3783,7 @@ function loadCategorias() {
               <i class="fas fa-edit"></i>
             </button>
             <button class="btn-icon btn-danger" onclick="excluirCategoria('${key}')">
-              <i class="fas fa-trash"></i>
+              <i class="fa-regular fa-trash-can"></i>
             </button>
           </div>
         `;
@@ -3813,7 +3813,7 @@ function loadCategorias() {
                     <i class="fas fa-edit"></i>
                   </button>
                   <button class="btn-icon btn-danger" title="Excluir" onclick="excluirCategoria('${key}')">
-                    <i class="fas fa-trash"></i>
+                    <i class="fa-regular fa-trash-can"></i>
                   </button>
                 </div>
               </div>
@@ -4037,7 +4037,7 @@ function loadCartoes() {
             </div>
           </div>
           <button class="btn-icon btn-danger" onclick="excluirCartao('${key}')">
-            <i class="fas fa-trash"></i>
+            <i class="fa-regular fa-trash-can"></i>
           </button>
         `;
         
@@ -4188,7 +4188,7 @@ function adicionarPagamento() {
       <input type="number" class="form-control pagamento-valor" placeholder="Valor" step="0.01">
     </div>
     <button class="btn-icon" onclick="removerPagamento(this)">
-      <i class="fas fa-trash"></i>
+      <i class="fa-regular fa-trash-can"></i>
     </button>
   `;
   
@@ -4321,7 +4321,7 @@ function loadRendas() {
           <div class="renda-titulo" style="font-size: 1.1rem; font-weight: 600; color: var(--text-color); margin: 0;">${pessoa.nome}</div>
           <div class="renda-acoes">
             <button class="btn-icon btn-danger" onclick="alert('Função disponível apenas para usuários logados')">
-              <i class="fas fa-trash"></i>
+              <i class="fa-regular fa-trash-can"></i>
             </button>
           </div>
         </div>
@@ -4365,7 +4365,7 @@ function loadRendas() {
           <div class="renda-titulo" style="font-size: 1.1rem; font-weight: 600; color: var(--text-color); margin: 0;">${pessoa.nome}</div>
           <div class="renda-acoes">
             <button class="btn-icon btn-danger" onclick="deleteRenda('${key}')">
-              <i class="fas fa-trash"></i>
+              <i class="fa-regular fa-trash-can"></i>
             </button>
           </div>
         </div>
