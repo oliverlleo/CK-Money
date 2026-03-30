@@ -4317,17 +4317,17 @@ function loadRendas() {
       }
       
       div.innerHTML = `
-        <div class="renda-card-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+        <div class="renda-card-header" style="margin-bottom: 0.35rem;">
           <div class="renda-titulo" style="font-size: 1.1rem; font-weight: 600; color: var(--text-color); margin: 0;">${pessoa.nome}</div>
-          <div class="renda-acoes">
-            <button class="btn-icon renda-delete-btn" title="Excluir renda" aria-label="Excluir renda" onclick="alert('Função disponível apenas para usuários logados')">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
-          </div>
         </div>
         <div class="renda-info" style="margin: 0;">
-          <div class="renda-detalhe" style="font-size: 0.9rem; color: var(--text-color); margin-bottom: 0.5rem;">
-            <strong style="color: var(--text-muted);">Saldo Inicial:</strong> R$ ${parseFloat(pessoa.saldoInicial).toFixed(2)}
+          <div class="renda-detalhe renda-detalhe-saldo" style="font-size: 0.9rem; color: var(--text-color); margin-bottom: 0.5rem;">
+            <button class="renda-delete-inline-btn" onclick="alert('Função disponível apenas para usuários logados')" title="Excluir renda" aria-label="Excluir renda">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+            <span>
+              <strong style="color: var(--text-muted);">Saldo Inicial:</strong> R$ ${parseFloat(pessoa.saldoInicial).toFixed(2)}
+            </span>
           </div>
           ${pagamentosInfo}
         </div>
@@ -4361,17 +4361,17 @@ function loadRendas() {
       }
       
       div.innerHTML = `
-        <div class="renda-card-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+        <div class="renda-card-header" style="margin-bottom: 0.35rem;">
           <div class="renda-titulo" style="font-size: 1.1rem; font-weight: 600; color: var(--text-color); margin: 0;">${pessoa.nome}</div>
-          <div class="renda-acoes">
-            <button class="btn-icon renda-delete-btn" title="Excluir renda" aria-label="Excluir renda" onclick="deleteRenda('${key}')">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
-          </div>
         </div>
         <div class="renda-info" style="margin: 0;">
-          <div class="renda-detalhe" style="font-size: 0.9rem; color: var(--text-color); margin-bottom: 0.5rem;">
-            <strong style="color: var(--text-muted);">Saldo Inicial:</strong> R$ ${parseFloat(pessoa.saldoInicial).toFixed(2)}
+          <div class="renda-detalhe renda-detalhe-saldo" style="font-size: 0.9rem; color: var(--text-color); margin-bottom: 0.5rem;">
+            <button class="renda-delete-inline-btn" onclick="deleteRenda('${key}')" title="Excluir renda" aria-label="Excluir renda">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+            <span>
+              <strong style="color: var(--text-muted);">Saldo Inicial:</strong> R$ ${parseFloat(pessoa.saldoInicial).toFixed(2)}
+            </span>
           </div>
           ${pagamentosInfo}
         </div>
