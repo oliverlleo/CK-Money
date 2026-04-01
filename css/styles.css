@@ -3917,3 +3917,39 @@ body .renda-item .renda-delete-btn-desktop svg {
     display: none !important;
   }
 }
+
+
+/* ================== EXPAND VALOR BLUE BADGE MOBILE ================== */
+@media (max-width: 768px) {
+  #todasDespesasTable tr.swipeable-row {
+    padding: 1rem !important;
+  }
+
+  #todasDespesasTable td[data-label="Valor"] {
+    display: block;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0.75rem 0 0 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box;
+    text-align: center !important;
+    border-radius: 12px;
+  }
+
+  #todasDespesasTable td[data-label="Valor"]::before {
+    display: none !important;
+  }
+
+  #todasDespesasTable td[data-label="Valor"] .valor-mobile,
+  #todasDespesasTable td[data-label="Valor"] span,
+  #todasDespesasTable td[data-label="Valor"] div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 48px;
+    margin: 0 !important;
+    box-sizing: border-box;
+  }
+}
