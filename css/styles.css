@@ -3909,3 +3909,11 @@ body .renda-item .renda-delete-btn-desktop svg {
     max-width: 100% !important;
   }
 }
+
+
+/* Esconde ações no mobile para a tabela de despesas */
+@media (max-width: 768px) {
+  #todasDespesasTable .desktop-actions {
+    display: none !important;
+  }
+}
