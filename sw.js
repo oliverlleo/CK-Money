@@ -3,7 +3,7 @@
  * Versão: 4
  */
 
-const CACHE_NAME = 'gestao-financeira-cache-v4';
+const CACHE_NAME = 'gestao-financeira-cache-v5';
 
 // Lista de todos os arquivos do seu app para guardar em cache.
 const urlsToCache = [
@@ -72,21 +72,31 @@ self.addEventListener('activate', event => {
  * Se não encontrar no cache, busca na rede.
  */
 self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Se a resposta for encontrada no cache, retorna ela.
-        if (response) {
-          // console.log('Service Worker: Servindo do cache:', event.request.url);
+  const url = new URL(event.request.url);
+  const isAppShell =
+    event.request.method === 'GET' &&
+    url.origin === self.location.origin &&
+    (
+      url.pathname === '/' ||
+      url.pathname.endsWith('.html') ||
+      url.pathname.endsWith('.css') ||
+      url.pathname.startsWith('/js/')
+    );
+
+  if (isAppShell) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
           return response;
-        }
-        // Se não, busca na rede.
-        // console.log('Service Worker: Buscando na rede:', event.request.url);
-        return fetch(event.request);
-      })
-      .catch(error => {
-        console.error('Service Worker: Erro durante o fetch.', error);
-        // Você pode retornar uma página offline padrão aqui, se desejar.
-      })
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  event.respondWith(
+    caches.match(event.request).then(response => response || fetch(event.request))
   );
 });

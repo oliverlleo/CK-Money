@@ -1,11 +1,17 @@
 const { test, expect } = require('@playwright/test');
 
 test('Verifica layout e print', async ({ page }) => {
+    // Abort navigation to login to stay on index
+    await page.route('**/login.html', route => route.abort());
+
     // Navigate
     await page.goto('http://localhost:3000/index.html');
+    await page.waitForTimeout(1000);
 
-    // Inject Mock Data to render the table directly in the page context
+    // Mock current user and navigate
     await page.evaluate(() => {
+        window.currentUser = { uid: 'test-user', email: 'test@example.com' };
+
         const tbody = document.getElementById("todasDespesasBody");
         if(tbody) {
             tbody.innerHTML = `

@@ -12,6 +12,8 @@ let currentCalendarYear = new Date().getFullYear();
 let rangeStart = null;
 let rangeEnd = null;
 let currentUser = null;
+let authStateResolved = false;
+let appBootstrapped = false;
 
 
 // Mapa de categorias para uso global
@@ -467,10 +469,6 @@ function initMobileAndOptimizations() {
   }
   
   // Inicializar a seção de configurações com a aba de rendas ativa
-  if (document.getElementById('configuracoesSection')) {
-    showConfigTab('rendaTab');
-  }
-  
   // Adicionar event listener para o botão "Adicionar Pagamento"
   const adicionarPagamentoBtn = document.getElementById('adicionarPagamento');
   if (adicionarPagamentoBtn) {
@@ -516,7 +514,7 @@ function adicionarCampoPagamento() {
       <input type="number" class="form-control pagamento-valor" placeholder="Valor" step="0.01" required pattern="[0-9]*" inputmode="decimal">
     </div>
     <button type="button" class="remover-pagamento">
-      <i class="fas fa-trash"></i>
+      <i class="fa-regular fa-trash-can"></i>
     </button>
   `;
   
@@ -585,6 +583,16 @@ function exibirToast(mensagem, tipo = 'primary') {
  * Mostra uma seção específica e esconde as demais
  * @param {string} sectionId - ID da seção a ser mostrada
  */
+
+function getActiveConfigTabId() {
+  const activeBtn = document.querySelector('.config-tab-btn.active');
+  if (!activeBtn) return 'rendaTab';
+
+  const onclick = activeBtn.getAttribute('onclick') || '';
+  const match = onclick.match(/showConfigTab\('([^']+)'\)/);
+  return match ? match[1] : 'rendaTab';
+}
+
 function showSection(sectionId) {
   const sections = document.querySelectorAll('main > section');
   sections.forEach(sec => sec.style.display = 'none');
@@ -633,12 +641,28 @@ function showSection(sectionId) {
       renderizarPainelMetas();
     }
   } else if (sectionId === 'configuracoesSection') {
-    // Carregar dados para as abas de configurações
-    loadRendas();
-    loadCategorias();
-    loadCartoes();
+    const tabId = getActiveConfigTabId();
+
+    if (!authStateResolved) {
+      return;
+    }
+
+    if (!currentUser || !currentUser.uid) {
+      redirecionarPara('login');
+      return;
+    }
+
+    showConfigTab(tabId);
   } else if (sectionId === 'despesasSection') {
-    // Carregar despesas quando esta seção for mostrada
+    if (!authStateResolved) {
+      return;
+    }
+
+    if (!currentUser || !currentUser.uid) {
+      redirecionarPara('login');
+      return;
+    }
+
     filtrarTodasDespesas();
   } else if (sectionId === 'relatorioIntegradoSection') {
     // Se estiver acessando a seção de relatórios, inicializar a primeira aba com "Todo Período" padrão
@@ -684,28 +708,34 @@ function setActiveBottomNav(clickedItem) {
  * @param {string} tabId - ID da aba a ser mostrada
  */
 function showConfigTab(tabId) {
-  // Esconder todas as abas
   const tabPanes = document.querySelectorAll('.config-tab-pane');
   tabPanes.forEach(pane => pane.style.display = 'none');
-  
-  // Mostrar a aba selecionada
-  document.getElementById(tabId).style.display = 'block';
-  
-  // Atualizar botões de navegação
+
+  const targetPane = document.getElementById(tabId);
+  if (targetPane) {
+    targetPane.style.display = 'block';
+  }
+
   const tabButtons = document.querySelectorAll('.config-tab-btn');
   tabButtons.forEach(btn => btn.classList.remove('active'));
-  
-  // Encontrar e ativar o botão correspondente
-  const buttons = document.querySelectorAll('.config-tab-btn');
-  for (let i = 0; i < buttons.length; i++) {
-    if (buttons[i].getAttribute('onclick') && buttons[i].getAttribute('onclick').includes(tabId)) {
-      buttons[i].classList.add('active');
+
+  for (let i = 0; i < tabButtons.length; i++) {
+    const onclick = tabButtons[i].getAttribute('onclick') || '';
+    if (onclick.includes(`showConfigTab('${tabId}')`)) {
+      tabButtons[i].classList.add('active');
       break;
     }
   }
-  
-  // Carregar dados específicos da aba
-  if (tabId === "configCategoriasTab") {
+
+  if (!authStateResolved) {
+    return;
+  }
+
+  if (!currentUser || !currentUser.uid) {
+    return;
+  }
+
+  if (tabId === 'configCategoriasTab') {
     loadCategorias();
   } else if (tabId === 'rendaTab') {
     loadRendas();
@@ -1731,8 +1761,7 @@ function cadastrarDespesa() {
         .then(() => {
           exibirToast("Despesa cadastrada com sucesso!", "success");
           fecharModal("cadastroDespesaModal");
-          atualizarDashboard();
-          filtrarTodasDespesas();
+
         })
         .catch(error => {
           console.error("Erro ao cadastrar despesa:", error);
@@ -1800,8 +1829,7 @@ function cadastrarDespesa() {
     .then(() => {
       exibirToast("Despesa cadastrada com sucesso!", "success");
       fecharModal("cadastroDespesaModal");
-      atualizarDashboard();
-      filtrarTodasDespesas();
+
     })
     .catch(error => {
       console.error("Erro ao cadastrar despesa:", error);
@@ -2050,8 +2078,7 @@ function pagarDespesa() {
       }).then(() => {
         exibirToast("Despesa paga com sucesso!", "success");
         fecharModal("pagarDespesaModal");
-        atualizarDashboard();
-        filtrarTodasDespesas();
+
       });
     } else if (despesa.formaPagamento === "cartao") {
       const parcelaIndex = parseInt(document.getElementById("parcelaSelect").value);
@@ -2066,8 +2093,7 @@ function pagarDespesa() {
       }).then(() => {
         exibirToast("Parcela paga com sucesso!", "success");
         fecharModal("pagarDespesaModal");
-        atualizarDashboard();
-        filtrarTodasDespesas();
+
       });
     } else if (despesa.formaPagamento === "recorrente") {
       const parcelaIndex = parseInt(document.getElementById("parcelaSelect").value);
@@ -2085,8 +2111,7 @@ function pagarDespesa() {
         
         exibirToast("Recorrência paga com sucesso!", "success");
         fecharModal("pagarDespesaModal");
-        atualizarDashboard();
-        filtrarTodasDespesas();
+
       });
     }
   });
@@ -2160,7 +2185,7 @@ function filtrarTodasDespesas() {
               <i class="fas fa-edit"></i>
             </button>
             <button class="btn-action btn-delete" onclick="confirmarExclusaoDespesa('${key}')" title="Excluir">
-              <i class="fas fa-trash"></i>
+              <i class="fa-regular fa-trash-can"></i>
             </button>
           </td>
         `;
@@ -2209,7 +2234,7 @@ function filtrarTodasDespesas() {
                 <i class="fas fa-edit"></i>
               </button>
               <button class="btn-action btn-delete" onclick="confirmarExclusaoDespesa('${key}')" title="Excluir">
-                <i class="fas fa-trash"></i>
+                <i class="fa-regular fa-trash-can"></i>
               </button>
             </td>
           `;
@@ -2294,7 +2319,7 @@ function filtrarTodasDespesas() {
               <i class="fas fa-edit"></i>
             </button>
             <button class="btn-action btn-delete" onclick="confirmarExclusaoDespesa('${key}')" title="Excluir">
-              <i class="fas fa-trash"></i>
+              <i class="fa-regular fa-trash-can"></i>
             </button>
           </td>
         `;
@@ -2354,8 +2379,7 @@ function confirmarExclusaoDespesa(despesaId) {
   if (confirm("Tem certeza que deseja excluir esta despesa? Esta ação não pode ser desfeita.")) {
     db.ref("despesas").child(despesaId).remove().then(() => {
       exibirToast("Despesa excluída com sucesso!", "success");
-      atualizarDashboard();
-      filtrarTodasDespesas();
+
     }).catch(error => {
       console.error("Erro ao excluir despesa:", error);
       exibirToast("Erro ao excluir despesa.", "error");
@@ -2426,8 +2450,7 @@ function excluirDespesa(despesaId) {
     db.ref("despesas").child(despesaId).remove()
       .then(() => {
         exibirToast("Despesa excluída com sucesso!", "success");
-        atualizarDashboard();
-        filtrarTodasDespesas();
+
       })
       .catch(error => {
         console.error("Erro ao excluir despesa:", error);
@@ -3756,9 +3779,12 @@ function loadCategorias() {
   if (categoriasListaPrincipal) categoriasListaPrincipal.innerHTML = "";
   
   // Verificar se o usuário está autenticado
+  if (!authStateResolved) {
+    return;
+  }
+
   if (!currentUser || !currentUser.uid) {
-    console.error("Usuário não autenticado");
-    exibirToast("Você precisa estar autenticado para acessar as categorias", "danger");
+    console.warn("loadCategorias abortado: usuário não autenticado");
     return;
   }
   
@@ -3783,7 +3809,7 @@ function loadCategorias() {
               <i class="fas fa-edit"></i>
             </button>
             <button class="btn-icon btn-danger" onclick="excluirCategoria('${key}')">
-              <i class="fas fa-trash"></i>
+              <i class="fa-regular fa-trash-can"></i>
             </button>
           </div>
         `;
@@ -3813,7 +3839,7 @@ function loadCategorias() {
                     <i class="fas fa-edit"></i>
                   </button>
                   <button class="btn-icon btn-danger" title="Excluir" onclick="excluirCategoria('${key}')">
-                    <i class="fas fa-trash"></i>
+                    <i class="fa-regular fa-trash-can"></i>
                   </button>
                 </div>
               </div>
@@ -4012,9 +4038,12 @@ function loadCartoes() {
   if (cartoesListaPrincipal) cartoesListaPrincipal.innerHTML = "";
   
   // Verificar se o usuário está autenticado
+  if (!authStateResolved) {
+    return;
+  }
+
   if (!currentUser || !currentUser.uid) {
-    console.error("Usuário não autenticado");
-    exibirToast("Você precisa estar autenticado para acessar os cartões", "danger");
+    console.warn("loadCartoes abortado: usuário não autenticado");
     return;
   }
   
@@ -4037,7 +4066,7 @@ function loadCartoes() {
             </div>
           </div>
           <button class="btn-icon btn-danger" onclick="excluirCartao('${key}')">
-            <i class="fas fa-trash"></i>
+            <i class="fa-regular fa-trash-can"></i>
           </button>
         `;
         
@@ -4188,7 +4217,7 @@ function adicionarPagamento() {
       <input type="number" class="form-control pagamento-valor" placeholder="Valor" step="0.01">
     </div>
     <button class="btn-icon" onclick="removerPagamento(this)">
-      <i class="fas fa-trash"></i>
+      <i class="fa-regular fa-trash-can"></i>
     </button>
   `;
   
@@ -4276,115 +4305,82 @@ function cadastrarPessoa() {
  */
 function loadRendas() {
   const rendaList = document.getElementById("usuariosListaPrincipal");
+  if (!rendaList) return;
+
   rendaList.innerHTML = "";
-  
-  // Verificar se o usuário está autenticado - ou mostrar dados de exemplo para demonstração
-  if (!currentUser || !currentUser.uid) {
-    // Dados de exemplo para demonstração do design mobile
-    const exemploRendas = [
-      {
-        key: 'exemplo1',
-        nome: 'Leonardo',
-        saldoInicial: 6045.18,
-        pagamentos: [
-          { dia: 20, valor: 1235.00 },
-          { dia: 5, valor: 1517.00 },
-          { dia: 20, valor: 1235.00 },
-          { dia: 5, valor: 1500.00 }
-        ]
-      },
-      {
-        key: 'exemplo2',
-        nome: 'Jaqueline',
-        saldoInicial: 0.00,
-        pagamentos: [
-          { dia: 1, valor: 500.00 }
-        ]
-      }
-    ];
-    
-    exemploRendas.forEach(pessoa => {
-      const div = document.createElement("div");
-      div.className = "renda-item";
-      
-      let pagamentosInfo = "";
-      if (pessoa.pagamentos && pessoa.pagamentos.length > 0) {
-        pagamentosInfo = "<div class='renda-pagamentos-container' style='margin-top: 0.5rem;'><strong style='display:block; margin-bottom: 0.25rem; font-size: 0.85rem; color: var(--text-muted);'>Pagamentos:</strong><div style='display: flex; flex-wrap: wrap; gap: 0.5rem;'>";
-        pessoa.pagamentos.forEach((pag) => {
-          pagamentosInfo += `<span class="badge" style="background: rgba(67, 97, 238, 0.1); color: var(--primary); font-weight: 500; font-size: 0.8rem; padding: 0.4rem 0.6rem; border-radius: 4px;">Dia ${pag.dia}: R$ ${parseFloat(pag.valor).toFixed(2)}</span>`;
-        });
-        pagamentosInfo += "</div></div>";
-      }
-      
-      div.innerHTML = `
-        <div class="renda-card-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-          <div class="renda-titulo" style="font-size: 1.1rem; font-weight: 600; color: var(--text-color); margin: 0;">${pessoa.nome}</div>
-          <div class="renda-acoes">
-            <button class="btn-icon btn-danger" onclick="alert('Função disponível apenas para usuários logados')">
-              <i class="fas fa-trash"></i>
-            </button>
-          </div>
-        </div>
-        <div class="renda-info" style="margin: 0;">
-          <div class="renda-detalhe" style="font-size: 0.9rem; color: var(--text-color); margin-bottom: 0.5rem;">
-            <strong style="color: var(--text-muted);">Saldo Inicial:</strong> R$ ${parseFloat(pessoa.saldoInicial).toFixed(2)}
-          </div>
-          ${pagamentosInfo}
-        </div>
-      `;
-      
-      rendaList.appendChild(div);
-    });
+
+  if (!authStateResolved) {
     return;
   }
-  
-  // Buscar apenas as rendas do usuário atual
+
+  if (!currentUser || !currentUser.uid) {
+    rendaList.innerHTML = "";
+    return;
+  }
+
   db.ref("pessoas").orderByChild("userId").equalTo(currentUser.uid).once("value").then(snapshot => {
     if (!snapshot.exists()) {
       rendaList.innerHTML = "<p>Nenhuma renda cadastrada.</p>";
       return;
     }
-    
+
     snapshot.forEach(child => {
       const key = child.key;
       const pessoa = child.val();
+
       const div = document.createElement("div");
       div.className = "renda-item";
-      
-      let pagamentosInfo = "";
-      if (pessoa.pagamentos && pessoa.pagamentos.length > 0) {
-        pagamentosInfo = "<div class='renda-pagamentos-container' style='margin-top: 0.5rem;'><strong style='display:block; margin-bottom: 0.25rem; font-size: 0.85rem; color: var(--text-muted);'>Pagamentos:</strong><div style='display: flex; flex-wrap: wrap; gap: 0.5rem;'>";
-        pessoa.pagamentos.forEach((pag) => {
-          pagamentosInfo += `<span class="badge" style="background: rgba(67, 97, 238, 0.1); color: var(--primary); font-weight: 500; font-size: 0.8rem; padding: 0.4rem 0.6rem; border-radius: 4px;">Dia ${pag.dia}: R$ ${parseFloat(pag.valor).toFixed(2)}</span>`;
-        });
-        pagamentosInfo += "</div></div>";
-      }
-      
-      div.innerHTML = `
-        <div class="renda-card-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-          <div class="renda-titulo" style="font-size: 1.1rem; font-weight: 600; color: var(--text-color); margin: 0;">${pessoa.nome}</div>
-          <div class="renda-acoes">
-            <button class="btn-icon btn-danger" onclick="deleteRenda('${key}')">
-              <i class="fas fa-trash"></i>
-            </button>
-          </div>
-        </div>
-        <div class="renda-info" style="margin: 0;">
-          <div class="renda-detalhe" style="font-size: 0.9rem; color: var(--text-color); margin-bottom: 0.5rem;">
-            <strong style="color: var(--text-muted);">Saldo Inicial:</strong> R$ ${parseFloat(pessoa.saldoInicial).toFixed(2)}
-          </div>
-          ${pagamentosInfo}
-        </div>
-      `;
-      
+      div.innerHTML = renderRendaCard(key, pessoa);
+
       rendaList.appendChild(div);
     });
+  }).catch(error => {
+    console.error("Erro ao carregar rendas:", error);
+    rendaList.innerHTML = "<p>Erro ao carregar rendas.</p>";
   });
 }
 
-/**
- * Exclui uma renda
- */
+function renderRendaCard(key, pessoa) {
+  let pagamentosInfo = "";
+
+  if (pessoa.pagamentos && pessoa.pagamentos.length > 0) {
+    pagamentosInfo = "<div class='renda-pagamentos-container' style='margin-top: 0.5rem;'><strong style='display:block; margin-bottom: 0.25rem; font-size: 0.85rem; color: var(--text-muted);'>Pagamentos:</strong><div style='display: flex; flex-wrap: wrap; gap: 0.5rem;'>";
+    pessoa.pagamentos.forEach((pag) => {
+      pagamentosInfo += `<span class="badge" style="background: rgba(67, 97, 238, 0.1); color: var(--primary); font-weight: 500; font-size: 0.8rem; padding: 0.4rem 0.6rem; border-radius: 4px;">Dia ${pag.dia}: R$ ${parseFloat(pag.valor).toFixed(2)}</span>`;
+    });
+    pagamentosInfo += "</div></div>";
+  }
+
+  return `
+    <button
+      class="renda-delete-btn-desktop"
+      onclick="deleteRenda('${key}')"
+      title="Excluir renda"
+      aria-label="Excluir renda"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 6h18"></path>
+        <path d="M8 6V4h8v2"></path>
+        <path d="M19 6l-1 14H6L5 6"></path>
+        <path d="M10 11v6"></path>
+        <path d="M14 11v6"></path>
+      </svg>
+    </button>
+
+    <div class="renda-card-header">
+      <div class="renda-titulo">${pessoa.nome}</div>
+    </div>
+
+    <div class="renda-info">
+      <div class="renda-detalhe">
+        <strong>Saldo Inicial:</strong> R$ ${parseFloat(pessoa.saldoInicial || 0).toFixed(2)}
+      </div>
+      ${pagamentosInfo}
+    </div>
+  `;
+}
+
+
 function deleteRenda(key) {
   if (!currentUser || !currentUser.uid) {
     exibirToast("Você precisa estar logado para excluir uma renda.", "warning");
@@ -4620,32 +4616,39 @@ function atualizarInfoUsuarioMobile(user) {
  * Manipula mudanças no estado de autenticação
  */
 function handleAuthStateChanged(user) {
-  if (user) {
-    // Usuário está logado
-    currentUser = user;
-    
-    // Carregar tema do Firebase
-    loadThemeFromFirebase();
-    
-    // Atualizar referência do banco de dados para o usuário atual
-    atualizarReferenciaDB(user.uid);
-    
-    // Exibir informações do usuário (desktop)
-    exibirInfoUsuario(user);
-    
-    // Atualizar informações do usuário (mobile)
-    atualizarInfoUsuarioMobile(user);
-    
-    // Adicionar botão de logout
-    adicionarBotaoLogout();
-    
-    // Carregar dados do usuário
-    carregarDadosUsuario();
-  } else {
-    // Usuário não está logado, redirecionar para a página de login
+  authStateResolved = true;
+
+  if (!user) {
+    currentUser = null;
+    appBootstrapped = false;
+
     if (!window.location.href.includes('login')) {
       redirecionarPara('login');
     }
+    return;
+  }
+
+  currentUser = user;
+
+  if (!appBootstrapped) {
+    appBootstrapped = true;
+
+    loadThemeFromFirebase();
+    atualizarReferenciaDB(user.uid);
+    exibirInfoUsuario(user);
+    atualizarInfoUsuarioMobile(user);
+    adicionarBotaoLogout();
+    carregarDadosUsuario();
+  }
+
+  const activeSection = document.querySelector('main > section[style*="display: block"]')?.id;
+
+  if (activeSection === 'configuracoesSection') {
+    showConfigTab(getActiveConfigTabId());
+  } else if (activeSection === 'despesasSection') {
+    filtrarTodasDespesas();
+  } else {
+    atualizarDashboard();
   }
 }
 
@@ -5377,9 +5380,6 @@ document.addEventListener('DOMContentLoaded', function() {
   const dashboardYearInput = document.getElementById("dashboardYear");
   if (dashboardYearInput) dashboardYearInput.value = hoje.getFullYear();
   
-  // Atualizar dashboard
-  atualizarDashboard();
-  
   // Inicializar data de compra com a data atual
   const dataCompraInput = document.getElementById("dataCompra");
   if (dataCompraInput) {
@@ -5390,9 +5390,6 @@ document.addEventListener('DOMContentLoaded', function() {
   if (dataPagamentoInput) {
     dataPagamentoInput.valueAsDate = hoje;
   }
-
-  // Filtrar despesas
-  filtrarTodasDespesas();
 });
 
 /**
@@ -5662,8 +5659,7 @@ function atualizarDespesa() {
             .then(() => {
               exibirToast("Despesa atualizada com sucesso!", "success");
               fecharModal("cadastroDespesaModal");
-              atualizarDashboard();
-              filtrarTodasDespesas();
+
             })
             .catch(error => {
               console.error("Erro ao atualizar despesa:", error);
@@ -5747,8 +5743,7 @@ function atualizarDespesa() {
       .then(() => {
         exibirToast("Despesa atualizada com sucesso!", "success");
         fecharModal("cadastroDespesaModal");
-        atualizarDashboard();
-        filtrarTodasDespesas();
+
       })
       .catch(error => {
         console.error("Erro ao atualizar despesa:", error);
