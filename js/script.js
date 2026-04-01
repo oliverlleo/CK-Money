@@ -583,6 +583,16 @@ function exibirToast(mensagem, tipo = 'primary') {
  * Mostra uma seção específica e esconde as demais
  * @param {string} sectionId - ID da seção a ser mostrada
  */
+
+function getActiveConfigTabId() {
+  const activeBtn = document.querySelector('.config-tab-btn.active');
+  if (!activeBtn) return 'rendaTab';
+
+  const onclick = activeBtn.getAttribute('onclick') || '';
+  const match = onclick.match(/showConfigTab\('([^']+)'\)/);
+  return match ? match[1] : 'rendaTab';
+}
+
 function showSection(sectionId) {
   const sections = document.querySelectorAll('main > section');
   sections.forEach(sec => sec.style.display = 'none');
