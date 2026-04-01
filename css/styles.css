@@ -2188,7 +2188,8 @@ body.login-page {
     flex: none;
   }
   
-  .d-flex.gap-2 .btn {
+  .d-flex.gap-2 .btn-icon,
+  .d-flex.gap-2 .btn-icon-only {
     width: 40px !important;
     min-width: 40px;
     max-width: 40px;
@@ -3850,3 +3851,15 @@ body .renda-item .renda-delete-btn-desktop svg {
   }
 }
 /* ===================================================================== */
+
+
+/* Garante que os botoes de texto nao quebrem e ocupem todo espaco no mobile */
+@media (max-width: 768px) {
+  .renda-buttons-container .btn,
+  .categorias-buttons-container .btn {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    flex: 1 1 0 !important;
+  }
+}
