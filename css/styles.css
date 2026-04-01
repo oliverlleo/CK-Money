@@ -3863,3 +3863,49 @@ body .renda-item .renda-delete-btn-desktop svg {
     flex: 1 1 0 !important;
   }
 }
+
+
+/* ================== MOBILE DESPESAS TABLE FIX ================== */
+@media (max-width: 768px) {
+  #despesasSection .table-container {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  #todasDespesasTable {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    table-layout: fixed;
+    margin-top: 0.75rem;
+  }
+
+  #todasDespesasTable tbody {
+    display: block;
+    width: 100%;
+  }
+
+  #todasDespesasTable tr.swipeable-row {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  #todasDespesasTable td {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  #todasDespesasTable td:nth-child(1),
+  #todasDespesasTable td:nth-child(3),
+  #todasDespesasTable td:nth-child(2) {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  #todasDespesasTable td:nth-child(2) {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
